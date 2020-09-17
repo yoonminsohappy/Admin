@@ -1,4 +1,4 @@
-<template> <div>Signin</div> </template>
+<template> <div>Sign-in</div> </template>
 
 <script>
 export default {};
