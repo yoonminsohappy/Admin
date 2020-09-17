@@ -1,0 +1,61 @@
+$light-gray: #eee;
+$gray: #e5e5e5;
+$dark-blue: #0d638f;
+$white: #fff;
+$background-clolr: #fafafa;
+$font-color-blue: #1e90ff;
+
+@mixin green {
+  background-color: #5cb85c;
+  border-color: #4cae4c;
+}
+
+@mixin hover-green {
+  background-color: #449d44;
+  border-color: #398439;
+}
+
+@mixin blue {
+  background-color: #428bca;
+  border-color: #357ebd;
+}
+
+@mixin hover-blue {
+  background-color: #3071a9;
+  border-color: #357ebd;
+}
+
+@mixin red {
+  background-color: #d9534f;
+  border-color: #d43f3a;
+}
+
+@mixin hover-red {
+  background-color: #c9302c;
+  border-color: #ac2925;
+}
+
+@mixin setFlex(
+  $justify-justify: null,
+  $align-align: null,
+  $flex-wrap: null,
+  $order-order: null
+) {
+  display: flex;
+  @if not($justify-justify) {
+  } @else {
+    justify-content: $justify-justify;
+  }
+  @if not($align-align) {
+  } @else {
+    align-content: $align-align;
+  }
+  @if not($flex-wrap) {
+  } @else {
+    flex-wrap: $flex-wrap;
+  }
+  @if not($order-order) {
+  } @else {
+    order: $order-order;
+  }
+}
