@@ -8,6 +8,7 @@ import RefundRequest from "../views/Refund/RefundRequest.vue";
 import Inquiry from "../views/Customer/Inquiry.vue";
 import Member from "../views/Member/Member.vue";
 import Planning from "../views/Planning&Coupon/Planning.vue";
+import Footer from "../components/Footer/Footer"
 
 Vue.use(VueRouter);
 
@@ -53,6 +54,11 @@ export const router = new VueRouter({
       path: "/planning",
       name: "Planning",
       component: Planning,
+    },
+    {
+      path: "/footer",
+      name: "Footer",
+      component: Footer,
     },
   ],
 });
