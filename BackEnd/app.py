@@ -1,11 +1,13 @@
-from flask import Flask
+import pymysql
+
+from flask      import Flask
 from flask_cors import CORS
 
-from sqlalchemy import create_engine
-
-from model import ProductDao
+from model   import ProductDao
 from service import ProductService
-from view import create_endpoints
+from view    import create_endpoints
+
+import config
 
 class Services:
     pass
@@ -19,11 +21,20 @@ def create_app(test_config = None):
     else:
         app.config.update(test_config)
 
-    database = create_engine(app.config['DB_URL'], encoding = 'utf-8', max_overflow = 0)
+    db = config.database
+    database = pymysql.connect(
+        host    = db['host'],
+        port    = db['port'],
+        user    = db['user'],
+        passwd  = db['password'],
+        db      = db['database'],
+        charset = 'utf8'
+    )
 
     product_dao = ProductDao(database)
 
     services = Services
+
     services.product_service = ProductService(product_dao, app.config)
 
     create_endpoints(app, services)

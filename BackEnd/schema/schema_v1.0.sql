@@ -515,7 +515,7 @@ CREATE TABLE reviews
     `product_id`            INT             NOT NULL                     COMMENT '상품아이디',
     `content`               TEXT            NOT NULL                     COMMENT '리뷰내용',
     `register_date`         DATETIME        NOT NULL    Default NOW()    COMMENT '등록 일자',
-    `updated_at`            DATETIME        NOT NULL                     COMMENT '수정일자',
+    `updated_at`            DATETIME        NULL                         COMMENT '수정일자',
     `grade`                 INT             NOT NULL                     COMMENT '1-5',
     `is_deleted`            BOOLEAN         NOT NULL    Default False    COMMENT '삭제 여부',
     `modifier_id`           INT             NULL                         COMMENT '수정자 아이디',
@@ -558,7 +558,7 @@ CREATE TABLE question_tables
     `user_id`           INT         NOT NULL    COMMENT '유저 아이디', 
     `question_content`  TEXT        NOT NULL    COMMENT '문의 내용', 
     `question_type_id`  INT         NOT NULL    COMMENT '문의 유형 아이디', 
-    `updated_at`        DATETIME    NOT NULL    COMMENT '수정일자',
+    `updated_at`        DATETIME    NULL        COMMENT '수정일자',
     `is_deleted`        TINYINT     NOT NULL    COMMENT '삭제 여부', 
     PRIMARY KEY (id)
 );

@@ -1,26 +1,25 @@
-from sqlalchemy import text
+import pymysql
 
 # 작성자: 김태수
 # 작성일: 2020.09.17.목
 # Product와 연결된 Class
 class ProductDao:
     def __init__(self, database):
-        self.db = database
+        self.db     = database
+        self.cursor = self.db.cursor()
 
     # 작성자: 김태수
     # 작성일: 2020.09.17.목
     # 원산지 데이터를 데이터베이스에서 가져오는 함수
     def get_country_of_origin(self, country_id):
-        row = self.db.execute(text(
-            """
+        row = self.cursor.execute(
+            f"""
             SELECT
                 id,
                 name
             FROM country_of_origins
-            WHERE id = :country_id
-            """), {'country_id':country_id}).fetchone()
+            WHERE id = {country_id}
+            """)
+        self.db.commit()
 
-        return {
-            'country_id'   : row['id'],
-            'country_name' : row['name']
-        } if row else None
+        return row if row else None
