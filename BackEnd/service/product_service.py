@@ -10,4 +10,10 @@ class ProductService:
     # 작성일: 2020.09.17.목
     # 원산지 데이터를 처리하는 로직
     def get_country_of_origin(self, country_id):
-        return self.product_dao.get_country_of_origin(country_id)
+        try:
+            country_data = self.product_dao.get_country_of_origin(country_id)
+        except:
+            raise
+        else:
+            return country_data
+

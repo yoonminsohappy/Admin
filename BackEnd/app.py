@@ -24,16 +24,8 @@ def create_app(test_config = None):
         app.config.update(test_config)
 
     db = config.database
-    database = pymysql.connect(
-        host    = db['host'],
-        port    = db['port'],
-        user    = db['user'],
-        passwd  = db['password'],
-        db      = db['database'],
-        charset = 'utf8'
-    )
 
-    product_dao = ProductDao(database)
+    product_dao = ProductDao(db)
 
     services = Services
 
