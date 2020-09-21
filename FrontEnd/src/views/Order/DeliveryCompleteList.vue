@@ -1,5 +1,5 @@
 <template>
-  <div>PaymentComplete</div>
+  <div>DeliveryCompleteList</div>
 </template>
 
 <script>

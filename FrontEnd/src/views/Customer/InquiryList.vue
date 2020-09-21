@@ -1,6 +1,4 @@
-<template>
-  <div>PaymentComplete</div>
-</template>
+<template><div>inquiryList</div> </template>
 
 <script>
 export default {};
