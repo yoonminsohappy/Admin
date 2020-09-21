@@ -1,4 +1,6 @@
-<template><div>inquiry</div> </template>
+<template>
+  <div>Account</div>
+</template>
 
 <script>
 export default {};

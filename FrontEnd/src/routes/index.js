@@ -3,12 +3,21 @@ import VueRouter from "vue-router";
 import Login from "../views/Signin&Signup/Signin.vue";
 import Signup from "../views/Signin&Signup/Signup.vue";
 import PaymentComplete from "../views/Order/PaymentComplete.vue";
-import Product from "../views/Product/Product.vue";
+import ProductPrepare from "../views/Order/ProductPrepareList.vue"
+import Delivery from "../views/Order/DeliveryList.vue"
+import DeliveryComplete from "../views/Order/DeliveryCompleteList.vue"
 import RefundRequest from "../views/Refund/RefundRequest.vue";
-import Inquiry from "../views/Customer/Inquiry.vue";
-import Member from "../views/Member/Member.vue";
+import RefundComplete from "../views/Refund/RefundCompleteList.vue";
+import CancelComplete from "../views/Refund/CancelCompleteList.vue";
+import Product from "../views/Product/Product.vue";
+import ProductRegist from "../views/Product/ProductRegist.vue";
+import Inquiry from "../views/Customer/InquiryList.vue";
+import TextReview from "../views/Customer/TextReviewList.vue";
 import Planning from "../views/Planning&Coupon/Planning.vue";
-import Footer from "../components/Footer/Footer"
+import Coupon from "../views/Planning&Coupon/Coupon.vue";
+import Member from "../views/Member/Member.vue";
+import Account from "../views/Member/Account.vue";
+import SideBar from "../components/SideBar/SideBar"
 
 Vue.use(VueRouter);
 
@@ -31,9 +40,27 @@ export const router = new VueRouter({
       component: PaymentComplete,
     },
     {
+      path: "/productPrepare",
+      name: "ProductPrepare",
+      component: ProductPrepare,
+    },    {
+      path: "/delivery",
+      name: "Delivery",
+      component: Delivery,
+    },    {
+      path: "/deliveryComplete",
+      name: "DeliveryComplete",
+      component: DeliveryComplete,
+    },
+    {
       path: "/product",
       name: "Product",
       component: Product,
+    },
+    {
+      path: "/productRegist",
+      name: "ProductRegist",
+      component: ProductRegist,
     },
     {
       path: "/refundRequest",
@@ -41,9 +68,24 @@ export const router = new VueRouter({
       component: RefundRequest,
     },
     {
+      path: "/refundComplete",
+      name: "RefundComplete",
+      component: RefundComplete,
+    },
+    {
+      path: "/cancelComplete",
+      name: "CancelComplete",
+      component: CancelComplete,
+    },
+    {
       path: "/inquiry",
       name: "Inquiry",
       component: Inquiry,
+    },
+    {
+      path: "/textReview",
+      name: "TextReview",
+      component: TextReview,
     },
     {
       path: "/member",
@@ -51,14 +93,24 @@ export const router = new VueRouter({
       component: Member,
     },
     {
+      path: "/account",
+      name: "Account",
+      component: Account,
+    },
+    {
       path: "/planning",
       name: "Planning",
       component: Planning,
     },
     {
-      path: "/footer",
-      name: "Footer",
-      component: Footer,
+      path: "/coupon",
+      name: "Coupon",
+      component: Coupon,
+    },
+    {
+      path: "/sideBar",
+      name: "SideBar",
+      component: SideBar,
     },
   ],
 });

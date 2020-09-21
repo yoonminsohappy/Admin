@@ -1,5 +1,5 @@
 <template>
-  <div>PaymentComplete</div>
+  <div>CancelCompleteList</div>
 </template>
 
 <script>

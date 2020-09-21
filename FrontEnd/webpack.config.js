@@ -22,7 +22,7 @@ module.exports = {
       { test: /\.css$/, use: ["vue-style-loader", "css-loader"] },
       {
         test: /\.scss$/,
-        use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
+        use: ["vue-style-loader", "css-loader", "sass-loader"],
       },
       {
         test: /\.(png|jpg|gif|svg)$/,
@@ -40,16 +40,15 @@ module.exports = {
     new VueLoaderPlugin(),
     // new webpack.HotModuleReplacementPlugin(),
     new webpack.ProgressPlugin(),
-    new MiniCssExtractPlugin({
-      filename: "style.css",
-    }),
+    // new MiniCssExtractPlugin({
+    //   filename: "style.css",
+    // }),
   ],
   devServer: {
     open: true,
     hot: true,
-    noInfo: true,
-    overlay: true,
     historyApiFallback: true,
+    quiet: true
   },
   devtool: "#eval-source-map",
   resolve: {
