@@ -12,6 +12,8 @@ import config
 class Services:
     pass
 
+# 작성자: 김태수
+# 수정일: 2020.09.21.월
 def create_app(test_config = None):
     app = Flask(__name__)
     CORS(app)
