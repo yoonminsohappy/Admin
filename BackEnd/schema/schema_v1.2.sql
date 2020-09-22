@@ -592,11 +592,7 @@ CREATE TABLE orders
     `final_price`             INT             NOT NULL, 
     `order_date`              DATETIME        NOT NULL    DEFAULT NOW(), 
     `user_id`                 INT             NOT NULL,
-<<<<<<< HEAD
     `shipping_information_id` INT             NOT NULL,
-=======
-    `shipping_infomation_id`  INT             NOT NULL,
->>>>>>> cc822ea... Add: 스키마 버전 1.2
     PRIMARY KEY (id)
 );
 
@@ -605,11 +601,7 @@ ALTER TABLE orders
         REFERENCES users (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ALTER TABLE orders
-<<<<<<< HEAD
     ADD CONSTRAINT FK_orders_shipping_infomation_id FOREIGN KEY (shipping_information_id)
-=======
-    ADD CONSTRAINT FK_orders_shipping_infomation_id FOREIGN KEY (shipping_infomation_id)
->>>>>>> cc822ea... Add: 스키마 버전 1.2
         REFERENCES shipping_informations (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 -- order_cancel_reasons Table Create SQL
@@ -640,11 +632,7 @@ CREATE TABLE order_details
     `option_id`                        INT             NOT NULL, 
     `quantity`                         INT             NOT NULL, 
     `price`                            INT             NOT NULL, 
-<<<<<<< HEAD
     `is_confirmed`                     TINYINT(1)      NOT NULL, 
-=======
-    `is_comfirmed`                     TINYINT(1)      NOT NULL, 
->>>>>>> cc822ea... Add: 스키마 버전 1.2
     `order_cancel_reason_id`           INT             NULL, 
     `order_refund_reason_id`           INT             NULL, 
     `order_refund_reason_description`  TEXT            NULL, 
@@ -698,8 +686,4 @@ ALTER TABLE order_status_modification_histories
 
 ALTER TABLE order_status_modification_histories
     ADD CONSTRAINT FK_order_status_id FOREIGN KEY (order_status_id)
-<<<<<<< HEAD
         REFERENCES order_statuses (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
-=======
-        REFERENCES order_statuses (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
->>>>>>> cc822ea... Add: 스키마 버전 1.2
