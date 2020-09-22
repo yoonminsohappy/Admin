@@ -40,7 +40,7 @@ CREATE TABLE sellers
     `seller_status_id`             INT              NOT NULL    COMMENT '셀러 상태 아이디', 
     `is_master`                    BOOLEAN          NOT NULL    DEFAULT False COMMENT '마스터', 
     `is_deleted`                   BOOLEAN          NOT NULL    DEFAULT False COMMENT '삭제 여부', 
-    `seller_account`               VARCHAR(128)     NOT NULL    COMMENT '셀러 계정', 
+    `seller_account`               VARCHAR(128)     NOT NULL    UNIQUE COMMENT '셀러 계정', 
     `english_name`                 VARCHAR(128)     NOT NULL    COMMENT '영문이름', 
     `korean_name`                  VARCHAR(128)     NOT NULL    COMMENT '한글 이름', 
     `cs_phone`                     VARCHAR(64)      NOT NULL    COMMENT '고객센터 전화번호', 
