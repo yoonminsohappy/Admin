@@ -596,7 +596,7 @@ ALTER TABLE orders
         REFERENCES users (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ALTER TABLE orders
-    ADD CONSTRAINT FK_orders_shipping_infomation_id FOREIGN KEY (shipping_infomation_id)
+    ADD CONSTRAINT FK_orders_shipping_infomation_id FOREIGN KEY (shipping_information_id)
         REFERENCES shipping_informations (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 -- order_cancel_reasons Table Create SQL
