@@ -587,7 +587,7 @@ CREATE TABLE orders
     `final_price`             INT             NOT NULL, 
     `order_date`              DATETIME        NOT NULL    DEFAULT NOW(), 
     `user_id`                 INT             NOT NULL,
-    `shipping_infomation_id`  INT             NOT NULL,
+    `shipping_information_id` INT             NOT NULL,
     PRIMARY KEY (id)
 );
 
