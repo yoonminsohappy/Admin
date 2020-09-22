@@ -632,7 +632,7 @@ CREATE TABLE order_details
     `option_id`                        INT             NOT NULL, 
     `quantity`                         INT             NOT NULL, 
     `price`                            INT             NOT NULL, 
-    `is_comfirmed`                     TINYINT(1)      NOT NULL, 
+    `is_confirmed`                     TINYINT(1)      NOT NULL, 
     `order_cancel_reason_id`           INT             NULL, 
     `order_refund_reason_id`           INT             NULL, 
     `order_refund_reason_description`  TEXT            NULL, 
