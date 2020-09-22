@@ -223,6 +223,11 @@ ALTER TABLE products
     ADD CONSTRAINT FK_products_categories_id FOREIGN KEY (categories_id)
         REFERENCES first_category_second_categories (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
+-- 상품과 셀러 연결
+ALTER TABLE products
+    ADD CONSTRAINT FK_products_seller_id FOREIGN KEY (seller_id)
+        REFERENCES sellers (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
 -- 상품 상세
 CREATE TABLE product_details
 (
