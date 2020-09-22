@@ -8,7 +8,7 @@ class SellerDao:
     def find_sellers_by_search_term(self, search_term, limit):
         QUERY = """
             SELECT 
-                id, korean_name, profile_image
+                id, korean_name, profile_image, seller_property_id
             FROM 
                 sellers
             WHERE 
