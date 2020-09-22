@@ -9,6 +9,7 @@ from .order_view   import (
     OrderDataView,
     OrderStatusUpdateView
 )
+from .seller_view  import SellerView, SellerSignUpView
 
 def create_endpoints(app, services):
     product_service = services.product_service
@@ -21,7 +22,6 @@ def create_endpoints(app, services):
     app.add_url_rule('/country_of_origin/<int:country_id>',
         view_func = CountryOfOriginView.as_view('country_of_origin', product_service)
     )
-
     app.add_url_rule('/sellers',
         view_func = SellerSearchView.as_view('seller_search_view', seller_service)
     )
@@ -39,4 +39,9 @@ def create_endpoints(app, services):
     )
     app.add_url_rule('/update-status',
         view_func = OrderStatusUpdateView.as_view('order_status_update_view', order_service)
-    )
+    )    
+    # 작성자: 이지연
+    # 작성일: 2020.09.22.화
+    # 회원가입 endpoint    
+    app.add_url_rule('/signup', view_func=SellerSignUpView.as_view('seller_signup',seller_service))
+   
