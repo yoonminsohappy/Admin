@@ -17,3 +17,8 @@ class ProductService:
         else:
             return country_data
 
+    def find_first_categories_by_seller_property_id(self, seller_property_id):
+        return self.product_dao.find_first_categories_by_seller_property_id(seller_property_id)
+
+    def find_second_categories_by_first_category_id(self, first_category_id):
+        return self.product_dao.find_second_categories_by_first_category_id(first_category_id)
