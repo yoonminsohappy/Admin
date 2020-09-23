@@ -25,9 +25,12 @@ def create_app(test_config = None):
 
     db = config.database
 
-    product_dao = ProductDao(db)
-    seller_dao  = SellerDao(db)
-    order_dao   = OrderDao(db)
+    product_dao = ProductDao()
+<<<<<<< HEAD
+    order_dao   = OrderDao()
+=======
+>>>>>>> 34721f6... Modify: 2차 카테고리 뷰 수정
+    seller_dao = SellerDao()
 
     services = Services
 

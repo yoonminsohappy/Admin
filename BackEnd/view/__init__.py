@@ -2,14 +2,14 @@ from .product_view import (
     CountryOfOriginView,
     FirstCategoriesBySellerPropertyIdView,
     SecondCategoriesByFirstCategoryIdView,
-    ProductImagesUploadView
+    ProductImagesUploadView,
 )
-from .seller_view  import SellerSearchView
 from .order_view   import (
     OrderDataView,
     OrderStatusUpdateView
 )
-from .seller_view  import SellerView, SellerSignUpView
+from .seller_view  import ProductSellerSearchView, SellerSignUpView
+
 
 def create_endpoints(app, services):
     product_service = services.product_service
@@ -22,8 +22,10 @@ def create_endpoints(app, services):
     app.add_url_rule('/country_of_origin/<int:country_id>',
         view_func = CountryOfOriginView.as_view('country_of_origin', product_service)
     )
-    app.add_url_rule('/sellers',
-        view_func = SellerSearchView.as_view('seller_search_view', seller_service)
+
+    app.add_url_rule('/products/sellers', 
+        view_func = ProductSellerSearchView.as_view('product_seller_search_view', seller_service)
+
     )
     app.add_url_rule('/products/first-categories',
         view_func = FirstCategoriesBySellerPropertyIdView.as_view('first_categories_by_seller_property_id_view', product_service)
@@ -44,4 +46,3 @@ def create_endpoints(app, services):
     # 작성일: 2020.09.22.화
     # 회원가입 endpoint    
     app.add_url_rule('/signup', view_func=SellerSignUpView.as_view('seller_signup',seller_service))
-   

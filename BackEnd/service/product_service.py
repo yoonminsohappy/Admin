@@ -24,11 +24,11 @@ class ProductService:
         else:
             return country_data
 
-    def find_first_categories_by_seller_property_id(self, seller_property_id):
-        return self.product_dao.find_first_categories_by_seller_property_id(seller_property_id)
+    def find_first_categories_by_seller_property_id(self, conn, seller_property_id):
+        return self.product_dao.find_first_categories_by_seller_property_id(conn, seller_property_id)
 
-    def find_second_categories_by_first_category_id(self, first_category_id):
-        return self.product_dao.find_second_categories_by_first_category_id(first_category_id)
+    def find_second_categories_by_first_category_id(self, conn, first_category_id):
+        return self.product_dao.find_second_categories_by_first_category_id(conn, first_category_id)
 
     def upload_image_to_s3(self, image, filename):
         self.s3.upload_fileobj(
@@ -40,3 +40,6 @@ class ProductService:
         image_url = f"{self.config['S3_BUCKET_URL']}{filename}"
         print(image_url)
         return
+
+    def search_sellers(self, conn, search_term, limit):
+        return self.dao.find_sellers_by_search_term(conn, search_term, limit)

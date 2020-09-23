@@ -5,8 +5,9 @@ class SellerService:
         self.dao = dao 
         self.config = config 
 
-    def search_sellers(self, search_term, limit):
-        return self.dao.find_sellers_by_search_term(search_term, limit)
+    def search_sellers(self, conn, search_term, limit):
+        return self.dao.find_sellers_by_search_term(conn, search_term, limit)
+
 
     # 작성자: 이지연
     # 작성일: 2020.09.22.화
@@ -34,40 +35,3 @@ class SellerService:
         }
 
         return self.dao.insert_manager(manager)
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # 작성자: 이지연
-    # 작성일: 2020.09.22.화
-    # 로그인 endpoint
-
-    # def sign_in(self, data):
-        
-    #     encode_password = bcrypt.hashpw(str(data['password']).encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-    #     user = {
-    #         'seller_account'        : data['seller_account'],
-    #         'password'              : encode_password,
-    #     }
-    #     return self.dao.select_seller(user)   
