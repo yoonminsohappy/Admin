@@ -1,6 +1,9 @@
-from flask import jsonify, request
+import os
 
-from flask.views import MethodView
+from flask          import jsonify, request
+from flask.views    import MethodView
+from werkzeug.utils import secure_filename
+
 
 # 작성자: 김태수
 # 작성일: 2020.09.17.목
@@ -57,3 +60,24 @@ class SecondCategoriesByFirstCategoryIdView(MethodView):
 
         results = self.service.find_second_categories_by_first_category_id(first_category_id)
         return jsonify(results), 200
+
+class ProductImagesUploadView(MethodView):
+    def __init__(self, service):
+        self.service = service
+
+    def post(self):
+        if not request.files:
+            message = {"message": "IMAGES_ARE_MISSING"}
+            return jsonify(message), 400
+
+        images = request.files.getlist('product_images')
+        for image in images:
+            if image.filename == '':
+                message = {"message": "FILENAME_IS_MISSING"}
+                return jsonify(message), 400
+
+            filename = secure_filename(image.filename)
+            self.service.upload_image_to_s3(image, filename)
+
+        message = {"message": "UPLOAD_SUCCESS"}
+        return jsonify(message), 200
