@@ -24,3 +24,19 @@ class OrderDataView(MethodView):
 
         except:
             return jsonify({'message':'UNSUCCESS'}), 400
+
+class OrderStatusUpdateView(MethodView):
+    def __init__(self, service):
+        self.service = service
+
+    def put(self):
+        try:
+            data = request.get_json()
+            order_detail_numbers = data['order_detail_numbers']
+            update_status_name = data['update_status_name']
+            self.service.update_order_status(order_detail_numbers, update_status_name)
+
+        except:
+            return jsonify({'message':'UNSUCCESS'}), 400
+        else:
+            return jsonify({'message':'SUCCESS'}), 400

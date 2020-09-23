@@ -56,3 +56,12 @@ class OrderService:
         else:
             return result
 
+    def update_order_status(self, order_detail_numbers, update_status_name):
+        try:
+            for order_detail_number in order_detail_numbers:
+                order_detail_id = self.order_dao.get_order_detail(order_detail_number)['id']
+                self.order_dao.update_order_status(order_detail_id, update_status_name)
+        except:
+            raise
+        else:
+            return
