@@ -3,8 +3,8 @@ import pymysql
 from flask      import Flask
 from flask_cors import CORS
 
-from model   import ProductDao, SellerDao
-from service import ProductService, SellerService
+from model   import ProductDao, SellerDao, OrderDao
+from service import ProductService, SellerService, OrderService
 from view    import create_endpoints
 
 import config
@@ -26,12 +26,14 @@ def create_app(test_config = None):
     db = config.database
 
     product_dao = ProductDao(db)
-    seller_dao = SellerDao(db)
+    seller_dao  = SellerDao(db)
+    order_dao   = OrderDao(db)
 
     services = Services
 
     services.product_service = ProductService(product_dao, app.config)
     services.seller_service  = SellerService(seller_dao, app.config)
+    services.order_service   = OrderService(order_dao, app.config)
 
     create_endpoints(app, services)
 
