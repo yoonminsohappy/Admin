@@ -2,7 +2,7 @@ from flask import jsonify, request
 
 from flask.views import MethodView
 
-class SellerView(MethodView):
+class SellerSearchView(MethodView):
     def __init__(self, service):
         self.service = service
 

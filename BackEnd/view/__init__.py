@@ -4,7 +4,7 @@ from .product_view import (
     SecondCategoriesByFirstCategoryIdView,
     ProductImagesUploadView
 )
-from .seller_view  import SellerView
+from .seller_view  import SellerSearchView
 
 def create_endpoints(app, services):
     product_service = services.product_service
@@ -16,7 +16,7 @@ def create_endpoints(app, services):
     app.add_url_rule('/country_of_origin/<int:country_id>', view_func = CountryOfOriginView.as_view('country_of_origin', product_service))
 
     app.add_url_rule('/sellers', 
-        view_func = SellerView.as_view('find_sellers_by_search_term', seller_service)
+        view_func = SellerSearchView.as_view('seller_search_view', seller_service)
     )
     app.add_url_rule('/products/first-categories', 
         view_func = FirstCategoriesBySellerPropertyIdView.as_view('first_categories_by_seller_property_id_view', product_service)
