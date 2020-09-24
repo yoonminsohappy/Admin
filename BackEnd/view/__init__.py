@@ -7,12 +7,11 @@ from .product_view import (
 from .order_view   import (
     GetOrderDataView,
 )
-<<<<<<< HEAD
-from .seller_view  import ProductSellerSearchView, SellerSignUpView
-=======
-from .seller_view  import SellerSearchView, SellerSignUpView,SellerSignInView
->>>>>>> f69d49e... Add: 셀러 로그인  엔드포인트 구현
-
+from .seller_view  import (
+    ProductSellerSearchView,
+    SellerSignUpView,
+    SellerSignInView
+)
 
 def create_endpoints(app, services):
     product_service = services.product_service

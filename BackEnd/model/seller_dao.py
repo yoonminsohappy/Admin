@@ -1,6 +1,5 @@
 import pymysql
 
-# from connection import get_connection
 from flask      import jsonify
 
 class SellerDao:
@@ -43,9 +42,8 @@ class SellerDao:
         cursor.execute(QUERY, (seller_properties))
         result = cursor.fetchone() #row 가져옴
         cursor.close()
-        return result
-        print(result)
 
+        return result
 
     # seller삽입하기
     def insert_seller(self,seller,db):
@@ -73,6 +71,7 @@ class SellerDao:
 
         result = cursor.lastrowid
         cursor.close()
+
         return result if result else None
 
     # seller_managers 삽입하기
@@ -90,10 +89,8 @@ class SellerDao:
         result = cursor.lastrowid
 
         cursor.close()
-
         db.commit()
-        db.close()
-        
+
         return result if result else None
 
 
@@ -110,6 +107,6 @@ class SellerDao:
         cursor = db.cursor(pymysql.cursors.DictCursor)
         cursor.execute(QUERY, (seller_account))
         result = cursor.fetchone()
-        
         cursor.close()
+
         return result

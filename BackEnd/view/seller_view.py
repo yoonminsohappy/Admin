@@ -1,17 +1,10 @@
-<<<<<<< HEAD
-from flask       import jsonify, request
-from flask.views import MethodView
+from flask          import jsonify, request
+from flask.views    import MethodView
 
-from pymysql import err
-=======
-import config, connection
+from connection     import get_connection
+from pymysql        import err
 
-from flask       import jsonify, request
-from flask.views import MethodView 
->>>>>>> f69d49e... Add: 셀러 로그인  엔드포인트 구현
-
-import config
-from connection import get_connection
+import config,connection
 
 class ProductSellerSearchView(MethodView):
     def __init__(self, service):
@@ -50,21 +43,18 @@ class SellerSignUpView(MethodView):
         self.service = service 
 
     def post(self):
-
         try:
-            db          = connection.get_connection(config.database)
+            conn          = connection.get_connection(config.database)
             seller_info = request.get_json()
-            sign_up     = self.service.sign_up(seller_info, db)
-            # print(sign_up)
-            db.commit()
+            sign_up     = self.service.sign_up(seller_info, conn)
+
+            conn.commit()
             return jsonify({'message':'SUCCESS'}), 200 
-
         except Exception as e:
-            db.rollback()
-            return jsonify(f'{'message' : '{e}'}), 400
-
+            conn.rollback()
+            return jsonify({'message':'UNSUCCESS'}), 400
         finally:
-            db.close()   
+            conn.close()   
 
 # 작성자: 이지연
 # 작성일: 2020.09.23.화
@@ -76,15 +66,15 @@ class SellerSignInView(MethodView):
 
     def post(self):
         try:
-            db          = connection.get_connection(config.database)
+            conn          = connection.get_connection(config.database)
             seller_info = request.get_json()
-            access_token= self.service.sign_in(seller_info,db)
+            access_token= self.service.sign_in(seller_info,conn)
         except Exception as e:
             db.rollback()
             return jsonify({'message': 'UNSUCCESS'}),400
         else:
-            db.commit()
+            conn.commit()
             return jsonify({'access_token':access_token}),200
         finally:
-            db.close() 
+            conn.close() 
 

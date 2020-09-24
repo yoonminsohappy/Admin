@@ -8,14 +8,12 @@ class SellerService:
     def search_sellers(self, conn, search_term, limit):
         return self.dao.find_sellers_by_search_term(conn, search_term, limit)
 
-
     # 작성자: 이지연
     # 작성일: 2020.09.22.화
     # 회원가입 endpoint
 
     def sign_up(self, seller_info, db):
         seller_property_id  = self.dao.get_property_id(seller_info['seller_properties'],db)
-        print(seller_property_id)
         password            = seller_info['password'].encode()
         password_crypt      = bcrypt.hashpw(password,bcrypt.gensalt()).decode('utf-8')
 
@@ -52,4 +50,3 @@ class SellerService:
                 return access_token
             raise Exception("Invalid Password")
         raise Exception("Invalid Account")
-
