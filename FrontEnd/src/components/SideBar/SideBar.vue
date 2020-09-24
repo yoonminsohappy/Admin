@@ -120,4 +120,9 @@ export default {
     }
   }
 }
+@media (min-width: 1000px) and (max-width: 1500px) {
+  .page-side-bar {
+    min-height: 699px;
+  }
+}
 </style>

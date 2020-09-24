@@ -41,4 +41,9 @@ export default {
   min-height: 855px;
   padding: 25px 20px 20px 20px;
 }
+@media (min-width: 1000px) and (max-width: 1500px) {
+  .admin-frame {
+    min-height: 699px;
+  }
+}
 </style>
