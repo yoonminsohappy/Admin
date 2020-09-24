@@ -59,6 +59,7 @@ class OrderDao:
                 AND sl.korean_name LIKE %s
                 AND pd.name LIKE %s
                 AND sl.seller_property_id IN %s
+            ORDER BY osmh.updated_at DESC
             LIMIT %s, %s;
             """
             cursor.execute(sql, arguments)
