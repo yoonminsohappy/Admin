@@ -39,5 +39,6 @@ export default {
 .admin-frame {
   margin: 45px 0 0 215px;
   min-height: 855px;
+  padding: 25px 20px 20px 20px;
 }
 </style>
