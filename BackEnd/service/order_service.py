@@ -10,9 +10,9 @@ class OrderService:
     # 작성자: 김태수
     # 작성일: 2020.09.23.수
     # 주문 정보를 처리하는 로직
-    def get_order_informations(self, db, status_name, start_date, end_date, offset, limit):
+    def get_order_informations(self, db, arguments):
         try:
-            payment_complete_data = self.order_dao.get_payment_complete_order_data(db, status_name, start_date, end_date, offset, limit)
+            payment_complete_data = self.order_dao.get_payment_complete_order_data(db, arguments)
 
             for payment_complete_datum in payment_complete_data:
                 payment_complete_datum['updated_at'] = payment_complete_datum['updated_at'].strftime('%Y-%m-%d %H:%M:%S')

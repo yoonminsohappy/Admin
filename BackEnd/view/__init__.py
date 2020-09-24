@@ -40,11 +40,8 @@ def create_endpoints(app, services):
         view_func = ProductImagesUploadView.as_view('product_images_upload_view', product_service)
     )
     app.add_url_rule('/order',
-        view_func = OrderDataView.as_view('order_data_view', order_service)
+        view_func = GetOrderDataView.as_view('order_data_view', order_service)
     )
-    app.add_url_rule('/update-status',
-        view_func = OrderStatusUpdateView.as_view('order_status_update_view', order_service)
-    )    
     # 작성자: 이지연
     # 작성일: 2020.09.22.화
     # 회원가입 endpoint    
