@@ -1,8 +1,8 @@
-import json, bcrypt
+import json, bcrypt, jwt
 
 class SellerService:
     def __init__(self, dao, config):
-        self.dao = dao 
+        self.dao    = dao 
         self.config = config 
 
     def search_sellers(self, conn, search_term, limit):
@@ -13,25 +13,43 @@ class SellerService:
     # 작성일: 2020.09.22.화
     # 회원가입 endpoint
 
-    def sign_up(self, data):
-        seller_property_id = self.dao.get_property_id(data['seller_properties'])
+    def sign_up(self, seller_info, db):
+        seller_property_id  = self.dao.get_property_id(seller_info['seller_properties'],db)
+        print(seller_property_id)
+        password            = seller_info['password'].encode()
+        password_crypt      = bcrypt.hashpw(password,bcrypt.gensalt()).decode('utf-8')
+
+        seller = {
+            'seller_account'        : seller_info['seller_account'],
+            'password'              : password_crypt,
+            'seller_property_id'    : seller_property_id['id'],
+            'korean_name'           : seller_info['korean_name'],
+            'english_name'          : seller_info['english_name'],
+            'cs_phone'              : seller_info['cs_phone']
+        }
+
+        result = self.dao.insert_seller(seller,db)
         
-        encode_password = bcrypt.hashpw(str(data['password']).encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-        user = {
-            'seller_account'        : data['seller_account'],
-            'password'              : encode_password,
-            'seller_property_id'    : seller_property_id,
-            'korean_name'           : data['korean_name'],
-            'english_name'          : data['english_name'],
-            'cs_phone'              : data['cs_phone']
-        }
-
-        result = self.dao.insert_seller(user) #seller 인서트 후 마지막 seller의 id값
-
         manager = {
-            'phone_number' : data['seller_phone'],
-            'seller_id' : result
-        }
+            'phone_number' : seller_info['seller_phone'],
+            'seller_id'    : result
+        }   
 
-        return self.dao.insert_manager(manager)
+        return self.dao.insert_manager(manager,db)
+
+    # 작성자: 이지연
+    # 작성일: 2020.09.23.수
+    # 로그인 endpoint
+
+    def sign_in(self, seller_info, db):
+        seller_account = seller_info['seller_account']
+        
+        seller_data    = self.dao.select_seller(seller_account, db)
+        if seller_data is not None:
+            if bcrypt.checkpw( seller_info['password'].encode('utf-8'), seller_data['password'].encode('utf-8')):
+                access_token = jwt.encode({'seller_account': seller_account}, self.config['SECRET_KEY'], algorithm = self.config['ALGORITHM'])
+                access_token = access_token.decode('utf-8')
+                return access_token
+            raise Exception("Invalid Password")
+        raise Exception("Invalid Account")
+

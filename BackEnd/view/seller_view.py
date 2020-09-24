@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 from flask       import jsonify, request
 from flask.views import MethodView
 
 from pymysql import err
+=======
+import config, connection
+
+from flask       import jsonify, request
+from flask.views import MethodView 
+>>>>>>> f69d49e... Add: 셀러 로그인  엔드포인트 구현
 
 import config
 from connection import get_connection
@@ -38,16 +45,46 @@ class ProductSellerSearchView(MethodView):
 # 작성일: 2020.09.22.화
 # 회원가입 endpoint
 
-class SellerSignUpView(MethodView):  # 특정 메서드에 요청을 전달/요청에 응답
+class SellerSignUpView(MethodView):  
     def __init__(self, service):
-        self.service = service #메소드별로 사용할 수 있도록 해당 service변수에 service를 넣어줌
+        self.service = service 
 
     def post(self):
-        data = request.get_json() #http body json형태로 변경
-        
-        result = self.service.sign_up(data)
-        if result:
-            print(result)
-            message  = {"message" : "Success"}
-            return jsonify(message), 200
-        return {"message" : "Fail"}, 400
+
+        try:
+            db          = connection.get_connection(config.database)
+            seller_info = request.get_json()
+            sign_up     = self.service.sign_up(seller_info, db)
+            # print(sign_up)
+            db.commit()
+            return jsonify({'message':'SUCCESS'}), 200 
+
+        except Exception as e:
+            db.rollback()
+            return jsonify(f'{'message' : '{e}'}), 400
+
+        finally:
+            db.close()   
+
+# 작성자: 이지연
+# 작성일: 2020.09.23.화
+# 로그인 endpoint
+
+class SellerSignInView(MethodView): 
+    def __init__(self, service):
+        self.service = service 
+
+    def post(self):
+        try:
+            db          = connection.get_connection(config.database)
+            seller_info = request.get_json()
+            access_token= self.service.sign_in(seller_info,db)
+        except Exception as e:
+            db.rollback()
+            return jsonify({'message': 'UNSUCCESS'}),400
+        else:
+            db.commit()
+            return jsonify({'access_token':access_token}),200
+        finally:
+            db.close() 
+

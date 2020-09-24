@@ -7,7 +7,11 @@ from .product_view import (
 from .order_view   import (
     GetOrderDataView,
 )
+<<<<<<< HEAD
 from .seller_view  import ProductSellerSearchView, SellerSignUpView
+=======
+from .seller_view  import SellerSearchView, SellerSignUpView,SellerSignInView
+>>>>>>> f69d49e... Add: 셀러 로그인  엔드포인트 구현
 
 
 def create_endpoints(app, services):
@@ -45,3 +49,5 @@ def create_endpoints(app, services):
     # 작성일: 2020.09.22.화
     # 회원가입 endpoint    
     app.add_url_rule('/signup', view_func=SellerSignUpView.as_view('seller_signup',seller_service))
+    app.add_url_rule('/signin', view_func=SellerSignInView.as_view('seller_signin',seller_service))
+

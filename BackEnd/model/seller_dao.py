@@ -1,5 +1,7 @@
 import pymysql
-from connection import get_connection
+
+# from connection import get_connection
+from flask      import jsonify
 
 class SellerDao:
     def find_sellers_by_search_term(self, conn, search_term, limit):
@@ -29,7 +31,7 @@ class SellerDao:
     # 회원가입 endpoint
     
     #property_id 갖고오기
-    def get_property_id(self, seller_properties):
+    def get_property_id(self, seller_properties, db):
         QUERY = """
             SELECT
                 id,
@@ -37,23 +39,19 @@ class SellerDao:
             FROM seller_properties
             WHERE name = %s;
             """
-        db     = get_connection(self.db)
-        cursor = db.cursor(pymysql.cursors.DictCursor) #관계형 데이터베이스에 데이터를 키와 값으로 이루어지게 딕셔너리 형태로 만듦
-
+        cursor = db.cursor(pymysql.cursors.DictCursor)
         cursor.execute(QUERY, (seller_properties))
         result = cursor.fetchone() #row 가져옴
-
         cursor.close()
-        db.close()
+        return result
+        print(result)
 
-        return result['id'] if result else None 
 
     # seller삽입하기
-    def insert_seller(self, user):
+    def insert_seller(self,seller,db):
         QUERY = """
             INSERT INTO sellers
             (
-                seller_status_id,
                 seller_account,
                 english_name,
                 korean_name,
@@ -61,25 +59,24 @@ class SellerDao:
                 seller_property_id,
                 password
             ) 
-            VALUES(1,%s, %s, %s, %s, %s, %s);
+            VALUES(%s, %s, %s, %s, %s, %s);
         """
 
-        db     = get_connection(self.db)
         cursor = db.cursor(pymysql.cursors.DictCursor) 
-
-        cursor.execute(QUERY, (user['seller_account'], user['english_name'],
-            user['korean_name'], user['cs_phone'], user['seller_property_id'], user['password']))
+        cursor.execute(QUERY, (
+            seller['seller_account'],
+            seller['english_name'],
+            seller['korean_name'],
+            seller['cs_phone'],
+            seller['seller_property_id'],
+            seller['password']))
 
         result = cursor.lastrowid
-
         cursor.close()
-        db.commit()
-        db.close()
-        
         return result if result else None
 
     # seller_managers 삽입하기
-    def insert_manager(self, manager):
+    def insert_manager(self, manager, db):
         QUERY = """
             INSERT INTO seller_manager_tables
             (
@@ -88,16 +85,31 @@ class SellerDao:
             ) 
             VALUES(%s, %s);
         """
-
-        db     = get_connection(self.db)
         cursor = db.cursor(pymysql.cursors.DictCursor) 
-
         cursor.execute(QUERY, (manager['phone_number'], manager['seller_id']))
-
         result = cursor.lastrowid
 
         cursor.close()
+
         db.commit()
         db.close()
         
         return result if result else None
+
+
+    # 로그인
+    def select_seller(self, seller_account , db):
+        QUERY = """
+            SELECT
+                seller_account,
+                password
+            FROM sellers
+            WHERE seller_account=%s;
+        """  
+
+        cursor = db.cursor(pymysql.cursors.DictCursor)
+        cursor.execute(QUERY, (seller_account))
+        result = cursor.fetchone()
+        
+        cursor.close()
+        return result
