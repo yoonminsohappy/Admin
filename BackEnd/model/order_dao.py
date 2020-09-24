@@ -5,257 +5,51 @@ from connection import get_connection
 # 작성일: 2020.09.23.수
 # order와 연결된 Class
 class OrderDao:
-    def __init__(self, db):
-        self.db = db
-
     # 작성자: 김태수
     # 작성일: 2020.09.23.수
-    def get_orders_and_order_details(self, status_name):
+    def get_payment_complete_order_data(self, db, status_name, start_date, end_date, offset, limit):
         try:
-            db     = get_connection(self.db)
             cursor = db.cursor(pymysql.cursors.DictCursor)
 
             sql = """
-            SELECT *
-            FROM order_details
-            LEFT JOIN orders
-            ON order_details.order_id = orders.id
-            WHERE (
-            SELECT id
-            FROM order_statuses
-            WHERE name = %s
-            ) = order_details.order_detail_statuses_id;
+            SELECT
+                d.id,
+                o.order_number,
+                d.order_detail_number,
+                o.final_price,
+                CONCAT(u.last_name, u.first_name),
+                c.name,
+                z.name,
+                d.quantity,
+                pd.name,
+                sl.korean_name,
+                s.phone_number,
+                osmh.updated_at
+            FROM
+                order_details d
+            LEFT JOIN orders o ON d.order_id = o.id
+            LEFT JOIN users u ON o.user_id = u.id
+            LEFT JOIN shipping_informations s ON s.id = o.shipping_information_id
+            LEFT JOIN options i ON d.option_id = i.id
+            LEFT JOIN colors c ON i.color_id = c.id
+            LEFT JOIN sizes z ON i.size_id = z.id
+            LEFT JOIN products p ON i.product_id = p.id
+            LEFT JOIN product_details pd ON pd.id = i.product_id
+            LEFT JOIN sellers sl ON sl.id = p.seller_id
+            LEFT JOIN order_status_modification_histories osmh ON osmh.order_detail_id = d.id
+            WHERE osmh.updated_at >= %s AND osmh.updated_at <= %s
+            AND d.order_detail_statuses_id = (SELECT id FROM order_statuses WHERE name = %s)
+            AND d.order_detail_number LIKE %s
+            AND o.order_number LIKE %s
+            LIMIT %s, %s
+            ;
             """
-
-            cursor.execute(sql, status_name)
-            order_data = cursor.fetchall()
-
+            od_num = ""
+            o_num = ""
+            cursor.execute(sql, (start_date, end_date, status_name, od_num, o_num,offset, limit))
+            payment = cursor.fetchall()
         except:
             raise
         finally:
-            cursor.close()
-            db.close()
-            return order_data if order_data else None
-
-    def get_payment_date(self, order_detail_id):
-        try:
-            db = get_connection(self.db)
-            cursor = db.cursor(pymysql.cursors.DictCursor)
-
-            sql = """
-            SELECT updated_at
-            FROM order_status_modification_histories
-            WHERE order_detail_id = %s;
-            """
-
-            cursor.execute(sql, order_detail_id)
-            payment_date = cursor.fetchone()
-
-        except:
-            raise
-        finally:
-            cursor.close()
-            db.close()
-            return payment_date if payment_date else None
-
-
-    def get_option_information(self, option_id):
-        try:
-            db = get_connection(self.db)
-            cursor = db.cursor(pymysql.cursors.DictCursor)
-
-            sql = """
-            SELECT *
-            FROM options
-            WHERE id = %s;
-            """
-
-            cursor.execute(sql, option_id)
-            option_information = cursor.fetchone()
-
-        except:
-            raise
-        finally:
-            cursor.close()
-            db.close()
-            return option_information if option_information else None
-
-    def get_color(self, color_id):
-        try:
-            db = get_connection(self.db)
-            cursor = db.cursor(pymysql.cursors.DictCursor)
-
-            sql = """
-            SELECT *
-            FROM colors
-            WHERE id = %s
-            """
-
-            cursor.execute(sql, color_id)
-            color = cursor.fetchone()
-
-        except:
-            raise
-        finally:
-            cursor.close()
-            db.close()
-            return color if color else None
-
-    def get_size(self, size_id):
-        try:
-            db = get_connection(self.db)
-            cursor = db.cursor(pymysql.cursors.DictCursor)
-
-            sql = """
-            SELECT *
-            FROM sizes
-            WHERE id = %s
-            """
-
-            cursor.execute(sql, size_id)
-            size = cursor.fetchone()
-
-        except:
-            raise
-        finally:
-            cursor.close()
-            db.close()
-            return size if size else None
-
-    def get_product_information(self, product_id):
-        try:
-            db = get_connection(self.db)
-            cursor = db.cursor(pymysql.cursors.DictCursor)
-
-            sql = """
-            SELECT *
-            FROM products
-            LEFT JOIN product_details
-            ON product_details.product_id = products.id
-            WHERE products.id = %s
-            """
-
-            cursor.execute(sql, product_id)
-            product_information = cursor.fetchone()
-
-        except:
-            raise
-        finally:
-            cursor.close()
-            db.close()
-            return product_information if product_information else None
-
-    def get_seller(self, seller_id):
-        try:
-            db = get_connection(self.db)
-            cursor = db.cursor(pymysql.cursors.DictCursor)
-
-            sql = """
-            SELECT *
-            FROM sellers
-            WHERE id = %s
-            """
-
-            cursor.execute(sql, seller_id)
-            seller = cursor.fetchone()
-
-        except:
-            raise
-        finally:
-            cursor.close()
-            db.close()
-            return seller if seller else None
-
-    def get_shipping_information(self, shipping_information_id):
-        try:
-            db = get_connection(self.db)
-            cursor = db.cursor(pymysql.cursors.DictCursor)
-
-            sql = """
-            SELECT *
-            FROM shipping_informations
-            WHERE id = %s
-            """
-
-            cursor.execute(sql, shipping_information_id)
-            shipping_information = cursor.fetchone()
-
-        except:
-            raise
-        finally:
-            cursor.close()
-            db.close()
-            return shipping_information if shipping_information else None
-
-    def get_user(self, user_id):
-        try:
-            db = get_connection(self.db)
-            cursor = db.cursor(pymysql.cursors.DictCursor)
-
-            sql = """
-            SELECT *
-            FROM users
-            WHERE id = %s
-            """
-
-            cursor.execute(sql, user_id)
-            user = cursor.fetchone()
-
-        except:
-            raise
-        finally:
-            cursor.close()
-            db.close()
-            return user if user else None
-
-    def get_order_detail(self, order_detail_number):
-        try:
-            db = get_connection(self.db)
-            cursor = db.cursor(pymysql.cursors.DictCursor)
-
-            sql = """
-            SELECT *
-            FROM order_details
-            WHERE order_detail_number = %s
-            """
-
-            cursor.execute(sql, order_detail_number)
-            order_detail = cursor.fetchone()
-            print(order_detail)
-        except:
-            raise
-        finally:
-            cursor.close()
-            db.close()
-            return order_detail if order_detail else None
-
-    def update_order_status(self, order_detail_id, update_status_name):
-        try:
-            db = get_connection(self.db)
-            cursor = db.cursor(pymysql.cursors.DictCursor)
-
-            sql = """
-            UPDATE order_details
-            SET order_detail_statuses_id = (
-            SELECT id
-            FROM order_statuses
-            WHERE name = %s
-            ) WHERE id = %s;
-
-            INSERT INTO order_status_modification_histories
-            (order_detail_id, updated_at, order_status_id)
-            VALUES
-            (%s, NOW(), SELECT id FROM order_statuses WHERE name = %s);
-            """
-
-            cursor.execute(sql, (update_status_name, order_detail_id, order_detail_id, update_status_name))
-
-        except:
-            db.rollback()
-            raise
-        else:
-            db.commit()
-        finally:
-            cursor.close()
-            db.close()
-            return
+            #cursor.close()
+            return payment if payment else None

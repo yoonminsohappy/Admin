@@ -5,8 +5,7 @@ from .product_view import (
     ProductImagesUploadView,
 )
 from .order_view   import (
-    OrderDataView,
-    OrderStatusUpdateView
+    GetOrderDataView,
 )
 from .seller_view  import ProductSellerSearchView, SellerSignUpView
 

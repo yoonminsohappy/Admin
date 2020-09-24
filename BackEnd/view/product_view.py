@@ -8,7 +8,6 @@ from werkzeug.utils import secure_filename
 import config
 from connection import get_connection
 
-
 # 작성자: 김태수
 # 작성일: 2020.09.17.목
 # 원산지 데이터와 연결된 class
@@ -18,16 +17,21 @@ class CountryOfOriginView(MethodView):
 
     def get(self, country_id):
         try:
-            country_of_origin = self.service.get_country_of_origin(country_id)
+            db = connection.get_connection(config.database)
+            country_of_origin = self.service.get_country_of_origin(db, country_id)
 
             if country_of_origin == None:
                 # 요청한 데이터가 존재하지 않는 경우 INVALID_VALUE 에러 전달
                 return jsonify({'message':'INVALID_VALUE'}), 400
 
+        except:
+            db.rollback()
+            return jsonify({'message':'UNSUCCESS'}), 400
+        else:
+            db.commit()
+            db.close()
             return jsonify(country_of_origin), 200
 
-        except:
-            return jsonify({'message':'UNSUCCESS'}), 400
 
 class FirstCategoriesBySellerPropertyIdView(MethodView):
     def __init__(self, service):

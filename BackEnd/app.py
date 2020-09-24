@@ -7,8 +7,6 @@ from model   import ProductDao, SellerDao, OrderDao
 from service import ProductService, SellerService, OrderService
 from view    import create_endpoints
 
-import config
-
 class Services:
     pass
 
@@ -23,14 +21,9 @@ def create_app(test_config = None):
     else:
         app.config.update(test_config)
 
-    db = config.database
-
     product_dao = ProductDao()
-<<<<<<< HEAD
+    seller_dao  = SellerDao()
     order_dao   = OrderDao()
-=======
->>>>>>> 34721f6... Modify: 2차 카테고리 뷰 수정
-    seller_dao = SellerDao()
 
     services = Services
 

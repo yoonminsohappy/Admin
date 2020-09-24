@@ -11,13 +11,11 @@ class DAOInsertFailError(Exception):
 # 수정일: 2020.09.21.월
 # Product와 연결된 Class
 class ProductDao:
-
     # 작성자: 김태수
     # 작성일: 2020.09.21.월
     # 원산지 데이터를 데이터베이스에서 가져오는 함수
-    def get_country_of_origin(self, country_id):
+    def get_country_of_origin(self, db, country_id):
         try:
-            db     = get_connection(self.db)
             cursor = db.cursor(pymysql.cursors.DictCursor)
 
             sql = """
@@ -29,14 +27,11 @@ class ProductDao:
             cursor.execute(sql, country_id)
             result = cursor.fetchone()
         except:
-            db.rollback()
             raise
         else:
-            db.commit()
             return result if result else None
         finally:
             cursor.close()
-            db.close()
 
     def find_first_categories_by_seller_property_id(self, conn, seller_property_id):
         QUERY = """
@@ -83,33 +78,3 @@ class ProductDao:
         cursor.close()
 
         return results if results else None
-
-    # def create_product(self, product_dict):
-    #     QUERY = """
-    #         INSERT INTO products (
-    #             seller_id,
-    #             code
-    #         ) VALUES (
-    #             %(seller_id)s,
-    #             %(code)s
-    #         );
-    #     """
-
-    #     try:
-    #         db     = get_connection(self.db)
-    #         cursor = db.cursor()
-    #         result = cursor.execute(QUERY, product_dict)
-    #         if result <= 0:
-    #             raise DAOInsertFailError("COULD_NOT_CREATE_PRODUCT")
-
-    #     except (pymysql.IntegrityError, DAOInsertFailError) as e:
-    #         db.rollback()
-    #         raise e
-    #     else:
-    #         db.commit()
-    #         product_id = cursor.lastrowid
-    #     finally:
-    #         cursor.close()
-    #         db.close()
-
-    #     return product_id
