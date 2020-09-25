@@ -3,6 +3,7 @@ from .product_view import (
     FirstCategoriesBySellerPropertyIdView,
     SecondCategoriesByFirstCategoryIdView,
     ProductImagesUploadView,
+    ProductCreationView,
 )
 from .order_view   import (
     GetOrderDataView,
@@ -37,6 +38,9 @@ def create_endpoints(app, services):
     )
     app.add_url_rule('/products/upload-images',
         view_func = ProductImagesUploadView.as_view('product_images_upload_view', product_service)
+    )
+    app.add_url_rule('/products',
+        view_func = ProductCreationView.as_view('product_creation_view', product_service)
     )
     app.add_url_rule('/order',
         view_func = GetOrderDataView.as_view('order_data_view', order_service)

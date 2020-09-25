@@ -7,6 +7,6 @@ def get_connection(db):
         user       = db['user'],
         passwd     = db['password'],
         db         = db['database'],
-        charset    = 'utf8',
+        charset    = 'utf8mb4',
         autocommit = False
     )

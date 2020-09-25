@@ -1,9 +1,8 @@
-import os
+import json
 
 from flask          import jsonify, request
 from flask.views    import MethodView
-
-from werkzeug.utils import secure_filename
+from pymysql        import err
 
 import config
 from connection import get_connection
@@ -102,12 +101,43 @@ class ProductImagesUploadView(MethodView):
         message = {"message": "UPLOAD_SUCCESS"}
         return jsonify(message), 200
 
-# class ProductCreationView(MethodView):
-#     def __init__(self, service):
-#         self.service = service
+class ProductCreationView(MethodView):
+    def __init__(self, service):
+        self.service = service
 
-#     def post(self):
-#         data = request.get_json()
-#         if not data:
-#             message = {"message": "JSON_DATA_DOES_NOT_EXISTS"}
-#             return jsonify(message), 400
+    def post(self):
+        try:
+            conn = get_connection(config.database)
+            
+            images = []
+            for i in range(1, 6):
+                image = request.files.get(f'image_{i}', None)
+                images.append(image)
+
+            body  = json.loads(request.form.get('body', None))
+            
+            conn.begin()
+            result = self.service.add_product(conn, images, body)
+
+        # TODO: s3 예외 찾아보기
+        except (err.OperationalError, err.InternalError, err.IntegrityError) as e:
+            conn.rollback()
+            message = { "errno": e.args[0], "errval": e.args[1] }
+            return jsonify(message), 500
+        except KeyError as e:
+            conn.rollback()
+            message = { "message": "FORM_DATA_KEY_ERROR" }
+            return jsonify(message), 400
+        except TypeError as e:
+            conn.rollback()
+            message = {"message": e.args[0]}
+            return jsonify(message), 400
+        except json.decoder.JSONDecodeError as e:
+            db_connection.rollback()
+            message = { "message": "INVALID_JSON_FORMAT" }
+            return jsonify(message), 400
+        else:
+            conn.commit()
+            return "성공", 200
+        finally:
+            conn.close()
