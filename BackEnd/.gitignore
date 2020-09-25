@@ -1,9 +1,9 @@
 Pipfile
 Pipfile.lock
-config.py
 insertion.sql
 script.sql
 admin.py
+config.py
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,python,pycharm,flask,vim

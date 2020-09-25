@@ -4,12 +4,15 @@ from flask.views    import MethodView
 from connection     import get_connection
 from pymysql        import err
 
+from utils.decorator import login_decorator
+
 import config,connection
 
 class ProductSellerSearchView(MethodView):
     def __init__(self, service):
         self.service = service
 
+    @login_decorator
     def get(self):
         try: 
             conn        = get_connection(config.database)
@@ -45,17 +48,20 @@ class SellerSignUpView(MethodView):
     def post(self):
         try:
             conn          = connection.get_connection(config.database)
-            seller_info = request.get_json()
-            sign_up     = self.service.sign_up(seller_info, conn)
-
-            conn.commit()
-            return jsonify({'message':'SUCCESS'}), 200 
+            seller_info   = request.get_json()
+            sign_up       = self.service.sign_up(seller_info, conn)
+        except (err.IntegrityError,err.DataError, err.NotSupportedError, err.OperationalError,err.InternalError) as e:
+            message = {"errno": e.args[0], "errval": e.args[1]}
+            return jsonify(message), 400
         except Exception as e:
             conn.rollback()
             return jsonify({'message':'UNSUCCESS'}), 400
+        else:
+            conn.commit()    
+            return jsonify({'message':'SUCCESS'}), 200 
         finally:
-            conn.close()   
-
+            conn.close()  
+            
 # 작성자: 이지연
 # 작성일: 2020.09.23.화
 # 로그인 endpoint
@@ -67,10 +73,13 @@ class SellerSignInView(MethodView):
     def post(self):
         try:
             conn          = connection.get_connection(config.database)
-            seller_info = request.get_json()
-            access_token= self.service.sign_in(seller_info,conn)
+            seller_info   = request.get_json()
+            access_token  = self.service.sign_in(seller_info,conn)
+        except (err.IntegrityError,err.DataError, err.NotSupportedError, err.OperationalError,err.InternalError) as e:
+            message = {"errno": e.args[0], "errval": e.args[1]}
+            return jsonify(message), 400
         except Exception as e:
-            db.rollback()
+            conn.rollback()
             return jsonify({'message': 'UNSUCCESS'}),400
         else:
             conn.commit()
