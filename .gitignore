@@ -1,6 +1,7 @@
 Pipfile
 Pipfile.lock
 config.py
+/Backend/.vscode
 
 # Created by https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,python,pycharm,flask,vim
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,visualstudiocode,python,pycharm,flask,vim

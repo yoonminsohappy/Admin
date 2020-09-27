@@ -4,6 +4,33 @@ from flask      import jsonify
 
 class SellerDao:
     def find_sellers_by_search_term(self, conn, search_term, limit):
+        """
+        상품 등록을 위해 셀러를 검색한다.
+
+        Args:
+            conn       : 데이터베이스 커넥션 객체
+            search_term: 검색어
+            limit      : 몇 개의 row를 가져올지 정하는 수
+
+        Returns:
+            results: 셀러 정보를 담은 딕셔너리 리스트
+                [
+                    {
+                        "id"                : 셀러 아이디,
+                        "korean_name"       : 셀러 한글 이름,
+                        "profile_image"     : 프로파일 이미지,
+                        "seller_property_id": 샐러 속성 아이디
+                    },
+                    ...
+                ] 
+
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-09-20(이충희): 초기 생성
+            2020-09-23(이충희): 데이터베이스 커넥션 부분을 뷰 레벨로 이동시킴
+        """
         QUERY = """
             SELECT
                 id, korean_name, profile_image, seller_property_id

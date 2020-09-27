@@ -54,7 +54,6 @@ class OrderService:
                         'status_id'       : arguments['status_id']
                     }
                     order_datum['current_updated_at'] = self.order_dao.get_current_status_date(db, args)['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
-
                 order_datum['payment_complete']   = order_datum['payment_complete'].strftime('%Y-%m-%d %H:%M:%S')
 
         except:

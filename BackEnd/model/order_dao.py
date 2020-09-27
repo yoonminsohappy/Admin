@@ -315,3 +315,69 @@ class OrderDao:
             return order_detail_data
         finally:
             cursor.close()
+
+    def get_order_status_id(self, db, argument):
+        try:
+            cursor = db.cursor(pymysql.cursors.DictCursor)
+
+            sql = """
+            SELECT
+                id
+            FROM
+                order_statuses
+            WHERE
+                name = %(status_name)s;
+            """
+
+            cursor.execute(sql, argument)
+            status_id = cursor.fetchone()
+
+        except:
+            raise
+        else:
+            return status_id
+        finally:
+            cursor.close()
+
+    def update_order_status(self, db, arguments):
+        try:
+            cursor = db.cursor(pymysql.cursors.DictCursor)
+
+            sql = """
+            UPDATE
+                order_details
+            SET
+                order_detail_statuses_id = %(status_id)s
+            WHERE
+                id IN %(order_detail_id)s;
+            """
+
+            cursor.execute(sql, arguments)
+
+        except:
+            raise
+        else:
+            return ''
+        finally:
+            cursor.close()
+
+    def insert_order_status_history(self, db, argument):
+        try:
+            cursor = db.cursor(pymysql.cursors.DictCursor)
+
+            sql = """
+            INSERT INTO
+                order_status_modification_histories
+            (order_detail_id, updated_at, order_status_id)
+                VALUES
+            (%(order_detail_id)s, NOW(), %(status_id)s);
+            """
+
+            cursor.execute(sql, argument)
+
+        except:
+            raise
+        else:
+            return ''
+        finally:
+            cursor.close()
