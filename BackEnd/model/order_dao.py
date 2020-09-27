@@ -49,24 +49,25 @@ class OrderDao:
                 LEFT JOIN order_status_modification_histories osmh
                     ON osmh.order_detail_id = d.id
             WHERE
-                osmh.updated_at >= %s
-                AND osmh.updated_at <= %s
-                AND d.order_detail_statuses_id = (SELECT id FROM order_statuses WHERE name = %s)
-                AND o.order_number LIKE %s
-                AND d.order_detail_number LIKE %s
-                AND u.name LIKE %s
-                AND s.phone_number LIKE %s
-                AND sl.korean_name LIKE %s
-                AND pd.name LIKE %s
-                AND sl.seller_property_id IN %s
+                osmh.updated_at >= %(start_date)s
+                AND osmh.updated_at <= %(end_date)s
+                AND d.order_detail_statuses_id = (SELECT id FROM order_statuses WHERE name = %(status_name)s)
+                AND o.order_number LIKE %(order_number)s
+                AND d.order_detail_number LIKE %(detail_number)s
+                AND u.name LIKE %(user_name)s
+                AND s.phone_number LIKE %(phone_number)s
+                AND sl.korean_name LIKE %(seller_name)s
+                AND pd.name LIKE %(product_name)s
+                AND sl.seller_property_id IN %(seller_properties)s
             ORDER BY osmh.updated_at DESC
-            LIMIT %s, %s;
+            LIMIT %(offset)s, %(limit)s;
             """
             cursor.execute(sql, arguments)
-            payment = cursor.fetchall()
-        except:
-            raise
+            payment_order_data = cursor.fetchall()
+
+        except Exception as e:
+            raise e
         else:
-            return payment
+            return payment_order_data
         finally:
             cursor.close()

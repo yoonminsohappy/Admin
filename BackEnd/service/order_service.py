@@ -17,7 +17,7 @@ class OrderService:
             for payment_complete_datum in payment_complete_data:
                 payment_complete_datum['updated_at'] = payment_complete_datum['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
 
-        except:
-            raise
+        except Exception as e:
+            raise e
         else:
             return payment_complete_data
