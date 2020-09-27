@@ -7,6 +7,7 @@ import config, connection, ast
 
 # 작성자: 김태수
 # 작성일: 2020.09.17.목
+# 주문정보를 가져오는 뷰
 class GetOrderDataView(MethodView):
     def __init__(self, service):
         self.service = service
@@ -41,7 +42,7 @@ class GetOrderDataView(MethodView):
                 'phone_number'      : phone_number,
                 'seller_name'       : seller_name,
                 'product_name'      : product_name,
-                'seller_properties' : seller_properties,
+                'seller_pro뷰perties' : seller_properties,
                 'offset'            : offset,
                 'limit'             : limit
             }
@@ -51,11 +52,46 @@ class GetOrderDataView(MethodView):
             if (not status_name) or (not start_date) or (not end_date) or (offset == -1) or (limit == -1):
                 return jsonify({'message':'KEY_ERROR'}), 400
 
-        except Exception as e:
-            return jsonify({'message':e}), 400
+        except:
+            return jsonify({'message':'UNSUCCESS'}), 400
 
         else:
             return jsonify(payment_complete_order_data), 200
+
+        finally:
+            db.close()
+
+# 작성자: 김태수
+# 작성일: 2020.09.27.일
+# 주문 상태를 업데이트하는 뷰: 
+class PutOrderStatusView(MethodView):
+    def __init__(self, service):
+        self.service = service
+
+    def put(self):
+        try:
+            db = connection.get_connection(config.database)
+            data = request.get_json()
+            order_detail_id = ast.literal_eval(data['order_detail_id'])
+            to_status = data['to_status']
+            arguments = {
+                'order_detail_id':order_detail_id,
+                'to_status':to_status
+            }
+
+            self.service.update_order_status(db, arguments)
+
+        except KeyError:
+            db.rollback()
+            return jsonify({'message':'KEY_ERROR'}), 400
+
+        except:
+            db.rollback()
+            return jsonify({'message':'UNSUCCESS'}), 400
+
+        else:
+            db.commit()
+            return jsonify({'message':'SUCCESS'}), 200
 
         finally:
             db.close()
