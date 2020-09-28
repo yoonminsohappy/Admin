@@ -20,13 +20,9 @@ def create_endpoints(app, services):
     seller_service  = services.seller_service
     order_service   = services.order_service
 
-    # 작성자: 김태수
-    # 작성일: 2020.09.17.목
-    # 원산지 데이터 endpoint
     app.add_url_rule('/country_of_origin/<int:country_id>',
         view_func = CountryOfOriginView.as_view('country_of_origin', product_service)
     )
-
     app.add_url_rule('/products/sellers', 
         view_func = ProductSellerSearchView.as_view('product_seller_search_view', seller_service)
 
