@@ -14,8 +14,12 @@ class SellerService:
 
     def sign_up(self, seller_info, db):
         seller_property_id  = self.dao.get_property_id(seller_info['seller_properties'],db)
-        password            = seller_info['password'].encode('utf-8') # --(1)
-        password_crypt      = bcrypt.hashpw(password,bcrypt.gensalt()).decode('utf-8') # --(2)
+        
+        # unicode 객체로 변경하기 위해서는 hashpw 함수에 넣기 전에 비밀번호를 encoding 해서 type을 byte로 바꿔준다.
+        password            = seller_info['password'].encode('utf-8') 
+
+        # password값을 받아 매칭, 비밀번호를 데이터베이스에 저장해 decoding해줘야 합니다.
+        password_crypt      = bcrypt.hashpw(password,bcrypt.gensalt()).decode('utf-8') 
 
         seller = {
             'seller_account'        : seller_info['seller_account'],
