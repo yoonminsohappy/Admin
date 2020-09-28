@@ -12,7 +12,8 @@ from .order_view   import (
 from .seller_view  import (
     ProductSellerSearchView,
     SellerSignUpView,
-    SellerSignInView
+    SellerSignInView,
+    SellerSerachView
 )
 
 def create_endpoints(app, services):
@@ -48,6 +49,6 @@ def create_endpoints(app, services):
     # 작성자: 이지연
     # 작성일: 2020.09.22.화
     # 회원가입 endpoint    
-    app.add_url_rule('/signup', view_func=SellerSignUpView.as_view('seller_signup',seller_service))
-    app.add_url_rule('/signin', view_func=SellerSignInView.as_view('seller_signin',seller_service))
-
+    app.add_url_rule('/sellers/signup', view_func=SellerSignUpView.as_view('seller_signup_view',seller_service))
+    app.add_url_rule('/sellers/signin', view_func=SellerSignInView.as_view('seller_signin_view',seller_service))
+    app.add_url_rule('/sellers', view_func=SellerSerachView.as_view('seller_search_view',seller_service))
