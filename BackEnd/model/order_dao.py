@@ -252,3 +252,66 @@ class OrderDao:
             return ''
         finally:
             cursor.close()
+
+    def get_order_detail_data(self, db, arguments):
+        try:
+            cursor = db.cursor(pymysql.cursors.DictCursor)
+
+            sql = """
+            SELECT
+                d.order_detail_number AS order_detail_number,
+                o.order_number AS order_number,
+                o.order_date AS order_date,
+                o.final_price AS final_price,
+                osmh.updated_at AS payment_complete,
+                u.phone_number AS user_phone_number,
+                p.id AS product_id,
+                pd.name AS product_name,
+                pd.sale_price AS sale_price,
+                pd.discount_rate AS discount_rate,
+                sl.korean_name AS seller_name,
+                CONCAT(c.name, "/", z.name) AS option_info,
+                d.quantity AS quantity,
+                u.id AS user_id,
+                u.name AS user_name,
+                si.name,
+                si.phone_number,
+                si.address,
+                si.shipping_memo
+            FROM
+                order_details d
+            LEFT JOIN orders o
+                ON o.id = d.order_id
+            LEFT JOIN order_status_modification_histories osmh
+                ON d.id = osmh.order_detail_id
+            LEFT JOIN users u
+                ON o.user_id = u.id
+            LEFT JOIN options op
+                ON op.id = d.option_id
+            LEFT JOIN colors c
+                ON c.id = op.color_id
+            LEFT JOIN sizes z
+                ON z.id = op.size_id
+            LEFT JOIN products p
+                ON p.id = op.product_id
+            LEFT JOIN product_details pd
+                ON pd.product_id = op.product_id
+            LEFT JOIN sellers sl
+                ON sl.id = p.seller_id
+            LEFT JOIN shipping_informations si
+                ON si.id = o.shipping_information_id
+            WHERE
+                d.id = %(order_detail_id)s
+            AND
+                osmh.order_status_id = 1
+            """
+
+            cursor.execute(sql, arguments)
+            order_detail_data = cursor.fetchone()
+
+        except:
+            raise
+        else:
+            return order_detail_data
+        finally:
+            cursor.close()
