@@ -7,7 +7,8 @@ from .product_view import (
 )
 from .order_view   import (
     GetOrderDataView,
-    PutOrderStatusView
+    PutOrderStatusView,
+    GetOrderDetailDataView
 )
 from .seller_view  import (
     ProductSellerSearchView,
@@ -45,6 +46,9 @@ def create_endpoints(app, services):
     )
     app.add_url_rule('/order-status',
         view_func = PutOrderStatusView.as_view('order_status_view', order_service)
+    )
+    app.add_url_rule('/order-detail',
+        view_func = GetOrderDetailDataView.as_view('order_detail_view', order_service)
     )
     # 작성자: 이지연
     # 작성일: 2020.09.22.화

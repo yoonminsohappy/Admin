@@ -5,11 +5,14 @@ from datetime import date, timedelta
 
 import config, connection, ast
 
+import traceback
+
 class GetOrderDataView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    """
+    def get(self):
+        """
         주문정보리스트  - Presentation Layer(view) function
         Args:
             arguments = {
@@ -28,7 +31,7 @@ class GetOrderDataView(MethodView):
             }
         Returns :
             KEY_ERROR, 400
-
+            VALUE_ERROR, 400
             order_data = [{
                 "final_price"         : 결제금액
                 "id"                  : 주문상세 아이디,
@@ -47,8 +50,7 @@ class GetOrderDataView(MethodView):
             김태수
         History:
             2020-09-28 : 초기 생성
-    """
-    def get(self):
+        """
         try:
             db = connection.get_connection(config.database)
 
@@ -64,6 +66,12 @@ class GetOrderDataView(MethodView):
             phone_number      = "%" + request.args.get('phone_number', "") + "%"
             seller_name       = "%" + request.args.get('seller_name', "") + "%"
             product_name      = "%" + request.args.get('product_name', "") + "%"
+
+            if (not status_name) or (not start_date) or (offset == -1) or (limit == -1):
+                return jsonify({'message':'KEY_ERROR'}), 400
+
+            if end_date == None:
+                end_date = str(date.today())
 
             day      = timedelta(days = 1)
             end_date = date.fromisoformat(end_date) + day
@@ -85,10 +93,11 @@ class GetOrderDataView(MethodView):
 
             order_data = self.service.get_order_data(db, arguments)
 
-            if (not status_name) or (not start_date) or (not end_date) or (offset == -1) or (limit == -1):
-                return jsonify({'message':'KEY_ERROR'}), 400
+        except ValueError:
+            return jsonify({'message':'VALUE_ERROR'}), 400
 
         except:
+            traceback.print_exc()
             return jsonify({'message':'UNSUCCESS'}), 400
 
         else:
@@ -97,7 +106,12 @@ class GetOrderDataView(MethodView):
         finally:
             db.close()
 
-    """
+class PutOrderStatusView(MethodView):
+    def __init__(self, service):
+        self.service = service
+
+    def put(self):
+        """
         주문 상태 변경 - Presentation Layer(view) function
         Args:
             arguments = {
@@ -107,18 +121,13 @@ class GetOrderDataView(MethodView):
             db = DATABASE Connection Instance
         Returns :
             KEY_ERROR, 400
-
+            VALUE_ERROR, 400
             SUCCESS, 200
         Author :
             김태수
         History:
             2020-09-28 : 초기 생성
-    """
-class PutOrderStatusView(MethodView):
-    def __init__(self, service):
-        self.service = service
-
-    def put(self):
+        """
         try:
             db = connection.get_connection(config.database)
             data = request.get_json()
@@ -135,7 +144,11 @@ class PutOrderStatusView(MethodView):
             db.rollback()
             return jsonify({'message':'KEY_ERROR'}), 400
 
+        except ValueError:
+            return jsonify({'message':'VALUE_ERROR'}), 400
+
         except:
+            traceback.print_exc()
             db.rollback()
             return jsonify({'message':'UNSUCCESS'}), 400
 
@@ -146,37 +159,74 @@ class PutOrderStatusView(MethodView):
         finally:
             db.close()
 
-# 작성자: 김태수
-# 작성일: 2020.09.27.일
-# 주문 상태를 업데이트하는 뷰: 
-class PutOrderStatusView(MethodView):
+class GetOrderDetailDataView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    def put(self):
+    def get(self):
+        """
+        주문 상세 페이지 정보 - Presentation Layer(view) function
+        Args:
+            arguments = {
+                'order_detail_id' : 주문 상세 아이디
+            }
+        Returns :
+            KEY_ERROR, 400
+            VALUE_ERROR, 400
+            order_detail_data = {
+                "address"              : 주소,
+                "discount_rate"        : 할인율,
+                "final_price"          : 결제금액,
+                "option_info"          : 옵션정보,
+                "order_date"           : 주문일시,
+                "order_detail_number"  : 주문상세번호,
+                "order_number"         : 주문번호,
+                "order_status_history" : [
+                    {
+                        "date"         : 날짜,
+                        "order_status" : 주문상태
+                    }
+                ],
+                "payment_complete"      : 결제일시,
+                "product_id"            : 상품번호,
+                "product_name"          : 상품명,
+                "quantity"              : 수량,
+                "receiver"              : 수취인,
+                "receiver_phone_number" : 수취인 휴대폰번호,
+                "sale_price"            : 상품가격,
+                "seller_name"           : 브랜드명,
+                "shipping_memo"         : 배송메모,
+                "user_id"               : 회원번호,
+                "user_name"             : 주문자명,
+                "user_phone_number"     : 주문자휴대폰번호
+            }
+        Author :
+            김태수
+        History:
+            2020-09-29 : 초기 생성
+        """
         try:
             db = connection.get_connection(config.database)
-            data = request.get_json()
-            order_detail_id = ast.literal_eval(data['order_detail_id'])
-            to_status = data['to_status']
+
+            order_detail_id = request.args.get('order_detail_id', None)
+
+            if not order_detail_id:
+                return jsonify({'message':'KEY_ERROR'}), 400
+
             arguments = {
-                'order_detail_id':order_detail_id,
-                'to_status':to_status
+                'order_detail_id':order_detail_id
             }
 
-            self.service.update_order_status(db, arguments)
+            order_detail_data = self.service.get_order_detail(db, arguments)
 
-        except KeyError:
-            db.rollback()
-            return jsonify({'message':'KEY_ERROR'}), 400
+        except ValueError:
+            return jsonify({'message':'VALUE_ERROR'}), 400
 
         except:
-            db.rollback()
+            traceback.print_exc()
             return jsonify({'message':'UNSUCCESS'}), 400
 
         else:
-            db.commit()
-            return jsonify({'message':'SUCCESS'}), 200
-
+            return jsonify(order_detail_data), 200
         finally:
             db.close()
