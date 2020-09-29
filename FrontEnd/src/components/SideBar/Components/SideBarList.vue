@@ -29,11 +29,11 @@ import OpenMenu from "./OpenMenu";
 
 export default {
   props: ["sideMenuList"],
-  data: function() {
+  data: function () {
     return { openState: false };
   },
   methods: {
-    openMenuItem: function() {
+    openMenuItem: function () {
       this.openState = !this.openState;
     },
   },

@@ -84,10 +84,7 @@ export default {
 
 <style lang="scss" scoped>
 .page-side-bar {
-  position: fixed;
-  left: 0;
   width: 215px;
-  min-height: 855px;
   background-color: #35363a;
 
   .page-side-menu {
