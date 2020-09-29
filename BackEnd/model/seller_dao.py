@@ -40,11 +40,11 @@ class SellerDao:
                 korean_name LIKE %s
             ORDER BY korean_name ASC
             LIMIT %s;
-            """
-
+        """
+ 
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         
-        cursor.execute(QUERY, ("%" + search_term + "%", limit,))
+        cursor.execute(sql, ("%" + search_term + "%", limit,))
         results = cursor.fetchall()
 
         cursor.close()
@@ -58,7 +58,7 @@ class SellerDao:
     
     #property_id 갖고오기
     def get_property_id(self, seller_properties, db):
-        QUERY = """
+        sql = """
             SELECT
                 id,
                 name
@@ -66,15 +66,16 @@ class SellerDao:
             WHERE name = %s;
             """
         cursor = db.cursor(pymysql.cursors.DictCursor)
-        cursor.execute(QUERY, (seller_properties))
+        cursor.execute(sql, (seller_properties))
         result = cursor.fetchone() #row 가져옴
         cursor.close()
 
-        return result
+        return result if result else None
+
 
     # seller삽입하기
     def insert_seller(self,seller,db):
-        QUERY = """
+        sql = """
             INSERT INTO sellers
             (
                 seller_account,
@@ -88,7 +89,7 @@ class SellerDao:
         """
 
         cursor = db.cursor(pymysql.cursors.DictCursor) 
-        cursor.execute(QUERY, (
+        cursor.execute(sql, (
             seller['seller_account'],
             seller['english_name'],
             seller['korean_name'],
@@ -99,11 +100,11 @@ class SellerDao:
         result = cursor.lastrowid
         cursor.close()
 
-        return result
+        return result if result else None
 
     # seller_managers 삽입하기
     def insert_manager(self, manager, db):
-        QUERY = """
+        sql = """
             INSERT INTO seller_managers
             (
                phone_number,
@@ -112,17 +113,17 @@ class SellerDao:
             VALUES(%s, %s);
         """
         cursor = db.cursor(pymysql.cursors.DictCursor) 
-        cursor.execute(QUERY, (manager['phone_number'], manager['seller_id']))
+        cursor.execute(sql, (manager['phone_number'], manager['seller_id']))
         result = cursor.lastrowid #지금 인서트 된 아이다값을 가져옴
 
         cursor.close()
         db.commit()
 
-        return result
+        return result if result else None
 
     # 로그인
     def select_seller(self, seller_account , db):
-        QUERY = """
+        sql = """
             SELECT
                 seller_account,
                 password
@@ -131,18 +132,60 @@ class SellerDao:
         """  
 
         cursor = db.cursor(pymysql.cursors.DictCursor)
-        cursor.execute(QUERY, (seller_account))
+        cursor.execute(sql, (seller_account))
         result = cursor.fetchone()
         cursor.close()
 
-        return result
+        return result if result else None
+
+    def find_search_total_seller_list(self, conn, search_info):
+        sql = """
+            SELECT
+            count(*) as count
+            FROM sellers s
+            INNER JOIN seller_properties p ON s.seller_property_id = p.id
+            INNER JOIN seller_statuses t ON s.seller_status_id = t.id
+            INNER JOIN seller_managers m ON s.id = m.seller_id
+            WHERE s.id like %s       
+                AND s.seller_account like %s
+                AND s.korean_name like %s
+                AND s.english_name like %s
+                AND t.name like %s
+                AND p.name like %s
+                AND m.name like %s
+                AND m.phone_number like %s
+                AND m.email like %s
+            ORDER BY s.id DESC
+            ;
+        """
+#검색할때 조건을 여러개 주면 그 여러개에 대해서 and
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+        cursor.execute(sql, (
+            "%" + search_info['id'] +"%",
+            "%" + search_info['seller_account'] +"%",
+            "%" + search_info['korean_name'] +"%", 
+            "%" + search_info['english_name'] +"%",
+            "%" + search_info['seller_status'] +"%",
+            "%" + search_info['seller_property'] +"%",
+            "%" + search_info['manager_name'] +"%",
+            "%" + search_info['manager_phone'] +"%",
+            "%" + search_info['manager_email'] +"%",
+            ))
+        
+        # fetchone()은 한번 호출에 하나의 Row 만을 가져올 때 사용
+        results = cursor.fetchone()['count']
+
+        cursor.close()
+
+        return results if results else None
 
     #셀러 검색
-    def find_search_seller_list(self, conn, search_keyword, search_value):
-        #QUERY문에 WHERE 조건에 들어갈 키워드 삽입
-        #이렇게 하는 이유 conn.execute를 통해서 쿼리를 실행할 때 %s를 통해서 인자로 넣어주는 경우 쿼리문에서 지정한 별칭과 연결되지 않아서 Syntax 에러가 발생하기때문에
-        #미리 QUERY를 정의할 때 같이 넣어줘서 별칭을 인식할 수 있도록 하기 위해서
-        QUERY = """
+    def find_search_seller_list(self, conn, search_info):
+
+        order = search_info['order']
+
+        sql = """
             SELECT
             s.id as id, 
             s.seller_account as seller_account,
@@ -159,14 +202,44 @@ class SellerDao:
             INNER JOIN seller_properties p ON s.seller_property_id = p.id
             INNER JOIN seller_statuses t ON s.seller_status_id = t.id
             INNER JOIN seller_managers m ON s.id = m.seller_id
-            WHERE """+ search_keyword +""" like %s;
+            WHERE s.id like %s
+                AND s.seller_account like %s
+                AND s.korean_name like %s
+                AND s.english_name like %s
+                AND t.name like %s
+                AND p.name like %s
+                AND m.name like %s
+                AND m.phone_number like %s
+                AND m.email like %s
+            ORDER BY s.id """ + order + """
+            LIMIT %s, 10;
         """
+
         cursor = conn.cursor(pymysql.cursors.DictCursor)
 
         #쿼리에 검색 내용을 인자로 넣어서 실행
-        cursor.execute(QUERY, ("%" + search_value +"%")) 
+        #default가 ",  "%" + '' + "%" == "%%" 이다.
+        #쿼리에 검색 내용을 인자로 넣어서 실행
+        #default가 ",  "%" + '' + "%" == "%%" 이다.
+        #and로 조건이 있으면 그 조건에 대해서 like로 찾고 없으면 like "%%" 닌깐 and연산에 영향이 없음
+        #and로 하나씩 걸러서 조건에 맞는것만 가져온다.
+        # %는 어떤 문자든지, 길이 상관없이 라는 의미!
+
+        #쿼리에 검색 내용을 인자로 넣어서 실행
+        cursor.execute(sql, (
+            "%" + search_info['id'] +"%",
+            "%" + search_info['seller_account'] +"%",
+            "%" + search_info['korean_name'] +"%", 
+            "%" + search_info['english_name'] +"%",
+            "%" + search_info['seller_status'] +"%",
+            "%" + search_info['seller_property'] +"%",
+            "%" + search_info['manager_name'] +"%",
+            "%" + search_info['manager_phone'] +"%",
+            "%" + search_info['manager_email'] +"%",
+            (int(search_info['page'])-1)*10
+            ))
         results = cursor.fetchall()
 
         cursor.close()
 
-        return results
+        return results if results else None

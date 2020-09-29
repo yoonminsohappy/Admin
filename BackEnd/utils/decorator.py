@@ -6,9 +6,31 @@ from flask            import request,Response,jsonify
 from model.seller_dao import SellerDao
 from connection       import get_connection
 
+
 import config,connection
 
 def login_decorator(f):
+
+    """
+        decorator API
+
+            Args:
+                에러 받는다.
+
+            Retruns:
+                return f(*args, **kwargs) -> 데코레이터를 발행해준다.
+                return jsonify({'message':'INVALID_USER'}), 400 -> 올바르지 않은 user의 메세지와 400에러
+                return jsonify({'message':'INVALID_TOKEN'}), 400 -> 올바르지 않은 토큰과 400에러
+
+            Authors:
+                wldus9503@gmail.com(이지연)
+            
+            History:
+                2020 - 09 - 24(wldus9503@gmail.com) : 데코레이터 초기 생성
+                2020 - 09 - 28(wldus9503@gmail.com) : 유효성 검사 customexception -> validationexception 변경
+                2020 - -0 - 29(wldus9503@gmail.com) : 클래스 Validation_order 추가, DB ORDER기능 위한것
+    """
+
     @wraps(f)
     def wrapper(*args, **kwargs):
 
@@ -33,5 +55,32 @@ def login_decorator(f):
                     return f(*args, **kwargs)
                 return jsonify({'message':'INVALID_USER'}), 400
         except jwt.exceptions.DecodeError:
-            return jsonify({'message':'INVALID_TOKEN'}), 401
+            return jsonify({'message':'INVALID_TOKEN'}), 400
+    return wrapper
+
+def catch_exception(f, *args, **kwargs):
+
+    """
+        decorator API
+
+            Args:
+                에러들을 받는다.
+
+            Retruns:
+                return f(*args, **kwargs) -> 데코레이터를 발행해준다.
+                jsonify({"message" : f"INVALID_PARAMETER_{e.args[0]}"}), 400 -> 해당 에러 메시지 내용과 400에러
+
+            Authors:
+                wldus9503@gmail.com(이지연)
+            
+            History:
+                2020 - 09 - 29(wldus9503@gmail.com) : 데코레이터 초기 생성
+    """
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except Exception as e:
+            return jsonify({"message" : f"INVALID_PARAMETER_{e.args[0]}"}), 400
     return wrapper
