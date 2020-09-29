@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <div>
+    <div class="window-container">
       <SideBar v-if="noSideBar" />
       <router-view :class="on" />
     </div>
@@ -36,9 +36,11 @@ export default {
 </script>
 
 <style scoped>
+.window-container {
+  display: flex;
+}
 .admin-frame {
-  margin: 45px 0 0 215px;
-  min-height: 855px;
+  width: 100%;
   padding: 25px 20px 20px 20px;
 }
 @media (min-width: 1000px) and (max-width: 1500px) {

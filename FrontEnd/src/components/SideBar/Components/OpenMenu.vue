@@ -1,6 +1,6 @@
 <template>
   <li class="menu-items">
-    <router-link v-bind:to="openMenuList.url" class="menu-item">
+    <router-link :to="openMenuList.url" class="menu-item">
       {{ openMenuList.name }}
     </router-link>
   </li>
