@@ -4,8 +4,11 @@ from flask          import jsonify, request
 from flask.views    import MethodView
 from pymysql        import err
 
+from botocore.exceptions import ClientError
+
 import config
 from connection import get_connection
+from exceptions import NonImageFilenameError, NonPrimaryImageError
 
 # 작성자: 김태수
 # 작성일: 2020.09.17.목
@@ -37,6 +40,27 @@ class FirstCategoriesBySellerPropertyIdView(MethodView):
         self.service = service
 
     def get(self):
+        """
+        셀러 속성 아이디로 1차 카테고리들을 조회한다.
+
+        Args:
+            service: 서비스 레이어 객체
+
+        Returns:
+            200: 
+                1차 카테고리 딕셔너리 리스트를 JSON으로 리턴
+            400: 
+                INVALID_QUERY_PARAMS: 쿼리 스트링의 값이 올바르지 않음
+            500:
+                OperationalError: 데이터베이스 조작 에러
+                InternalError   : 데이터베이스 내부 에러
+                
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-09-22(이충희): 초기 생성
+        """
         try:
             conn = get_connection(config.database)
 
@@ -61,6 +85,27 @@ class SecondCategoriesByFirstCategoryIdView(MethodView):
         self.service = service
 
     def get(self):
+        """
+        1차 카테고리 아이디로 2차 카테고리들을 조회한다.
+
+        Args:
+            service: 서비스 레이어 객체
+
+        Returns:
+            200: 
+                2차 카테고리 딕셔너리 리스트를 JSON으로 리턴
+            400: 
+                INVALID_QUERY_PARAMS: 쿼리 스트링의 값이 올바르지 않음
+            500:
+                OperationalError: 데이터베이스 조작 에러
+                InternalError   : 데이터베이스 내부 에러
+                
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-09-22(이충희): 초기 생성
+        """
         try:
             conn = get_connection(config.database)
 
@@ -80,32 +125,40 @@ class SecondCategoriesByFirstCategoryIdView(MethodView):
         finally:
             conn.close()
 
-class ProductImagesUploadView(MethodView):
-    def __init__(self, service):
-        self.service = service
-
-    def post(self):
-        if not request.files:
-            message = {"message": "IMAGES_ARE_MISSING"}
-            return jsonify(message), 400
-
-        images = request.files.getlist('product_images')
-        for image in images:
-            if image.filename == '':
-                message = {"message": "FILENAME_IS_MISSING"}
-                return jsonify(message), 400
-
-            filename = secure_filename(image.filename)
-            self.service.upload_image_to_s3(image, filename)
-
-        message = {"message": "UPLOAD_SUCCESS"}
-        return jsonify(message), 200
-
 class ProductCreationView(MethodView):
     def __init__(self, service):
         self.service = service
 
     def post(self):
+        """
+        상품 등록 뷰 레이어
+        데이터베이스 커넥션과 종료를 담당한다. 서비스 & DAO 레이어에서 발생한
+        예외처리를 담당한다.
+
+        Args:
+            service: 서비스 레이어 객체
+
+        Returns:
+            200: 
+                SUCCESS: 상품 등록 성공
+            400: 
+                JSONDecodeError      : 올바른 JSON 형식이 아님
+                KeyError             : JSON 딕셔너리 키값이 없음
+                NonImageFilenameError: 파일 이름이 없음
+                NonPrimaryImageError : 대표 상품 이미지가 없음
+            500:
+                ClientError     : S3 에러
+                OperationalError: 데이터베이스 조작 에러
+                InternalError   : 데이터베이스 내부 에러
+                IntegrityError  : 데이터베이스 무결성 에러
+
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-09-27(이충희): 초기 생성
+            2020-09-29(이충희): 커스텀 에러 처리 추가
+        """
         try:
             conn = get_connection(config.database)
             
@@ -119,18 +172,21 @@ class ProductCreationView(MethodView):
             conn.begin()
             result = self.service.add_product(conn, images, body)
 
-        # TODO: s3 예외 찾아보기
+        except ClientError as e:
+            conn.rollback()
+            message = { "errno": e.response['Error']['Code'], "errval": e.response['Error']['Message']}
+            return jsonify(message), 500
         except (err.OperationalError, err.InternalError, err.IntegrityError) as e:
             conn.rollback()
             message = { "errno": e.args[0], "errval": e.args[1] }
             return jsonify(message), 500
+        except (NonPrimaryImageError, NonImageFilenameError) as e:
+            conn.rollback()
+            message = { "message": e.message }
+            return jsonify(message), 400
         except KeyError as e:
             conn.rollback()
             message = { "message": "FORM_DATA_KEY_ERROR" }
-            return jsonify(message), 400
-        except TypeError as e:
-            conn.rollback()
-            message = {"message": e.args[0]}
             return jsonify(message), 400
         except json.decoder.JSONDecodeError as e:
             db_connection.rollback()
@@ -138,6 +194,7 @@ class ProductCreationView(MethodView):
             return jsonify(message), 400
         else:
             conn.commit()
-            return "성공", 200
+            message = { "message": "SUCCESS" }
+            return jsonify(message), 200
         finally:
             conn.close()

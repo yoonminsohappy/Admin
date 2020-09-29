@@ -58,26 +58,25 @@ class ProductDao:
             2020-09-22(이충희): 초기 생성
             2020-09-23(이충희): 데이터베이스 커넥션 부분을 뷰 레벨로 이동시킴
         """
-        QUERY = """
-            SELECT
-	            t2.id, t2.name 
-            FROM 
-	            first_category_seller_properties AS t1 
-            LEFT JOIN 
-	            first_categories AS t2 
-            ON       
-	            t1.first_category_id = t2.id 
-            WHERE 
-	            seller_property_id = %s;
-            """
-        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        sql = """
+        SELECT
+            t2.id, t2.name 
+        FROM 
+            first_category_seller_properties AS t1 
+        LEFT JOIN 
+            first_categories AS t2 
+        ON       
+            t1.first_category_id = t2.id 
+        WHERE 
+            seller_property_id = %s;
+        """
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, (seller_property_id,))
+            results = cursor.fetchall()
+            if not results:
+                raise pymysql.err.InternalError(10007, "DAO_COULD_NOT_SELECT_FIRST_CATEGRORIES")
 
-        cursor.execute(QUERY, (seller_property_id,))
-        results = cursor.fetchall()
-
-        cursor.close()
-
-        return results if results else None
+        return results
 
     def find_second_categories_by_first_category_id(self, conn, first_category_id):
         """
@@ -116,14 +115,13 @@ class ProductDao:
             WHERE 
                 first_category_id = %s;
             """
-        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, (first_category_id,))
+            results = cursor.fetchall()
+            if not results:
+                raise pymysql.err.InternalError(10006, "DAO_COULD_NOT_SELECT_SECOND_CATEGRORIES")
 
-        cursor.execute(sql, (first_category_id,))
-        results = cursor.fetchall()
-
-        cursor.close()
-
-        return results if results else None
+        return results
         
     def find_categories_id(self, conn, first_category_id, second_category_id):
         """
@@ -154,14 +152,13 @@ class ProductDao:
             AND
                 second_category_id = %s;
         """
-        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, (first_category_id, second_category_id,))
+            result = cursor.fetchone()
+            if not result:
+                raise pymysql.err.InternalError(10005, "DAO_COULD_NOT_SELECT_CATEGORIES")
 
-        cursor.execute(sql, (first_category_id, second_category_id,))
-        result = cursor.fetchone()
-
-        cursor.close()
-
-        return result if result else None
+        return result
 
     def create_product(self, conn, product_dict):
         """
@@ -196,17 +193,13 @@ class ProductDao:
                 %(categories_id)s
             );
         """
-        cursor = conn.cursor()
+        with conn.cursor() as cursor:
+            rows = cursor.execute(sql, product_dict)
+            result = cursor.lastrowid
+            if rows <= 0 or not result:
+                raise pymysql.err.InternalError(10001, "DAO_COULD_NOT_INSERT_PRODUCT")
 
-        rows = cursor.execute(sql, product_dict)
-        if rows <= 0:
-            raise pymysql.err.InternalError(10001, "DAO_COULD_NOT_INSERT_PRODUCT")
-
-        result = cursor.lastrowid
-        
-        cursor.close()
-
-        return result if result else None
+        return result
 
     def create_product_detail(self, conn, product_detail_dict):
         """
@@ -279,13 +272,10 @@ class ProductDao:
                 %(country_of_origin_id)s
             );
         """
-        cursor = conn.cursor()
-
-        rows = cursor.execute(sql, product_detail_dict)
-        if rows <= 0:
-            raise pymysql.err.InternalError(10002, "DAO_COULD_NOT_INSERT_PRODUCT_DETAIL")
-
-        cursor.close()
+        with conn.cursor() as cursor:
+            rows = cursor.execute(sql, product_detail_dict)
+            if rows <= 0:
+                raise pymysql.err.InternalError(10002, "DAO_COULD_NOT_INSERT_PRODUCT_DETAIL")
 
     def create_product_image(self, conn, url, order, product_id):
         """
@@ -316,13 +306,10 @@ class ProductDao:
                 %s
             );
         """
-        cursor = conn.cursor()
-
-        rows = cursor.execute(sql, (url, order, product_id,))
-        if rows <= 0:
-            raise pymysql.err.InternalError(10003, "DAO_COULD_NOT_INSERT_PRODUCT_IMAGE")
-
-        cursor.close()
+        with conn.cursor() as cursor:
+            rows = cursor.execute(sql, (url, order, product_id,))
+            if rows <= 0:
+                raise pymysql.err.InternalError(10003, "DAO_COULD_NOT_INSERT_PRODUCT_IMAGE")
 
     def create_option(self, conn, option):
         """
@@ -359,9 +346,7 @@ class ProductDao:
                 %(product_id)s
             );
         """
-        cursor = conn.cursor()
-        rows = cursor.execute(sql, option)
-        if rows <= 0:
-            raise pymysql.err.InternalError(10004, "DAO_COULD_NOT_INSERT_PRODUCT_OPTION")
-
-        cursor.close()
+        with conn.cursor() as cursor:
+            rows = cursor.execute(sql, option)
+            if rows <= 0:
+                raise pymysql.err.InternalError(10004, "DAO_COULD_NOT_INSERT_PRODUCT_OPTION")

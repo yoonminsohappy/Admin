@@ -24,6 +24,26 @@ class ProductSellerSearchView(MethodView):
 
     @login_decorator
     def get(self):
+        """
+        상품 등록을 위해 셀러를 검색한다.
+
+        Args:
+
+        Returns:
+            200: 
+                셀러 정보 딕셔너리 리스트를 JSON으로 리턴
+            400: 
+                CHECK_QUERY_PARAMS: 쿼리 스트링의 값이 올바르지 않음
+            500:
+                OperationalError: 데이터베이스 조작 에러
+                InternalError   : 데이터베이스 내부 에러
+
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-09-20(이충희): 초기 생성
+        """
         try: 
             conn        = get_connection(config.database)
         
