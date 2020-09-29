@@ -14,7 +14,7 @@
             class="sign-up-id"
             type="text"
             placeholder="아이디"
-            v-model="newId"
+            v-model="seller_account"
             @input="isShownId"
           />
           <div class="warning-message" v-show="showId">
@@ -26,7 +26,7 @@
             class="sign-up-pwd"
             type="password"
             placeholder="비밀번호"
-            v-model="newPwd"
+            v-model="password"
             @input="isPwd"
           />
           <div class="warning-message" v-show="showPwd">
@@ -52,7 +52,7 @@
           class="manager-phone-num"
           type="text"
           placeholder="핸드폰번호"
-          v-model="managerPhoneNumber"
+          v-model="phone_number"
           @input="isManagerPhoneNumber"
         />
         <div class="warning-message" v-show="showManagerPhoneNum">
@@ -82,7 +82,7 @@
               class="each-seller-info"
               type="text"
               placeholder="셀러명 (상호)"
-              v-model="sellerName"
+              v-model="korean_name"
               @input="isSellerName"
             />
             <div class="warning-message" v-show="showSellerName">
@@ -94,7 +94,7 @@
               class="each-seller-eng-info"
               type="text"
               placeholder="영문 셀러명 (영문상호)"
-              v-model="sellerEng"
+              v-model="english_name"
               @input="isSellerEng"
             />
             <div class="warning-message" v-show="showSellerEng">
@@ -106,7 +106,7 @@
               class="each-seller-info"
               type="text"
               placeholder="고객센터 전화번호"
-              v-model="serviceCenterNum"
+              v-model="cs_phone"
               @input="isServiceCenterNum"
             />
           </div>
@@ -116,7 +116,7 @@
         </div>
       </div>
       <div class="btn-wrapper">
-        <button class="submit-btn">신청</button>
+        <button class="submit-btn" @click="handleSubmitBtn">신청</button>
         <button class="cancel-btn">취소</button>
       </div>
     </div>
@@ -159,14 +159,17 @@ export default {
         name: "뷰티",
       },
     ],
-    newId: "",
-    newPwd: "",
+    seller_account: "",
+    password: "",
+    checkingPwd: "",
+    cs_phone: "",
+    english_name: "",
+    korean_name: "",
+    phone_number: "",
+    seller_properties: "쇼핑몰",
     showId: false,
     warningIdText:
       " 아이디는 5~20글자의 영문, 숫자, 언더바, 하이픈만 사용 가능하며 시작문자는 영문 또는 숫자입니다.",
-    serviceCenterNum: "",
-    sellerEng: "",
-    sellerName: "",
     warningServiceCenterNum:
       "고객센터 전화번호는 숫자와 하이픈만 입력가능합니다.",
     showServiceCenterNum: false,
@@ -175,92 +178,94 @@ export default {
     showSellerName: false,
     showManagerPhoneNum: false,
     warningManagerPhoneNumber: "필수 입력항목입니다.",
-    managerPhoneNumber: "",
     showPwd: false,
     warningPwd:
       " 비밀번호는 8~20글자의 영문대소문자, 숫자, 특수문자를 조합해야합니다.",
-    checkingPwd: "",
     warnCheckingPwd: "비밀번호가 일치하지 않습니다.",
     showcheckingPwd: false,
   }),
   methods: {
     isShownId() {
-      if (this.newId.match(/^(?=.*[a-zA-Z])(?=.*[_-])(?=.*[0-9]).{5,20}$/)) {
+      if (
+        this.seller_account.match(
+          /^(?=.*[a-zA-Z])(?=.*[_-])(?=.*[0-9]).{5,20}$/
+        )
+      ) {
         this.showId = false;
       }
-      if (!this.newId.match(/^(?=.*[a-zA-Z])(?=.*[_-])(?=.*[0-9]).{5,20}$/)) {
+      if (
+        !this.seller_account.match(
+          /^(?=.*[a-zA-Z])(?=.*[_-])(?=.*[0-9]).{5,20}$/
+        )
+      ) {
         this.showId = true;
         this.warningIdText =
           " 아이디는 5~20글자의 영문, 숫자, 언더바, 하이픈만 사용 가능하며 시작문자는 영문 또는 숫자입니다.";
       }
-      if (this.newId.length < 5) {
+      if (this.seller_account.length < 5) {
         this.showId = true;
         this.warningIdText = "아이디의 최소 길이는 5글자입니다.";
       }
 
-      if (this.newId.length < 1) {
+      if (this.seller_account.length < 1) {
         this.showId = true;
         this.warningIdText = "필수 입력항목입니다.";
       }
     },
     isServiceCenterNum() {
-      if (
-        this.serviceCenterNum.match(/^[0-9]{2,3}[-]+[0-9]{3,4}[-]+[0-9]{3,4}$/)
-      ) {
+      if (this.cs_phone.match(/^[0-9]{2,3}[-]+[0-9]{3,4}[-]+[0-9]{3,4}$/)) {
         this.showServiceCenterNum = false;
       }
-      if (
-        !this.serviceCenterNum.match(/^[0-9]{2,3}[-]+[0-9]{3,4}[-]+[0-9]{3,4}$/)
-      ) {
+      if (!this.cs_phone.match(/^[0-9]{2,3}[-]+[0-9]{3,4}[-]+[0-9]{3,4}$/)) {
         this.showServiceCenterNum = true;
       }
-      if (this.serviceCenterNum.length < 1) {
+      if (this.cs_phone.length < 1) {
         this.warningServiceCenterNum = "필수 입력항목입니다.";
       }
     },
     isSellerEng() {
-      if (this.sellerEng.match(/^[a-z]+$/)) {
+      if (this.english_name.match(/^[a-z]+$/)) {
         this.showSellerEng = false;
       }
-      if (!this.sellerEng.match(/^[a-z]+$/)) {
+      if (!this.english_name.match(/^[a-z]+$/)) {
         this.showSellerEng = true;
         this.warningSellerEng = "셀러 영문명은 소문자만 입력가능합니다.";
       }
-      if (this.sellerEng.length < 1) {
+      if (this.english_name.length < 1) {
         this.showSellerEng = true;
         this.warningSellerEng = "필수 입력항목입니다.";
       }
     },
     isSellerName() {
-      if (this.sellerName.length < 1) {
+      if (this.korean_name.length < 1) {
         this.showSellerName = true;
       } else {
         this.showSellerName = false;
       }
     },
     isManagerPhoneNumber() {
-      if (this.managerPhoneNumber.match(/^\d{3}-\d{3,4}-\d{4}$/)) {
+      if (this.phone_number.match(/^\d{3}-\d{3,4}-\d{4}$/)) {
         this.showManagerPhoneNum = false;
       }
-      if (!this.managerPhoneNumber.match(/^\d{3}-\d{3,4}-\d{4}$/)) {
+      if (!this.phone_number.match(/^\d{3}-\d{3,4}-\d{4}$/)) {
         this.showManagerPhoneNum = true;
         this.warningManagerPhoneNumber = "올바른 정보를 입력해주세요.";
       }
-      if (this.managerPhoneNumber.length < 1) {
+      if (this.phone_number.length < 1) {
         this.showManagerPhoneNum = true;
         this.warningManagerPhoneNumber = "필수 입력항목입니다.";
       }
     },
     isPwd() {
       if (
-        this.newPwd.match(
+        this.password.match(
           /^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,20}$/
         )
       ) {
         this.showPwd = false;
       }
       if (
-        !this.newPwd.match(
+        !this.password.match(
           /^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,20}$/
         )
       ) {
@@ -268,25 +273,43 @@ export default {
         this.warningPwd =
           "비밀번호는 8~20글자의 영문대소문자, 숫자, 특수문자를 조합해야합니다.";
       }
-      if (this.newPwd.length < 1) {
+      if (this.password.length < 1) {
         this.showPwd = true;
         this.warningPwd = "필수 입력항목입니다.";
       }
     },
     checkPwd() {
-      if (this.newPwd === this.checkingPwd) {
+      if (this.password === this.checkingPwd) {
         this.showcheckingPwd = false;
       }
-      if (this.newPwd !== this.checkingPwd) {
+      if (this.password !== this.checkingPwd) {
         this.showcheckingPwd = true;
       }
     },
-
     isActive(index) {
       this.isActiveBtn = index;
       console.log(this.isActiveBtn);
     },
-    // handleSubmitBtn() {},
+    showSellerProperties() {
+      this.seller_properties = "";
+      console.log(this.seller_properties);
+    },
+
+    handleSubmitBtn() {
+      axios
+        .post("", {
+          seller_account: this.seller_account,
+          password: this.password,
+          seller_properties: this.isActiveBtn,
+          phone_number: this.phone_number,
+          korean_name: this.korean_name,
+          english_name: this.english_name,
+          cs_phone: this.cs_phone,
+        })
+        .then((response) => {
+          this.$router.push("/signup");
+        });
+    },
   },
 };
 </script>

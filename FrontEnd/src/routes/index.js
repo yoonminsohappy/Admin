@@ -19,6 +19,8 @@ import Member from "../views/Member/Member.vue";
 import Account from "../views/Member/Account.vue";
 import SideBar from "../components/SideBar/SideBar"
 
+import Nav from "../components/Nav/Nav.vue"
+
 Vue.use(VueRouter);
 
 export const router = new VueRouter({
@@ -111,6 +113,11 @@ export const router = new VueRouter({
       path: "/sideBar",
       name: "SideBar",
       component: SideBar,
+    },
+    {
+      path: "/nav",
+      name: "Nav",
+      component: Nav,
     },
   ],
 });

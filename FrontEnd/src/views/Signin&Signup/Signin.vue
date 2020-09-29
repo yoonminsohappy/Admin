@@ -105,7 +105,6 @@ export default {
           seller_account: "star_1234",
           password: "helloA1234!",
         })
-        .then((res) => console.log(res))
         .then((response) => {
           if (response.data.access_token) {
             localStorage.setItem("user", JSON.stringify(response.data));
