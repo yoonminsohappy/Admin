@@ -48,10 +48,15 @@
   },
   "dependencies": {
     "axios": "^0.20.0",
+    "luxon": "^1.25.0",
+    "tiptap": "^1.30.0",
+    "tiptap-extensions": "^1.33.1",
+    "vue-datetime": "^1.0.0-beta.14",
     "vue-router": "^2.8.1",
     "vue-styled-components": "^1.5.1",
     "vuejs-datepicker": "^1.6.2",
     "vuetify": "^2.3.10",
-    "vuex": "^3.5.1"
+    "vuex": "^3.5.1",
+    "weekstart": "^1.0.1"
   }
 }

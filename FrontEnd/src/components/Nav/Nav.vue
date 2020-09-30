@@ -22,14 +22,16 @@
 export default {};
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .nav {
   position: fixed;
+  width: 100vw;
   top: 0;
+  z-index: 999999999999999999999999;
   .nav-container {
     background-color: #873b53;
     height: 45px;
-    width: 1440px;
+    width: 100%;
     top: -45px;
     left: -215px;
     display: flex;
@@ -68,10 +70,11 @@ export default {};
     .right-container {
       .id-text {
         height: 45px;
+        font-size: 13px;
+        font-weight: 700;
         color: #cecfd3;
         border-left: 1px solid black;
-        padding-top: 13px;
-        padding-left: 10px;
+        padding: 13px 20px 0 10px;
         &::after {
           font-family: FontAwesome;
           content: "\f107";

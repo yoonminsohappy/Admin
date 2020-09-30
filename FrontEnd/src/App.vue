@@ -3,7 +3,7 @@
     <div class="window-container">
       <nav-bar v-if="noSideBar"></nav-bar>
       <SideBar v-if="noSideBar" />
-      <router-view :class="on" />
+      <div class="background-maker"><router-view :class="on" /></div>
     </div>
     <Footer />
   </div>
@@ -28,9 +28,12 @@ export default {
     on() {
       if (
         this.$route.name.indexOf("Login") &&
-        this.$route.name.indexOf("Signup")
+        this.$route.name.indexOf("Signup") &&
+        this.$route.name.indexOf("ProductRegist")
       ) {
         return "admin-frame";
+      } else if (!this.$route.name.indexOf("ProductRegist")) {
+        return "product-resgist";
       }
     },
   },
@@ -39,10 +42,20 @@ export default {
 
 <style scoped>
 .window-container {
+  width: 100vw;
   display: flex;
 }
-.admin-frame {
+.background-maker {
+  background-color: #35363a;
   width: 100%;
+}
+.product-resgist,
+.admin-frame {
+  border-radius: 0 0 0 10px;
+  background-color: white;
+}
+
+.admin-frame {
   padding: 25px 20px 20px 20px;
   margin-top: 45px;
 }
