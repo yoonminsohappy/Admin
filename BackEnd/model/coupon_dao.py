@@ -69,7 +69,7 @@ class CouponDao:
                 %(issue_id)s,
                 %(code)s,
                 %(description)s,
-                %(download_started_at)s,
+                NOW(),
                 %(download_ended_at)s,
                 %(valid_started_at)s,
                 %(valid_ended_at)s,
@@ -211,10 +211,10 @@ class CouponDao:
                 cd.coupon_id,
                 cd.name AS coupon_name,
                 cd.discount_price,
-                cd.valid_started_at,
-                cd.valid_ended_at,
-                cd.download_started_at,
-                cd.download_ended_at,
+                DATE_FORMAT(cd.valid_started_at, '%%Y-%%m-%%d %%H:%%i:%%S') AS valid_started_at,
+                DATE_FORMAT(cd.valid_ended_at, '%%Y-%%m-%%d %%H:%%i:%%S') AS valid_ended_at,
+                DATE_FORMAT(cd.download_started_at, '%%Y-%%m-%%d %%H:%%i:%%S') AS download_started_at,
+                DATE_FORMAT(cd.download_ended_at, '%%Y-%%m-%%d %%H:%%i:%%S') AS download_ended_at,
                 ci.name AS issue_name,
                 cd.limit_count AS is_limited,
                 cd.download_count,
@@ -397,7 +397,7 @@ class CouponDao:
         sql = """
             SELECT cd.coupon_issue_id
             FROM coupons AS c
-            JOIN coupon_details AS cd
+            INNER JOIN coupon_details AS cd
             ON cd.coupon_id = c.id
             WHERE c.id = %s;
         """
@@ -462,10 +462,10 @@ class CouponDao:
                 cs.name AS coupon_issue_name,
                 cd.is_downloadable,
                 cd.description,
-                cd.download_started_at,
-                cd.download_ended_at,
-                cd.valid_started_at,
-                cd.valid_ended_at,
+                DATE_FORMAT(cd.download_started_at, '%%Y-%%m-%%d %%H:%%i:%%S') AS download_started_at,
+                DATE_FORMAT(cd.download_ended_at, '%%Y-%%m-%%d %%H:%%i:%%S') AS download_ended_at,
+                DATE_FORMAT(cd.valid_started_at, '%%Y-%%m-%%d %%H:%%i:%%S') AS valid_started_at,
+                DATE_FORMAT(cd.valid_ended_at, '%%Y-%%m-%%d %%H:%%i:%%S') AS valid_ended_at,
                 cd.discount_price,
                 cd.limit_count,
                 cd.minimum_price
@@ -473,7 +473,8 @@ class CouponDao:
             INNER JOIN coupon_details AS cd ON c.id = cd.coupon_id
             INNER JOIN coupon_types AS ct ON cd.coupon_type_id = ct.id
             INNER JOIN coupon_issues AS cs ON cd.coupon_issue_id = cs.id
-            WHERE c.id = %s;
+            WHERE c.id = %s
+            AND c.is_deleted = 0;
         """
 
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
@@ -506,3 +507,29 @@ class CouponDao:
 
         with conn.cursor() as cursor:
             cursor.execute(sql, params)
+
+    def delete_coupon_is_deleted(self, conn, coupon_id):
+        """
+        쿠폰 제거
+
+        Args:
+            conn     : 데이터베이스 커넥션 객체
+            coupon_id: 삭제할 쿠폰 아이디
+
+        Returns:
+            쿠폰 상세
+
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
+        sql = """
+            UPDATE coupons
+            SET is_deleted = 1
+            WHERE id = %s;
+        """
+
+        with conn.cursor() as cursor:
+            cursor.execute(sql, (coupon_id,))

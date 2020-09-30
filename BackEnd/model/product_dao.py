@@ -343,7 +343,7 @@ class ProductDao:
         sql = """
             SELECT
                 p.id,
-                DATE_FORMAT(CONVERT_TZ(p.register_date, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS register_date,
+                DATE_FORMAT(p.register_date, '%%Y-%%m-%%d %%H:%%i:%%S') AS register_date,
                 pi.image_path, 
                 pd.name AS product_name, 
                 p.code, 
@@ -499,8 +499,8 @@ class ProductDao:
                 pd.description,
                 pd.sale_price,
                 pd.discount_rate,
-                DATE_FORMAT(CONVERT_TZ(pd.discount_started_at, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_started_at,
-                DATE_FORMAT(CONVERT_TZ(pd.discount_ended_at, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_ended_at,
+                DATE_FORMAT(pd.discount_started_at, '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_started_at,
+                DATE_FORMAT(pd.discount_ended_at, '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_ended_at,
                 pd.minimum_sale_amount,
                 pd.maximum_sale_amount,
                 pd.country_of_origin_id
@@ -710,7 +710,7 @@ class ProductDao:
         """
         sql = """
             SELECT 
-                DATE_FORMAT(CONVERT_TZ(p.register_date, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS register_date,
+                DATE_FORMAT(p.register_date, '%%Y-%%m-%%d %%H:%%i:%%S') AS register_date,
                 pi.image_path,
                 pd.name AS product_name,
                 p.code,
@@ -777,7 +777,7 @@ class ProductDao:
         """
         sql = """
             SELECT 
-                DATE_FORMAT(CONVERT_TZ(p.register_date, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS register_date,
+                DATE_FORMAT(p.register_date, '%%Y-%%m-%%d %%H:%%i:%%S') AS register_date,
                 pi.image_path,
                 pd.name AS product_name,
                 p.code,
@@ -896,8 +896,8 @@ class ProductDao:
                 description,
                 sale_price,
                 discount_rate,
-                DATE_FORMAT(CONVERT_TZ(discount_started_at, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_started_at,
-                DATE_FORMAT(CONVERT_TZ(discount_ended_at, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_ended_at,
+                DATE_FORMAT(discount_started_at, '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_started_at,
+                DATE_FORMAT(discount_ended_at, '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_ended_at,
                 minimum_sale_amount,
                 maximum_sale_amount
             FROM
@@ -1103,7 +1103,7 @@ class ProductDao:
         """
         sql = """
             SELECT
-                DATE_FORMAT(CONVERT_TZ(pd.created_at, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS updated_at,
+                DATE_FORMAT(pd.created_at, '%%Y-%%m-%%d %%H:%%i:%%S') AS updated_at,
                 pd.is_sold,
                 pd.is_displayed,
                 pd.sale_price,

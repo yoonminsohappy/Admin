@@ -218,8 +218,8 @@ class CouponsView(MethodView):
         History:
             2020-10-10(이충희): 초기 생성
         """
-        KEY_LIMIT                 = "limit"
-        KEY_PAGE                  = "page"
+        KEY_LIMIT                 = 'limit'
+        KEY_PAGE                  = 'page'
         KEY_ID                    = 'id'
         KEY_NAME                  = 'name'
         KEY_VALID_STARTED_FROM    = 'valid_started_from'

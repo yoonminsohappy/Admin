@@ -84,9 +84,10 @@ class CouponService:
         if isinstance(coupon_count, tuple):
             coupon_count = coupon_count[0]
 
-        # limit 개수의 쿠폰만 가져오기
         if coupon_count != None and coupon_count > 0:
+            # limit 개수의 쿠폰만 가져오기
             coupons = self.coupon_dao.find_coupons(conn, params)
+            print(coupons)
         else:
             coupon_count = 0
             coupons = []
@@ -180,16 +181,7 @@ class CouponService:
         History:
             2020-10-09(이충희): 초기 생성
         """
-        ISSUE_TYPE_SERIAL_NUMBER = 3
-
-        result = self.coupon_dao.find_coupon_id_by_id(conn, coupon_id)
-        if not result:
-            raise TypeError(f'NO_COUPON_FOR_COUPON_{coupon_id}')
-        
-        if result['coupon_issue_id'] == ISSUE_TYPE_SERIAL_NUMBER:
-            self.coupon_dao.delete_serials(conn, coupon_id)
-        self.coupon_dao.delete_coupon_details(conn, coupon_id)
-        self.coupon_dao.delete_coupon(conn, coupon_id)
+        self.coupon_dao.delete_coupon_is_deleted(conn, coupon_id)
 
     def get_coupon_code(self, conn, coupon_id):
         """
@@ -210,6 +202,7 @@ class CouponService:
         result = self.coupon_dao.find_coupon_code_by_id(conn, coupon_id)
         if not result:
             raise TypeError(f'NO_COUPON_CODE_FOR_COUPON_{coupon_id}')
+            # raise TypeError({'errorCode': 'NO_COUPON_CODE_FOR_COUPON', 'coupon_id': coupon_id})
         return result
 
     def get_coupon_info(self, conn, coupon_id):
