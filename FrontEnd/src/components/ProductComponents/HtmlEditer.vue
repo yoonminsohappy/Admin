@@ -2,17 +2,12 @@
   <div class="editor">
     <editor-menu-bar class="manubar" :editor="editor" v-slot="{ commands }">
       <div class="menubar">
-        <button
-          class="menubar__button"
-          @click="showImagePrompt(commands.image)"
-        >
+        <button class="menubar__button" @click="showImagePrompt(commands.image)">
           <div name="image" class="image_button">
-            <font-awesome-icon class="image-icon" icon="image" /> 사진삽입
+            <font-awesome-icon class="image-icon" icon="image" />사진삽입
           </div>
         </button>
-        <p class="red-explain">
-          이미지 확장자는 JPG,PNG만 등록 가능합니다.
-        </p>
+        <p class="red-explain">이미지 URL을 입력해 주세요.</p>
       </div>
     </editor-menu-bar>
 
@@ -44,13 +39,13 @@ export default {
     };
   },
   methods: {
-    showImagePrompt: function(command) {
+    showImagePrompt: function (command) {
       const src = prompt("Enter the url of your image here");
       if (src !== null) {
         command({ src });
       }
     },
-    upload_html: function() {
+    upload_html: function () {
       this.$emit("html", this.html);
     },
   },

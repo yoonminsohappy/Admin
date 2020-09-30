@@ -2,23 +2,23 @@
   <section class="product-sale-info">
     <header>
       <span class="header-text">
-        <font-awesome-icon class="pencil-icon" icon="pencil-alt" />
-        판매 정보
+        <font-awesome-icon class="pencil-icon" icon="pencil-alt" />판매 정보
       </span>
     </header>
     <article>
-      <div class="sub-title">판매가<em>*</em></div>
+      <div class="sub-title">
+        판매가
+        <em>*</em>
+      </div>
       <div class="sub-main-col">
         <div class="sale-price-container">
           <input class="sale-price" type="number" v-on:change="price_inputer" />
-          <div><span>원</span></div>
+          <div>
+            <span>원</span>
+          </div>
         </div>
         <p class="explain">
-          <font-awesome-icon
-            class="exclamation-icon"
-            icon="exclamation-triangle"
-          />
-          판매가는 원화기준 10원 이상이며 가격 입력 시 10원 단위로 입력해
+          <font-awesome-icon class="exclamation-icon" icon="exclamation-triangle" />판매가는 원화기준 10원 이상이며 가격 입력 시 10원 단위로 입력해
           주세요.
         </p>
       </div>
@@ -32,40 +32,38 @@
           <tr>
             <td>
               <div class="sale-price-container">
-                <input
-                  class="sale-price"
-                  type="number"
-                  v-on:change="discount_rate_inputer"
-                />
-                <div><span>%</span></div>
+                <input class="sale-price" type="number" v-on:change="discount_rate_inputer" />
+                <div>
+                  <span>%</span>
+                </div>
               </div>
             </td>
             <td>
               <p>
-                <span class="discount-price-num">{{
+                <span class="discount-price-num">
+                  {{
                   Number(
-                    result.body.detail.sale_price *
-                      (result.body.detail.discount_rate / 100)
+                  result.body.detail.sale_price *
+                  (result.body.detail.discount_rate / 100)
                   ).toLocaleString("en")
-                }}</span
-                >원
+                  }}
+                </span>원
               </p>
-              <button class="discount-button" v-on:click="apply_discount_rate">
-                할인판매가적용
-              </button>
+              <button class="discount-button" v-on:click="apply_discount_rate">할인판매가적용</button>
             </td>
           </tr>
           <tr class="dark-tr">
             <td>할인판매가</td>
             <td>
               <p>
-                <span>{{
+                <span>
+                  {{
                   Number(
-                    result.body.detail.sale_price *
-                      (1 - result.body.detail.discount_rate / 100)
+                  result.body.detail.sale_price *
+                  (1 - result.body.detail.discount_rate / 100)
                   ).toLocaleString("en")
-                }}</span
-                >원
+                  }}
+                </span>원
               </p>
             </td>
           </tr>
@@ -74,20 +72,10 @@
             <td>
               <div class="radio">
                 <label>
-                  <input
-                    type="radio"
-                    name="discount date"
-                    value="false"
-                    v-model="discount_term"
-                  />무기한
+                  <input type="radio" name="discount date" value="false" v-model="discount_term" />무기한
                 </label>
                 <label>
-                  <input
-                    type="radio"
-                    name="discount date"
-                    value="true"
-                    v-model="discount_term"
-                  />
+                  <input type="radio" name="discount date" value="true" v-model="discount_term" />
                   기간설정
                 </label>
               </div>
@@ -101,7 +89,7 @@
                   :week-start="7"
                   use12-hour
                 ></datetime>
-                <span class="during-text"> ~ </span>
+                <span class="during-text">~</span>
                 <datetime
                   type="datetime"
                   class="datetime"
@@ -112,33 +100,22 @@
                   use12-hour
                 ></datetime>
               </div>
-              <p class="red-explain" v-if="discount_term === `true`">
-                * 할인기간을 설정시 기간만료되면 자동으로 정상가로 변경 됩니다.
-              </p>
+              <p
+                class="red-explain"
+                v-if="discount_term === `true`"
+              >* 할인기간을 설정시 기간만료되면 자동으로 정상가로 변경 됩니다.</p>
             </td>
           </tr>
         </table>
 
         <p class="explain">
-          <font-awesome-icon
-            class="exclamation-icon"
-            icon="exclamation-triangle"
-          />
-          할인판매가 = 판매가 * 할인율
+          <font-awesome-icon class="exclamation-icon" icon="exclamation-triangle" />할인판매가 = 판매가 * 할인율
         </p>
         <p class="explain">
-          <font-awesome-icon
-            class="exclamation-icon"
-            icon="exclamation-triangle"
-          />
-          할인 판매가 적용 버튼을 클릭 하시면 판매가 정보가 자동 계산되어집니다.
+          <font-awesome-icon class="exclamation-icon" icon="exclamation-triangle" />할인 판매가 적용 버튼을 클릭 하시면 판매가 정보가 자동 계산되어집니다.
         </p>
         <p class="explain">
-          <font-awesome-icon
-            class="exclamation-icon"
-            icon="exclamation-triangle"
-          />
-          할인 판매가는 원화기준 10원 단위로 자동 반올림됩니다.
+          <font-awesome-icon class="exclamation-icon" icon="exclamation-triangle" />할인 판매가는 원화기준 10원 단위로 자동 반올림됩니다.
         </p>
       </div>
     </article>
@@ -147,24 +124,14 @@
       <div class="sub-main">
         <div class="radio">
           <label v-on:click="at_least_inputer">
-            <input
-              type="radio"
-              name="at least"
-              value="1"
-              v-model="mininum"
-            />1개 이상
+            <input type="radio" name="at least" value="1" v-model="mininum" />1개 이상
           </label>
           <label>
-            <input
-              type="radio"
-              name="at least"
-              value="more"
-              v-model="mininum"
-            />
+            <input type="radio" name="at least" value="more" v-model="mininum" />
             <input
               class="amount-limmit"
               type="number"
-              v-bind:disabled="mininum === 1"
+              v-bind:disabled="mininum == 1"
               v-on:change="at_least_inputer"
             />
             개 이상
@@ -178,19 +145,14 @@
       <div class="sub-main">
         <div class="radio">
           <label v-on:click="maximum_inputer">
-            <input
-              type="radio"
-              name="maximum"
-              value="20"
-              v-model="maximum"
-            />20개
+            <input type="radio" name="maximum" value="20" v-model="maximum" />20개
           </label>
           <label>
             <input type="radio" name="maximum" value="less" v-model="maximum" />
             <input
               class="amount-limmit"
               type="number"
-              v-bind:disabled="maximum === 20"
+              v-bind:disabled="maximum == 20"
               v-on:change="maximum_inputer"
             />
             개 이하
@@ -230,38 +192,38 @@ export default {
     },
   }),
   methods: {
-    price_inputer: function(e) {
+    price_inputer: function (e) {
       this.result.body.detail.sale_price = e.target.value;
       this.$emit("sale_price", this.result.body.detail.sale_price);
     },
-    discount_rate_inputer: function(e) {
+    discount_rate_inputer: function (e) {
       this.spare_discount_rate = e.target.value;
     },
-    apply_discount_rate: function() {
+    apply_discount_rate: function () {
       this.result.body.detail.discount_rate = this.spare_discount_rate;
       this.$emit("discount_rate", this.result.body.detail.discount_rate);
     },
-    at_least_inputer: function(e) {
+    at_least_inputer: function (e) {
       this.result.body.detail.minimum_sale_amount = e.target.value;
       this.$emit(
         "minimum_sale_amount",
         this.result.body.detail.minimum_sale_amount
       );
     },
-    maximum_inputer: function(e) {
+    maximum_inputer: function (e) {
       this.result.body.detail.maximum_sale_amount = e.target.value;
       this.$emit(
         "maximum_sale_amount",
         this.result.body.detail.maximum_sale_amount
       );
     },
-    input_discount_started_at: function() {
+    input_discount_started_at: function () {
       this.$emit(
         "discount_started_at",
         this.result.body.detail.discount_started_at
       );
     },
-    input_discount_ended_at: function() {
+    input_discount_ended_at: function () {
       this.$emit(
         "discount_ended_at",
         this.result.body.detail.discount_ended_at
