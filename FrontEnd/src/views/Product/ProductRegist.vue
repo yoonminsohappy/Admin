@@ -33,6 +33,7 @@
         @option="input_option"
         @modify_color_result="modify_color_result_list"
         @modify_size_result="modify_size_result_list"
+        @stock="modify_stock"
       />
       <product-sale-info
         @sale_price="input_sale_price"
@@ -173,6 +174,9 @@ export default {
     },
     input_html: function(str) {
       this.result.body.detail.description = str;
+    },
+    modify_stock: function(arr) {
+      this.result.body.option = arr;
     },
     submit: function() {
       const form_data = new FormData();

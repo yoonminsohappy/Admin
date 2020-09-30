@@ -281,6 +281,10 @@ export default {
   border: 1.3px solid #dddddd;
   border-radius: 5px;
 
+  input:disabled {
+    background-color: #eeeeee;
+  }
+
   input:focus,
   button:focus {
     outline: none;

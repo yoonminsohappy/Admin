@@ -153,6 +153,7 @@
                     class="stock-input"
                     v-bind:disabled="list.is_stock_manage === `false`"
                     v-on:change="stock_inputer_change"
+                    v-on:focusout="stock_inputer(idx)"
                   />
                   개
                 </label>
@@ -284,6 +285,10 @@ export default {
     stock_inputer_change: function(e) {
       this.typing_stock = e.target.value;
     },
+    stock_inputer: function(idx) {
+      this.result.body.option[idx].stock = this.typing_stock;
+      this.$emit("stock", this.result.body.option);
+    },
     selected_color_name: function(num) {
       for (let i in this.datas.product_color_list) {
         if (this.datas.product_color_list[i].id === num) {
@@ -328,6 +333,10 @@ export default {
       -webkit-appearance: none;
       margin: 0;
     }
+  }
+
+  input:disabled {
+    background-color: #eeeeee;
   }
 
   input:focus,
