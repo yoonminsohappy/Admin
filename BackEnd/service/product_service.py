@@ -462,7 +462,6 @@ class ProductService:
             2020-10-03(이충희)
         """
         results = self.product_dao.find_products_by_ids(conn, product_ids)
-    
         directory, filename = self.make_excel_file("temp/", f"{str(uuid.uuid4())}.xls", results)
         return directory, filename, "선택상품엑셀다운로드_브랜디.xls"
 

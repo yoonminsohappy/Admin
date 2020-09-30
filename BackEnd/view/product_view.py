@@ -33,13 +33,14 @@ from utils.validation import (
     validate_product_code,
     validate_image_status
 )
-from utils.decorator import login_decorator
+from utils.decorator import login_decorator2
 
 class FirstCategoriesBySellerPropertyIdView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    def get(self):
+    @login_decorator2
+    def get(self, seller_id):
         """
         셀러 속성 아이디로 1차 카테고리들을 조회한다.
 
@@ -83,7 +84,8 @@ class SecondCategoriesByFirstCategoryIdView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    def get(self):
+    @login_decorator2
+    def get(self, seller_id):
         """
         1차 카테고리 아이디로 2차 카테고리들을 조회한다.
 
@@ -127,7 +129,8 @@ class ProductsView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    def post(self):
+    @login_decorator2
+    def post(self, seller_id):
         """
         상품 등록 뷰 레이어
         데이터베이스 커넥션과 종료를 담당한다. 서비스 & DAO 레이어에서 발생한
@@ -165,6 +168,7 @@ class ProductsView(MethodView):
                 images.append(image)
 
             body  = json.loads(request.form.get('body', None))
+            body['modifier_id'] = seller_id
             
             conn.begin()
             self.service.add_product(conn, images, body)
@@ -196,8 +200,8 @@ class ProductsView(MethodView):
         finally:
             conn.close()
 
-    # @login_decorator
-    def get(self):
+    @login_decorator2
+    def get(self, seller_id):
         """
         상품 리스트 조회 뷰
 
@@ -276,8 +280,9 @@ class ProductView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    # @login_decorator
-    def get(self, code):
+    @login_decorator2
+    def get(self, code, seller_id):
+        print(code, seller_id)
         """
         상품 상세 조회 뷰
 
@@ -315,7 +320,8 @@ class ProductView(MethodView):
         finally:
             conn.close()
 
-    def post(self, code):
+    @login_decorator2
+    def post(self, code, seller_id):
         """
         상품 수정 뷰
 
@@ -398,7 +404,8 @@ class ProductCountriesView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    def get(self):
+    @login_decorator2
+    def get(self, seller_id):
         """
         원산지 국가 리스트 조회 뷰
 
@@ -433,7 +440,8 @@ class ProductColorsView(MethodView):
     def __init__(self, service):
         self.service = service
     
-    def get(self):
+    @login_decorator2
+    def get(self, seller_id):
         """
         상품 옵션 색상 리스트 뷰
 
@@ -469,7 +477,8 @@ class ProductSizesView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    def get(self):
+    @login_decorator2
+    def get(self, seller_id):
         """
         상품 옵션 사이즈 리스트 뷰
 
@@ -504,8 +513,9 @@ class ProductSizesView(MethodView):
 class ProductsDownloadView(MethodView):
     def __init__(self, service):
         self.service = service
-
-    def get(self):
+    
+    @login_decorator2
+    def get(self, seller_id):
         """
         상품 리스트 엑셀 다운로드 뷰
 
@@ -544,6 +554,7 @@ class ProductsDownloadView(MethodView):
                 validate_products_start_end_date(start_date, end_date)
 
                 directory, filename, filename_for_user = self.service.make_excel_all(conn, start_date, end_date)
+
             elif download_type == "select":
                 product_ids = literal_eval(request.args.get('product_ids', '[]'))
 
@@ -567,20 +578,22 @@ class ProductsDownloadView(MethodView):
             # 액셀 파일 리턴
             now_date = datetime.datetime.now().strftime("%Y%m%d")
             filename_for_user = now_date + "_" + filename_for_user
-            return send_file(directory + filename,
+            file_to_send = send_file(directory + filename,
                 mimetype="application/vnd.ms-excel",
                 as_attachment=True,
                 attachment_filename=filename_for_user,
                 conditional=False)
-        finally:
             os.remove(os.path.join('temp/', filename))
+            return file_to_send
+        finally:
             conn.close()
 
 class ProductHistoryView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    def get(self, product_id):
+    @login_decorator2
+    def get(self, product_id, seller_id):
         """
         상품 이력 조회 뷰
 

@@ -19,6 +19,7 @@ from utils.validation import (
     validate_coupon_date_optional,
     validate_coupon_bool_optional
 )
+from utils.decorator import login_decorator2
 
 class VarnameException(Exception):
     def __init__(self, message, var):
@@ -125,7 +126,8 @@ class CouponsView(MethodView):
 
         return False
             
-    def post(self):
+    @login_decorator2
+    def post(self, seller_id):
         """
         쿠폰 등록
 
@@ -201,7 +203,8 @@ class CouponsView(MethodView):
         finally:
             conn.close()
 
-    def get(self):
+    @login_decorator2
+    def get(self, seller_id):
         """
         쿠폰 조회
 
@@ -313,7 +316,8 @@ class CouponSerialsView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    def get(self, coupon_id):
+    @login_decorator2
+    def get(self, coupon_id, seller_id):
         """
         쿠폰 시리얼 넘버 CSV 다운로드
 
@@ -357,7 +361,8 @@ class CouponView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    def get(self, coupon_id):
+    @login_decorator2
+    def get(self, coupon_id, seller_id):
         """
         쿠폰 조회
 
@@ -393,7 +398,8 @@ class CouponView(MethodView):
         finally:
             conn.close()
 
-    def put(self, coupon_id):
+    @login_decorator2
+    def put(self, coupon_id, seller_id):
         """
         쿠폰 수정
 
@@ -449,7 +455,8 @@ class CouponView(MethodView):
             conn.close()
 
 
-    def delete(self, coupon_id):
+    @login_decorator2
+    def delete(self, coupon_id, seller_id):
         """
         쿠폰 삭제
 
@@ -492,7 +499,8 @@ class CouponCodeView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    def get(self, coupon_id):
+    @login_decorator2
+    def get(self, coupon_id, seller_id):
         """
         쿠폰 코드 조회
 
