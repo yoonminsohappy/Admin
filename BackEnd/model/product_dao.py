@@ -476,3 +476,103 @@ class ProductDao:
             if not results:
                 raise pymysql.err.InternalError(10008, "DAO_COULD_NOT_LIST_PRODUCTS")
         return results
+
+    def find_product_by_code(self, conn, code):
+        sql = """
+            SELECT 
+                p.id AS product_id,
+                p.code,
+                p.categories_id,
+                fc.id AS first_category_id,
+                fc.name,
+                sc.id AS second_category_id,
+                sc.name,
+                pd.id AS product_detail_id,
+                pd.name,
+                pd.is_sold,
+                pd.is_displayed,
+                pd.origin_company,
+                pd.origin_date,
+                pd.simple_description,
+                pd.description,
+                pd.sale_price,
+                pd.discount_rate,
+                pd.discount_started_at,
+                pd.discount_ended_at,
+                pd.minimum_sale_amount,
+                pd.maximum_sale_amount,
+                pd.country_of_origin_id
+            FROM
+                products AS p
+            JOIN
+                product_details AS pd
+            ON
+                pd.product_id = p.id
+            JOIN
+                first_category_second_categories AS fcsc
+            ON
+                p.categories_id = fcsc.id
+            JOIN
+                first_categories AS fc
+            ON 
+                fcsc.first_category_id = fc.id
+            JOIN
+                second_categories AS sc
+            ON
+                fcsc.second_category_id = sc.id
+            WHERE
+                p.code = %s
+            AND
+                p.is_deleted = 0
+            AND
+                pd.expired_at = '9999-12-31 23:59:59';
+        """
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, (code,))
+            result = cursor.fetchone()
+            if not result or not result['product_id']:
+                raise pymysql.err.InternalError(10009, "DAO_COULD_NOT_FIND_PRODUCT")
+        return result
+
+    def find_product_images(self, conn, product_id):
+        sql = """
+            SELECT
+                pi.id, pi.image_path, pi.ordering
+            FROM
+                product_images AS pi
+            WHERE
+                pi.product_id = %s ;
+        """ 
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, (product_id,))
+            result = cursor.fetchall()
+            if not result:
+                raise pymysql.err.InternalError(10010, "DAO_COULD_NOT_FIND_PRODUCT_IMAGES")
+        return result
+
+    def find_product_options(self, conn, product_id):
+        sql = """
+            SELECT 
+                *
+            FROM
+                options AS o
+            INNER JOIN
+                colors AS c
+            ON 
+                o.color_id = c.id
+            INNER JOIN
+                sizes AS s
+            ON
+                o.size_id = s.id
+            WHERE
+                product_id = %s;
+        """
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, (product_id,))
+            results = cursor.fetchall()
+            if not results:
+                raise pymysql.err.InternalError(10011, "DAO_COULD_NOT_FIND_PRODUCT_OPTIONS")
+        return results

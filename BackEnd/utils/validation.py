@@ -216,3 +216,8 @@ def validate_products_seller_property_ids(seller_property_ids):
         for seller_property_id in seller_property_ids:
             if not isinstance(seller_property_id, int):
                 raise ValidationError("SELLER_PROPERTY_ID_MUST_BE_AN_INTERGER")
+
+def validate_product_code(code):
+    uuid_regex = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    if not re.match(uuid_regex, code):
+        raise ValidationError("INVALID_PRODUCT_CODE")

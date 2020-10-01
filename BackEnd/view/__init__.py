@@ -2,7 +2,8 @@ from .product_view import (
     CountryOfOriginView,
     FirstCategoriesBySellerPropertyIdView,
     SecondCategoriesByFirstCategoryIdView,
-    ProductCreationView,
+    ProductsView,
+    ProductView,
 )
 from .order_view   import (
     GetOrderDataView,
@@ -35,7 +36,10 @@ def create_endpoints(app, services):
         view_func = SecondCategoriesByFirstCategoryIdView.as_view('second_categories_by_first_category_id_view', product_service)
     )
     app.add_url_rule('/products',
-        view_func = ProductCreationView.as_view('product_creation_view', product_service)
+        view_func = ProductsView.as_view('products_view', product_service)
+    )
+    app.add_url_rule('/products/<code>',
+        view_func = ProductView.as_view('product_view', product_service)
     )
     app.add_url_rule('/order',
         view_func = GetOrderDataView.as_view('order_data_view', order_service)

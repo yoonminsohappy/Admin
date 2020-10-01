@@ -238,3 +238,12 @@ class ProductService:
         params['is_displayed']   = is_displayed
         params['is_discounted'] = is_discounted
         return self.product_dao.find_products(conn, params)
+
+    def get_product_by_code(self, conn, code):
+        product_dict = self.product_dao.find_product_by_code(conn, code)
+        images_dict  = self.product_dao.find_product_images(conn, product_dict['product_id'])
+        options_dict = self.product_dao.find_product_options(conn, product_dict['product_id'])
+
+        product_dict["images"]  = images_dict
+        product_dict["options"] = options_dict
+        return product_dict

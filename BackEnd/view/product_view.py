@@ -22,7 +22,8 @@ from utils.validation import (
     validate_products_start_end_date,
     validate_products_is_sold,
     validate_products_is_displayed,
-    validate_products_is_discounted
+    validate_products_is_discounted,
+    validate_product_code,
 )
 
 # 작성자: 김태수
@@ -140,7 +141,7 @@ class SecondCategoriesByFirstCategoryIdView(MethodView):
         finally:
             conn.close()
 
-class ProductCreationView(MethodView):
+class ProductsView(MethodView):
     def __init__(self, service):
         self.service = service
 
@@ -216,7 +217,8 @@ class ProductCreationView(MethodView):
 
     def get(self):
         try:
-            conn                = get_connection(config.database)
+            conn = get_connection(config.database)
+
             limit               = request.args.get('limit', '10')
             offset              = request.args.get('offset', '0')
             start_date          = request.args.get('start_date', None)
@@ -262,5 +264,26 @@ class ProductCreationView(MethodView):
             return jsonify(message), 500
         else:
             return jsonify(results), 200
+        finally:
+            conn.close()
+
+class ProductView(MethodView):
+    def __init__(self, service):
+        self.service = service
+
+    def get(self, code):
+        try:
+            conn = get_connection(config.database)
+            validate_product_code(code)
+
+            result = self.service.get_product_by_code(conn, code)
+        except ValidationError as e:
+            message = { "message": e.message }
+            return jsonify(message), 400
+        except (err.OperationalError, err.InternalError) as e:
+            message = {"errno": e.args[0], "errval": e.args[1]}
+            return jsonify(message), 500
+        else:
+            return jsonify(result), 200
         finally:
             conn.close()
