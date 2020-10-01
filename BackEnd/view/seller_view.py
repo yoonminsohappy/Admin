@@ -37,7 +37,6 @@ class ProductSellerSearchView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    @login_decorator
     def get(self):
         """
         상품 등록을 위해 셀러를 검색한다.

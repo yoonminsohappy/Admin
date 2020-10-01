@@ -1,4 +1,5 @@
 import json
+from ast import literal_eval
 
 from flask          import jsonify, request
 from flask.views    import MethodView
@@ -8,7 +9,21 @@ from botocore.exceptions import ClientError
 
 import config
 from connection import get_connection
-from exceptions import NonImageFilenameError, NonPrimaryImageError
+from exceptions import (
+    NonImageFilenameError, 
+    NonPrimaryImageError,
+    ValidationError
+)
+from utils.validation import (
+    validate_products_limit,
+    validate_products_offset,
+    validate_products_product_id,
+    validate_products_seller_property_ids,
+    validate_products_start_end_date,
+    validate_products_is_sold,
+    validate_products_is_displayed,
+    validate_products_is_discounted
+)
 
 # 작성자: 김태수
 # 작성일: 2020.09.17.목
@@ -170,7 +185,7 @@ class ProductCreationView(MethodView):
             body  = json.loads(request.form.get('body', None))
             
             conn.begin()
-            result = self.service.add_product(conn, images, body)
+            self.service.add_product(conn, images, body)
 
         except ClientError as e:
             conn.rollback()
@@ -196,5 +211,56 @@ class ProductCreationView(MethodView):
             conn.commit()
             message = { "message": "SUCCESS" }
             return jsonify(message), 200
+        finally:
+            conn.close()
+
+    def get(self):
+        try:
+            conn                = get_connection(config.database)
+            limit               = request.args.get('limit', '10')
+            offset              = request.args.get('offset', '0')
+            start_date          = request.args.get('start_date', None)
+            end_date            = request.args.get('end_date', None)
+            seller_name         = request.args.get('seller_name', None)
+            product_name        = request.args.get('product_name', None)
+            product_id          = request.args.get('product_number', None)
+            product_code        = request.args.get('product_code', None)
+            seller_property_ids = literal_eval(request.args.get('seller_property_ids', '[]'))
+            is_sold             = request.args.get('is_sold', None)
+            is_displayed        = request.args.get('is_displayed', None)
+            is_discounted       = request.args.get('is_discounted', None)
+
+            limit  = validate_products_limit(limit)
+            offset = validate_products_offset(offset)
+            validate_products_start_end_date(start_date, end_date)
+            product_id    = validate_products_product_id(product_id)
+            is_sold       = validate_products_is_sold(is_sold)
+            is_displayed  = validate_products_is_displayed(is_displayed)
+            is_discounted = validate_products_is_discounted(is_discounted)
+            validate_products_seller_property_ids(seller_property_ids)
+            
+            results = self.service.get_products_list(
+                conn, 
+                limit, 
+                offset,
+                start_date,
+                end_date,
+                seller_name,
+                product_name,
+                product_id,
+                product_code,
+                seller_property_ids,
+                is_sold,
+                is_displayed,
+                is_discounted
+            )
+        except ValidationError as e:
+            message = {"message": e.message}
+            return jsonify(message), 400
+        except (err.OperationalError, err.InternalError) as e:
+            message = {"errno": e.args[0], "errval": e.args[1]}
+            return jsonify(message), 500
+        else:
+            return jsonify(results), 200
         finally:
             conn.close()

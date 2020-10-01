@@ -350,3 +350,129 @@ class ProductDao:
             rows = cursor.execute(sql, option)
             if rows <= 0:
                 raise pymysql.err.InternalError(10004, "DAO_COULD_NOT_INSERT_PRODUCT_OPTION")
+
+    def find_products(self, conn, params):
+        sql = """
+            SELECT
+                p.id,
+                p.register_date, 
+                pi.image_path, 
+                pd.name, 
+                p.code, 
+                sp.name, 
+                s.korean_name,
+                pd.sale_price,
+                pd.discount_rate,
+                pd.is_sold,
+                pd.is_displayed
+            FROM 
+                product_details AS pd
+            INNER JOIN
+                products AS p
+            ON 
+                pd.product_id = p.id
+            INNER JOIN
+                product_images AS pi
+            ON
+                pi.product_id = p.id
+            INNER JOIN
+                sellers AS s
+            ON
+                s.id = p.seller_id
+            INNER JOIN
+                seller_properties AS sp
+            ON
+                sp.id = s.seller_property_id
+            WHERE 
+                pd.expired_at = '9999-12-31 23:59:59'
+            AND
+                s.expired_at = '9999-12-31 23:59:59'
+            AND
+                pi.ordering = 1
+            AND 
+                (
+                    pd.discount_ended_at IS NULL 
+                    OR
+                    (
+                        NOW() BETWEEN pd.discount_started_at AND pd.discount_ended_at
+                    )
+                )
+        """
+        sql2 = """
+            ORDER BY
+                p.register_date DESC
+            LIMIT
+                %(limit)s
+            OFFSET
+                %(offset)s;
+        """
+        if params['start_date'] and params['end_date']:
+            sql += """
+                AND
+                    p.register_date BETWEEN %(start_date)s AND %(end_date)s
+            """
+
+        if params['seller_name']:
+            sql += """
+                AND 
+                    s.korean_name LIKE %(seller_name)s
+            """
+
+        if params['product_name']:
+            sql += """
+                AND
+                    pd.name LIKE %(product_name)s
+            """
+
+        if params['product_id']:
+            sql += """
+                AND
+                    p.id = %(product_id)s
+            """
+
+        if params['product_code']:
+            sql += """
+                AND
+                    p.code = %(product_code)s
+            """
+
+        if params['seller_property_ids_length'] > 0:
+            sql += """
+                AND (
+            """
+            length = params['seller_property_ids_length']
+            for idx in range(0, length):
+                if idx == 0 and params[f'seller_property_id_{idx}']:
+                    sql += f" sp.id = %(seller_property_id_{idx})s "
+                if params[f'seller_property_id_{idx}']:
+                    sql += f" OR sp.id = %(seller_property_id_{idx})s "
+            sql += """
+                )
+            """
+
+        if params['is_sold']:
+            sql += """
+                AND
+                    pd.is_sold = %(is_sold)s
+            """
+
+        if params['is_displayed']:
+            sql += """
+                AND
+                    pd.is_displayed = %(is_displayed)s
+            """
+
+        if params['is_discounted']:
+            sql += """
+                AND
+                    pd.discount_rate > 0
+            """
+
+        sql += sql2
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, params)
+            results = cursor.fetchall()
+            if not results:
+                raise pymysql.err.InternalError(10008, "DAO_COULD_NOT_LIST_PRODUCTS")
+        return results

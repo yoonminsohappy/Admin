@@ -203,3 +203,38 @@ class ProductService:
         for i, image in enumerate(images):
             url = self.upload_image_to_s3(image, filenames[i])
             self.product_dao.create_product_image(conn, url, i+1, product_id)
+
+    def get_products_list(
+        self, 
+        conn, 
+        limit, 
+        offset, 
+        start_date, 
+        end_date, 
+        seller_name,
+        product_name,
+        product_id,
+        product_code,
+        seller_property_ids,
+        is_sold,
+        is_displayed,
+        is_discounted
+    ):
+        params = dict()
+        params['limit']        = limit
+        params['offset']       = offset
+        params['start_date']   = start_date
+        params['end_date']     = end_date
+        params['seller_name']  = '%' + seller_name + '%' if seller_name else None
+        params['product_name'] = '%' + product_name + '%' if product_name else None
+        params['product_id']   = product_id
+        params['product_code'] = product_code
+
+        for idx, seller_property_id in enumerate(seller_property_ids):
+            params[f'seller_property_id_{idx}'] = seller_property_id
+        params['seller_property_ids_length'] = len(seller_property_ids)
+
+        params['is_sold']       = is_sold
+        params['is_displayed']   = is_displayed
+        params['is_discounted'] = is_discounted
+        return self.product_dao.find_products(conn, params)

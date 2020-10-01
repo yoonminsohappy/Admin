@@ -1,6 +1,8 @@
 import re
+import datetime
 
 from flask_request_validator import AbstractRule
+from exceptions import ValidationError
 """
         validation API
 
@@ -116,7 +118,101 @@ class Validation_order(AbstractRule):
             'ASC',
             'DESC'
             ]
-
+            
         if value not in order:
             errors.append('잘못된 sql 구문입니다.')
         return errors
+
+def validate_products_limit(limit):
+    result = None
+    limits = [10, 20, 50]
+
+    if limit.isnumeric():
+        if int(limit) not in limits:
+            raise ValidationError("LIMIT_MUST_BE_IN_[10, 20, 50]")
+        result = int(limit)
+    else:
+        raise ValidationError("LIMIT_MUST_BE_AN_INTEGER")
+
+    return result
+
+def validate_products_offset(offset):
+    result = None
+    
+    if offset.isnumeric():
+        if int(offset) < 0:
+            raise ValidationError("OFFSET_CANNOT_BE_A_NEGATIVE_NUMBER")# 음수 금지
+        result = int(offset)
+    else:
+        raise ValidationError("OFFSET_MUST_BE_AN_INTEGER")
+
+    return result
+
+def validate_products_start_end_date(start_date, end_date):
+    try:
+        if start_date and end_date:
+            strp_start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+            strp_end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+
+            if strp_start_date > strp_end_date:
+                raise ValidationError("START_DATE_MUST_BE_LESS_THAN_END_DATE")
+        elif start_date or end_date:
+            raise ValidationError("BOTH_NONE_OR_BOTH_DATES")
+
+    except ValueError:
+        raise ValidationError("DATE_FORMAT_MUST_BE_'YYYY-MM-DD'")
+
+def validate_products_product_id(product_id):
+    result = None
+
+    if product_id:
+        if product_id.isnumeric():
+            if int(product_id) < 1:
+                raise ValidationError("PRODUCT_ID_MUST_BE_GREATER_THAN_1")
+            result = int(product_id)
+        else:
+            raise ValidationError("PRODUCT_ID_MUST_BE_A_NUMBER")
+
+    return result
+
+def validate_products_is_sold(is_sold):
+    result = None
+
+    if is_sold:
+        if is_sold.isnumeric():
+            is_sold = int(is_sold)
+            if is_sold != 0 and is_sold != 1:
+                raise ValidationError("IS_SOLD_MUST_BE_IN_[0, 1, None]")
+        else:
+            raise ValidationError("IS_SOLD_CANNOT_BE_A_STRING")
+    return result
+
+def validate_products_is_displayed(is_displayed):
+    result = None
+
+    if is_displayed:
+        if is_displayed.isnumeric():
+            is_displayed = int(is_displayed)
+            if is_displayed != 0 and is_displayed != 1:
+                raise ValidationError("IS_DISPLAYED_MUST_BE_IN_[0, 1, None]")
+        else:
+            raise ValidationError("IS_DISPLAYED_CANNOT_BE_A_STRING")
+    return result
+
+def validate_products_is_discounted(is_discounted):
+    result = None
+
+    if is_discounted:
+        if is_discounted.isnumeric():
+            is_discounted = int(is_discounted)
+            if is_discounted != 0 and is_discounted != 1:
+                raise ValidationError("IS_DISCOUNTED_MUST_BE_IN_[0, 1, None]")
+        else:
+            raise ValidationError("IS_DISCOUNTED_CANNOT_BE_A_STRING")
+    return result
+
+def validate_products_seller_property_ids(seller_property_ids):
+    if seller_property_ids:
+        for seller_property_id in seller_property_ids:
+            if not isinstance(seller_property_id, int):
+                raise ValidationError("SELLER_PROPERTY_ID_MUST_BE_AN_INTERGER")
