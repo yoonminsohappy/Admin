@@ -247,3 +247,12 @@ class ProductService:
         product_dict["images"]  = images_dict
         product_dict["options"] = options_dict
         return product_dict
+
+    def get_countries(self, conn):
+        return self.product_dao.find_all_countries(conn)
+
+    def get_colors(self, conn):
+        return self.product_dao.find_all_colors(conn)
+
+    def get_sizes(self, conn):
+        return self.product_dao.find_all_sizes(conn)

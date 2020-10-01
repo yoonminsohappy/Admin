@@ -576,3 +576,48 @@ class ProductDao:
             if not results:
                 raise pymysql.err.InternalError(10011, "DAO_COULD_NOT_FIND_PRODUCT_OPTIONS")
         return results
+    
+    def find_all_countries(self, conn):
+        sql = """
+            SELECT 
+                *
+            FROM
+                country_of_origins;
+        """
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql)
+            results = cursor.fetchall()
+            if not results:
+                raise pymysql.err.InternalError(10011, "DAO_COULD_NOT_FIND_COUNTRIES")
+        return results
+
+    def find_all_colors(self, conn):
+        sql = """
+            SELECT 
+                *
+            FROM
+                colors;
+        """
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql)
+            results = cursor.fetchall()
+            if not results:
+                raise pymysql.err.InternalError(10011, "DAO_COULD_NOT_FIND_COLORS")
+        return results
+
+    def find_all_sizes(self, conn):
+        sql = """
+            SELECT 
+                *
+            FROM
+                sizes;
+        """
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql)
+            results = cursor.fetchall()
+            if not results:
+                raise pymysql.err.InternalError(10011, "DAO_COULD_NOT_FIND_SIZES")
+        return results

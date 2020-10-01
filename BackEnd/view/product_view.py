@@ -287,3 +287,54 @@ class ProductView(MethodView):
             return jsonify(result), 200
         finally:
             conn.close()
+
+class ProductCountriesView(MethodView):
+    def __init__(self, service):
+        self.service = service
+
+    def get(self):
+        try:
+            conn = get_connection(config.database)
+
+            results = self.service.get_countries(conn)
+        except (err.OperationalError, err.InternalError) as e:
+            message = {"errno": e.args[0], "errval": e.args[1]}
+            return jsonify(message), 500
+        else:
+            return jsonify(results), 200
+        finally:
+            conn.close()
+
+class ProductColorsView(MethodView):
+    def __init__(self, service):
+        self.service = service
+    
+    def get(self):
+        try:
+            conn = get_connection(config.database)
+
+            results = self.service.get_colors(conn)
+        except (err.OperationalError, err.InternalError) as e:
+            message = {"errno": e.args[0], "errval": e.args[1]}
+            return jsonify(message), 500
+        else:
+            return jsonify(results), 200
+        finally:
+            conn.close()
+
+class ProductSizesView(MethodView):
+    def __init__(self, service):
+        self.service = service
+
+    def get(self):
+        try:
+            conn = get_connection(config.database)
+
+            results = self.service.get_sizes(conn)
+        except (err.OperationalError, err.InternalError) as e:
+            message = {"errno": e.args[0], "errval": e.args[1]}
+            return jsonify(message), 500
+        else:
+            return jsonify(results), 200
+        finally:
+            conn.close()
