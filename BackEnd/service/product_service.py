@@ -1,6 +1,9 @@
 import boto3
 import uuid
+import datetime
+from decimal import Decimal
 
+from pyexcel_xls import save_data
 from werkzeug.utils import secure_filename
 
 from exceptions import NonPrimaryImageError, NonImageFilenameError
@@ -256,3 +259,40 @@ class ProductService:
 
     def get_sizes(self, conn):
         return self.product_dao.find_all_sizes(conn)
+
+    def make_excel_file(self, directory, filename, results):
+        data    = []
+        for idx, item in enumerate(results):
+            if idx == 0:
+                data.append(list(item.keys()))
+
+            data.append([
+                item['등록일'].strftime("%Y-%m-%d %H:%M:%S"),
+                item['대표이미지'],
+                item['상품명'],
+                item['상품코드'],
+                item['상품번호'],
+                item['셀러속성'],
+                item['셀러명'],
+                item['판매가'],
+                int(item['할인가']),
+                item['판매여부'],
+                item['진열여부'],
+                1 if item['할인여부'] > 0 else 0
+            ])
+
+        now_date = datetime.datetime.now().strftime("%Y%m%d")
+        filename = now_date + "_" + filename
+        save_data(directory + filename, {now_date: data})
+        
+        return directory, filename
+
+    def make_excel_all(self, conn, start_date, end_date):
+        results = self.product_dao.find_products_by_dates(conn, start_date, end_date)
+
+        return self.make_excel_file("temp/", "모든상품엑셀다운로드_브랜디.xls", results)
+
+    def make_excel_select(self, conn, product_ids):
+        results = self.product_dao.find_products_by_ids(conn, product_ids)
+    
+        return self.make_excel_file("temp/", "선택상품엑셀다운로드_브랜디.xls", results)

@@ -6,7 +6,8 @@ from .product_view import (
     ProductView,
     ProductCountriesView,
     ProductColorsView,
-    ProductSizesView
+    ProductSizesView,
+    ProductsDownloadView
 )
 from .order_view   import (
     GetOrderDataView,
@@ -58,6 +59,9 @@ def create_endpoints(app, services):
     )
     app.add_url_rule('/products/sizes',
         view_func = ProductSizesView.as_view('product_sizes_view', product_service)
+    )
+    app.add_url_rule('/products/download',
+        view_func = ProductsDownloadView.as_view('products_download_view', product_service)
     )
     app.add_url_rule('/order',
         view_func = GetOrderDataView.as_view('order_data_view', order_service)

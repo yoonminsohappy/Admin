@@ -360,33 +360,41 @@ class ProductDao:
                 pd.name, 
                 p.code, 
                 sp.name, 
-                s.korean_name,
+                si.korean_name,
                 pd.sale_price,
                 pd.discount_rate,
                 pd.is_sold,
                 pd.is_displayed
             FROM 
                 product_details AS pd
-            INNER JOIN
+            JOIN
                 products AS p
             ON 
                 pd.product_id = p.id
-            INNER JOIN
+            JOIN
                 product_images AS pi
             ON
                 pi.product_id = p.id
-            INNER JOIN
+            JOIN
                 sellers AS s
             ON
                 s.id = p.seller_id
-            INNER JOIN
+            JOIN
+	            seller_informations AS si
+            ON
+	            s.id = si.seller_id
+            JOIN
                 seller_properties AS sp
             ON
-                sp.id = s.seller_property_id
+                sp.id = si.seller_property_id
             WHERE 
                 pd.expired_at = '9999-12-31 23:59:59'
+            AND 
+	            p.is_deleted = 0
             AND
-                s.expired_at = '9999-12-31 23:59:59'
+	            s.is_deleted = 0
+            AND
+                si.expired_at = '9999-12-31 23:59:59'
             AND
                 pi.ordering = 1
             AND 
@@ -415,7 +423,7 @@ class ProductDao:
         if params['seller_name']:
             sql += """
                 AND 
-                    s.korean_name LIKE %(seller_name)s
+                    si.korean_name LIKE %(seller_name)s
             """
 
         if params['product_name']:
@@ -620,4 +628,138 @@ class ProductDao:
             results = cursor.fetchall()
             if not results:
                 raise pymysql.err.InternalError(10011, "DAO_COULD_NOT_FIND_SIZES")
+        return results
+
+    def find_products_by_dates(self, conn, start_date, end_date):
+        sql = """
+            SELECT 
+                p.register_date AS 등록일,
+                pi.image_path AS 대표이미지,
+                pd.name AS 상품명,
+                p.code AS 상품코드,
+                p.id AS 상품번호,
+                sp.name AS 셀러속성,
+                si.korean_name AS 셀러명,
+                pd.sale_price AS 판매가,
+                pd.sale_price - (pd.discount_rate * 0.01 * pd.sale_price) AS 할인가,
+                pd.is_sold AS 판매여부,
+                pd.is_displayed AS 진열여부,
+                pd.discount_rate AS 할인여부
+            FROM
+                products AS p
+            JOIN
+                product_details AS pd
+            ON
+                p.id = pd.product_id
+            JOIN
+                product_images AS pi
+            ON
+                p.id = pi.product_id
+            JOIN
+                sellers AS s
+            ON
+                p.seller_id = s.id
+            JOIN
+                seller_informations AS si
+            ON
+                s.id = si.seller_id
+            JOIN
+                seller_properties AS sp
+            ON
+                si.seller_property_id = sp.id
+            WHERE
+                p.register_date BETWEEN %s AND %s
+            AND
+                p.is_deleted = 0
+            AND
+                si.expired_at = '9999-12-31 23:59:59'
+            AND
+                s.is_deleted = 0
+            AND
+                pd.expired_at = '9999-12-31 23:59:59'
+            AND
+                pi.ordering = 1
+            ORDER BY
+                p.register_date
+            DESC;
+        """
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, (start_date, end_date,))
+            results = cursor.fetchall()
+            if not results:
+                raise pymysql.err.InternalError(10008, "DAO_COULD_NOT_LIST_PRODUCTS")
+        return results
+
+    def find_products_by_ids(self, conn, product_ids):
+        sql = """
+            SELECT 
+                p.register_date AS 등록일,
+                pi.image_path AS 대표이미지,
+                pd.name AS 상품명,
+                p.code AS 상품코드,
+                p.id AS 상품번호,
+                sp.name AS 셀러속성,
+                si.korean_name AS 셀러명,
+                pd.sale_price AS 판매가,
+                pd.sale_price - (pd.discount_rate * 0.01 * pd.sale_price) AS 할인가,
+                pd.is_sold AS 판매여부,
+                pd.is_displayed AS 진열여부,
+                pd.discount_rate AS 할인여부
+            FROM
+                products AS p
+            JOIN
+                product_details AS pd
+            ON
+                p.id = pd.product_id
+            JOIN
+                product_images AS pi
+            ON
+                p.id = pi.product_id
+            JOIN
+                sellers AS s
+            ON
+                p.seller_id = s.id
+            JOIN
+                seller_informations AS si
+            ON
+                s.id = si.seller_id
+            JOIN
+                seller_properties AS sp
+            ON
+                si.seller_property_id = sp.id
+            WHERE
+                p.is_deleted = 0
+            AND
+                si.expired_at = '9999-12-31 23:59:59'
+            AND
+                s.is_deleted = 0
+            AND
+                pd.expired_at = '9999-12-31 23:59:59'
+            AND
+                pi.ordering = 1
+            AND (
+        """
+        for idx, _id in enumerate(product_ids):
+            if idx == 0:
+                sql += """
+                    p.id = %s
+                """
+            else:
+                sql += """
+                    OR
+                        p.id = %s
+                """
+        sql += """)
+            ORDER BY
+                p.register_date
+            DESC;
+        """
+
+        # raise pymysql.err.InternalError(10008, "DAO_COULD_NOT_LIST_PRODUCTS")
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, product_ids)
+            results = cursor.fetchall()
+            if not results:
+                raise pymysql.err.InternalError(10008, "DAO_COULD_NOT_LIST_PRODUCTS")
         return results

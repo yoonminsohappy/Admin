@@ -158,7 +158,7 @@ def validate_products_start_end_date(start_date, end_date):
 
             if strp_start_date > strp_end_date:
                 raise ValidationError("START_DATE_MUST_BE_LESS_THAN_END_DATE")
-        elif start_date or end_date:
+        elif (start_date and not end_date) or (not start_date and end_date):
             raise ValidationError("BOTH_NONE_OR_BOTH_DATES")
 
     except ValueError:

@@ -30,16 +30,23 @@ class SellerDao:
         History:
             2020-09-20(이충희): 초기 생성
             2020-09-23(이충희): 데이터베이스 커넥션 부분을 뷰 레벨로 이동시킴
+            2020-10-03(이충희): sellers 와 seller_informations의 테이블 분리로 쿼리문 변경
         """
-        QUERY = """
+        sql = """
             SELECT
-                id, korean_name, profile_image, seller_property_id
+                s.id, si.korean_name, si.profile_image, si.seller_property_id
             FROM 
-                sellers
+                sellers AS s
+            JOIN
+                seller_informations AS si
+            ON
+                s.id = si.seller_id
             WHERE 
-                korean_name LIKE %s
+                si.korean_name LIKE %s
             AND
-	            expired_at = '9999-12-31 23:59:59'
+                si.expired_at = '9999-12-31 23:59:59'
+            AND 
+                s.is_deleted = 0
             ORDER BY korean_name ASC
             LIMIT %s;
         """

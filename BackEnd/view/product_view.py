@@ -1,7 +1,7 @@
 import json
 from ast import literal_eval
 
-from flask          import jsonify, request
+from flask          import jsonify, request, send_file
 from flask.views    import MethodView
 from pymysql        import err
 
@@ -12,7 +12,10 @@ from connection import get_connection
 from exceptions import (
     NonImageFilenameError, 
     NonPrimaryImageError,
-    ValidationError
+    ValidationError,
+    OneOfDatesAreNoneError,
+    ProductIdListEmptyError,
+    InvalidDownloadTypeError
 )
 from utils.validation import (
     validate_products_limit,
@@ -336,5 +339,52 @@ class ProductSizesView(MethodView):
             return jsonify(message), 500
         else:
             return jsonify(results), 200
+        finally:
+            conn.close()
+
+class ProductsDownloadView(MethodView):
+    def __init__(self, service):
+        self.service = service
+
+    def get(self):
+        try:
+            conn = get_connection(config.database)
+
+            download_type = request.args.get('type', '')
+            if download_type == "all":
+                start_date = request.args.get('start_date', None)
+                end_date   = request.args.get('end_date', None)
+
+                if not start_date or not end_date:
+                    raise OneOfDatesAreNoneError("BOTH_DATES_MUST_BE_PROVIDED")
+
+                validate_products_start_end_date(start_date, end_date)
+
+                directory, filename = self.service.make_excel_all(conn, start_date, end_date)
+            elif download_type == "select":
+                product_ids = literal_eval(request.args.get('product_ids', '[]'))
+
+                if not product_ids:
+                    raise ProductIdListEmptyError("PRODUCT_IDS_MUST_BE_PROVIDED")
+
+                for product_id in product_ids:
+                    validate_products_product_id(str(product_id))
+
+                directory, filename = self.service.make_excel_select(conn, tuple(product_ids))
+            else:
+                raise InvalidDownloadTypeError("TYPE_MUST_BE_ALL_OR_SELECT")
+
+        except (ValidationError, OneOfDatesAreNoneError, ProductIdListEmptyError, InvalidDownloadTypeError)as e:
+            message = {"message": e.message}
+            return jsonify(message), 400
+        except (err.OperationalError, err.InternalError) as e:
+            message = {"errno": e.args[0], "errval": e.args[1]}
+            return jsonify(message), 500
+        else:
+            return send_file(directory + filename,
+                mimetype="application/vnd.ms-excel",
+                as_attachment=True,
+                attachment_filename=filename,
+                conditional=False)
         finally:
             conn.close()
