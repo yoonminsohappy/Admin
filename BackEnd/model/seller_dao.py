@@ -38,6 +38,8 @@ class SellerDao:
                 sellers
             WHERE 
                 korean_name LIKE %s
+            AND
+	            expired_at = '9999-12-31 23:59:59'
             ORDER BY korean_name ASC
             LIMIT %s;
         """
