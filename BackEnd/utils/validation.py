@@ -29,7 +29,8 @@ from exceptions import ValidationError
             History:
                 2020 - 09 - 25(wldus9503@gmail.com) : 유효성 검사
                 2020 - 09 - 28(wldus9503@gmail.com) : 유효성 검사 customexception -> validationexception 변경
-                2020 - -0 - 29(wldus9503@gmail.com) : 클래스 Validation_order 추가, DB ORDER기능 위한것
+                2020 - 09 - 29(wldus9503@gmail.com) : 클래스 Validation_order 추가, DB ORDER기능 위한것
+                2020 - 09 - 30(wldus9503@gmail.com) : 수정 페이지를 위한 유효성 검사 추가
 """
 
 #AbstractRule : 우선 순위를 보통으로 설정하고 상태를 활성으로 설정하는 기본 생성자
@@ -40,6 +41,7 @@ class Validation_seller_account(AbstractRule):
         errors = []
         seller_account_reg = r"^[0-9a-zA-Z][0-9a-zA-Z_-]{5,20}$"
         regex  = re.compile(seller_account_reg)
+
         if not regex.match(value):
             errors.append('아이디는 5~20글자의 영문, 숫자, 언더바, 하이픈만 사용 가능하며 시작 문자는 영문 또는 숫자입니다.')
         return errors
@@ -104,6 +106,7 @@ class Validation_seller_property(AbstractRule):
     def validate(self, value):
         errors = []
         seller_property_reg = ['쇼핑몰','마켓','로드샵','디자이너브랜드','제너럴브랜드','내셔널브랜드','뷰티']
+        
         if value not in seller_property_reg:
             errors.append('잘못된 셀러 속성입니다.')
         return errors
@@ -112,14 +115,13 @@ class Validation_order(AbstractRule):
 
     def validate(self, value):
         errors = []
-        order = [
+        order_reg = [
             'asc', 
             'desc',
             'ASC',
             'DESC'
             ]
-            
-        if value not in order:
+        if value not in order_reg:
             errors.append('잘못된 sql 구문입니다.')
         return errors
 
@@ -221,3 +223,178 @@ def validate_product_code(code):
     uuid_regex = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
     if not re.match(uuid_regex, code):
         raise ValidationError("INVALID_PRODUCT_CODE")
+
+#수정기능추가
+class Validation_managers_name(AbstractRule):
+    
+    def validate(self, value):
+        errors = []
+        managers_name_reg = re.compile(r"[ᄀ-힣]")
+        regex       = re.compile(managers_name_reg)
+
+        if not regex.match(value):
+            errors.append('한글만 입력해주세요.')
+        return errors
+
+class Validation_managers_email(AbstractRule):
+    
+    def validate(self, value):
+        errors = []
+        managers_email_reg = re.compile('^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
+        regex        = re.compile(managers_email_reg)
+
+        if not regex.match(value):
+            errors.append('이메일 형식에 맞게 입력해주세요')
+        return errors
+
+class Validation_bank_name(AbstractRule):
+    
+    def validate(self, value):
+        errors = []
+        bank_name_reg = [
+            '한국은행', 
+            '산업은행',
+            '기업은행',
+            '국민은행',
+            '수협중앙회',
+            '수출입은행',
+            '농협중앙회',
+            '지역 농축협',
+            '우리은행',
+            'SC은행',
+            '한국씨티은행',
+            '대구은행',
+            '부산은행',
+            '광주은행',
+            '제주은행',
+            '전북은행',
+            '경남은행',
+            '새마을금고중앙회',
+            '신협중앙회',
+            '상호저축은행',
+            '모건스탠리은행',
+            'HSC은행',
+            '도이치은행',
+            '알비에스피엘씨은행',
+            '제이피모간체이스은행',
+            '미즈호은행',
+            '미쓰비시도쿄UFJ은행',
+            'BOA은행',
+            '산림조합중앙회',
+            '우체국',
+            '신용보증기금',
+            '기술보증기금',
+            'KEB하나은행',
+            '신한은행',
+            '케이뱅크',
+            '카카오뱅크',
+            '한국주택금융공사',
+            '한국주택금융공사',
+            '서울보증보험',
+            '경찰청',
+            '한국전자금융(주)',
+            '금융결제원'
+            ]
+
+        if value not in bank_name_reg:
+            errors.append('해당되지 않는 은행 이름입니다.')
+        return errors
+
+class Validation_account_number(AbstractRule):
+
+    def validate(self, value):
+        errors = []
+        account_number_reg = r"[0-9]"
+        regex              = re.compile(account_number_reg)
+
+        if not regex.match(value):
+            errors.append('입력하신 계좌번호가 유효하지 않습니다.')
+        return errors
+
+class Validation_account_name(AbstractRule):
+
+   def validate(self, value):
+        errors = []
+        account_name_reg = re.compile(r"[ᄀ-힣]")
+        regex            = re.compile(account_name_reg)
+        
+        if not regex.match(value):
+            errors.append('한글만 입력해주세요.')
+        return errors
+
+class Validation_shipping_information(AbstractRule):
+
+    def validate(self, value):
+        errors = []
+        shipping_information_reg = re.compile(r"[ᄀ-힣a-zA-Z0-9]")
+        regex                    = re.compile(shipping_information_reg)
+
+        if not regex.match(value):
+            errors.append('한글, 숫자, 영문만 입력해주세요.')
+        return errors
+
+class Validation_exchange_refund_information(AbstractRule):
+
+    def validate(self, value):
+        errors = []
+        exchange_refund_information_reg = re.compile(r"[ᄀ-힣a-zA-Z0-9]")
+        regex                    = re.compile(exchange_refund_information_reg)
+
+        if not regex.match(value):
+            errors.append('한글, 숫자, 영문만 입력해주세요.')
+        return errors
+
+class Validation_model_height(AbstractRule):
+
+    def validate(self, value):
+        errors = []
+        model_height_reg = re.compile(r'\d{3}')
+        regex            = re.compile(model_height_reg)
+
+        if not regex.match(value):
+            errors.append('숫자만 입력해주세요.')
+        return errors
+
+class Validation_model_top_size(AbstractRule):
+    
+    def validate(self, value):
+        errors = []
+        model_top_size_reg = re.compile(r'\d{2}')
+        regex              = re.compile(model_top_size_reg)
+
+        if not regex.match(value):
+            errors.append('숫지만 입력해주세요.')
+        return errors
+
+class Validation_model_bottom_size(AbstractRule):
+    
+    def validate(self, value):
+        errors = []
+        model_bottom_size_reg = re.compile(r'\d{2}')
+        regex              = re.compile(model_bottom_size_reg)
+
+        if not regex.match(value):
+            errors.append('숫지만 입력해주세요.')
+        return errors
+
+class Validation_model_feet_size(AbstractRule):
+    
+    def validate(self, value):
+        errors = []
+        model_feet_size_reg = re.compile(r'\d{3}')
+        regex              = re.compile(model_feet_size_reg)
+
+        if not regex.match(value):
+            errors.append('숫지만 입력해주세요.')
+        return errors
+
+class Validation_shopping_feedtext(AbstractRule):
+    
+    def validate(self, value):
+        errors = []
+        shopping_feedtext_reg = re.compile(r"[ᄀ-힣a-zA-Z0-9]")
+        regex   = re.compile(shopping_feedtext_reg)
+
+        if not regex.match(value):
+            errors.append('힌글, 영문, 숫자만 입력해주세요.')
+        return errors

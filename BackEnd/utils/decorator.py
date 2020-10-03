@@ -82,5 +82,7 @@ def catch_exception(f, *args, **kwargs):
         try:
             return f(*args, **kwargs)
         except Exception as e:
-            return jsonify({"message" : f"INVALID_PARAMETER_{e.args[0]}"}), 400
+            print(e.args!=None)
+            return "asd"
+            # return jsonify({"message" : f"INVALID_PARAMETER_{e.args[0]}"}), 400
     return wrapper

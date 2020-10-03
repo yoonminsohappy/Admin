@@ -74,34 +74,54 @@ class SellerDao:
 
         return result if result else None
 
-
     # seller삽입하기
-    def insert_seller(self,seller,db):
+    def insert_sellers(self,db):
         sql = """
             INSERT INTO sellers
             (
-                seller_account,
-                english_name,
-                korean_name,
-                cs_phone,
-                seller_property_id,
-                password
+                register_date,
+                is_deleted
             ) 
-            VALUES(%s, %s, %s, %s, %s, %s);
+            VALUES(default, default);
         """
-
         cursor = db.cursor(pymysql.cursors.DictCursor) 
-        cursor.execute(sql, (
-            seller['seller_account'],
-            seller['english_name'],
-            seller['korean_name'],
-            seller['cs_phone'],
-            seller['seller_property_id'],
-            seller['password']))
+        cursor.execute(sql, ())
 
         result = cursor.lastrowid
         cursor.close()
 
+        return result if result else None
+
+    def insert_seller_infomation(self, seller, db):
+        sql = """
+            INSERT INTO seller_informations
+            (
+                sellers_id,
+                seller_account,
+                password,
+                seller_property_id,
+                korean_name,
+                english_name,
+                cs_phone,
+                modifier_id
+            ) 
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s);
+        """
+        cursor = db.cursor(pymysql.cursors.DictCursor) 
+        cursor.execute(sql, (
+            seller['sellers_id'],
+            seller['seller_account'],
+            seller['password'],
+            seller['seller_property_id'],
+            seller['korean_name'],
+            seller['english_name'],
+            seller['cs_phone'],
+            seller['modifier_id']
+        ))
+
+        result = cursor.lastrowid
+        cursor.close()
+        
         return result if result else None
 
     # seller_managers 삽입하기
@@ -110,12 +130,12 @@ class SellerDao:
             INSERT INTO seller_managers
             (
                phone_number,
-               seller_id
+               sellers_id
             ) 
             VALUES(%s, %s);
         """
         cursor = db.cursor(pymysql.cursors.DictCursor) 
-        cursor.execute(sql, (manager['phone_number'], manager['seller_id']))
+        cursor.execute(sql, (manager['phone_number'], manager['sellers_id']))
         result = cursor.lastrowid #지금 인서트 된 아이다값을 가져옴
 
         cursor.close()
@@ -127,10 +147,14 @@ class SellerDao:
     def select_seller(self, seller_account , db):
         sql = """
             SELECT
-                seller_account,
-                password
-            FROM sellers
-            WHERE seller_account=%s;
+                i.seller_account,
+                i.password
+            FROM seller_informations i
+            INNER JOIN sellers s
+                ON s.id = i.sellers_id
+            WHERE i.seller_account=%s
+            AND s.is_deleted != 1
+            AND i.expired_at = '9999-12-31 23:59:59';
         """  
 
         cursor = db.cursor(pymysql.cursors.DictCursor)
@@ -145,22 +169,41 @@ class SellerDao:
             SELECT
             count(*) as count
             FROM sellers s
-            INNER JOIN seller_properties p ON s.seller_property_id = p.id
-            INNER JOIN seller_statuses t ON s.seller_status_id = t.id
-            INNER JOIN seller_managers m ON s.id = m.seller_id
-            WHERE s.id like %s       
-                AND s.seller_account like %s
-                AND s.korean_name like %s
-                AND s.english_name like %s
+            INNER JOIN seller_informations i ON s.id = i.sellers_id
+            INNER JOIN seller_properties p ON i.seller_property_id = p.id
+            INNER JOIN seller_statuses t ON i.seller_status_id = t.id
+            INNER JOIN seller_managers m ON i.sellers_id = m.sellers_id
+            WHERE s.id like %s
+                AND i.seller_account like %s
+                AND i.korean_name like %s
+                AND i.english_name like %s
                 AND t.name like %s
                 AND p.name like %s
                 AND m.name like %s
                 AND m.phone_number like %s
-                AND m.email like %s
-            ORDER BY s.id DESC
-            ;
+                AND m.email like %s 
+                AND s.is_deleted != 1
+                AND i.expired_at = '9999-12-31 23:59:59'
+            ORDER BY s.id DESC;
         """
-#검색할때 조건을 여러개 주면 그 여러개에 대해서 and
+               
+                # AND i.seller_account like %s
+                # AND i.korean_name like %s
+                # AND i.english_name like %s
+                # AND t.name like %s
+                # AND p.name like %s
+                # AND m.name like %s
+                # AND m.phone_number like %s
+                # AND m.email like %s                
+            # "%" + search_info['seller_account'] +"%",
+            # "%" + search_info['korean_name'] +"%", 
+            # "%" + search_info['english_name'] +"%",
+            # "%" + search_info['seller_status'] +"%",
+            # "%" + search_info['seller_property'] +"%",
+            # "%" + search_info['manager_name'] +"%",
+            # "%" + search_info['manager_phone'] +"%",
+            # "%" + search_info['manager_email'] +"%",
+        #검색할때 조건을 여러개 주면 그 여러개에 대해서 and
         cursor = conn.cursor(pymysql.cursors.DictCursor)
 
         cursor.execute(sql, (
@@ -172,7 +215,7 @@ class SellerDao:
             "%" + search_info['seller_property'] +"%",
             "%" + search_info['manager_name'] +"%",
             "%" + search_info['manager_phone'] +"%",
-            "%" + search_info['manager_email'] +"%",
+            "%" + search_info['manager_email'] +"%"
             ))
         
         # fetchone()은 한번 호출에 하나의 Row 만을 가져올 때 사용
@@ -190,29 +233,32 @@ class SellerDao:
         sql = """
             SELECT
             s.id as id, 
-            s.seller_account as seller_account,
-            s.english_name as english_name,
-            s.korean_name as korean_name,
+            i.seller_account as seller_account,
+            i.english_name as english_name,
+            i.korean_name as korean_name,
             m.name as manager_name,
             t.name as seller_status,
             m.phone_number as manager_phone_number,
             m.email as manager_email,
             p.name as seller_property,
-            s.registered_product_count as registered_product_count,
+            i.registered_product_count as registered_product_count,
             s.register_date as register_date
             FROM sellers s
-            INNER JOIN seller_properties p ON s.seller_property_id = p.id
-            INNER JOIN seller_statuses t ON s.seller_status_id = t.id
-            INNER JOIN seller_managers m ON s.id = m.seller_id
+            INNER JOIN seller_informations i ON s.id = i.sellers_id
+            INNER JOIN seller_properties p ON i.seller_property_id = p.id
+            INNER JOIN seller_statuses t ON i.seller_status_id = t.id
+            INNER JOIN seller_managers m ON s.id = m.sellers_id
             WHERE s.id like %s
-                AND s.seller_account like %s
-                AND s.korean_name like %s
-                AND s.english_name like %s
+                AND i.seller_account like %s
+                AND i.korean_name like %s
+                AND i.english_name like %s
                 AND t.name like %s
                 AND p.name like %s
                 AND m.name like %s
                 AND m.phone_number like %s
                 AND m.email like %s
+                AND i.expired_at = '9999-12-31 23:59:59'
+                AND s.is_deleted != 1
             ORDER BY s.id """ + order + """
             LIMIT %s, 10;
         """
@@ -245,3 +291,59 @@ class SellerDao:
         cursor.close()
 
         return results if results else None
+
+    def find_seller_infomation(self, conn, id):
+
+        sql = """
+            SELECT *
+            FROM seller_informations
+            WHERE id = %s
+        """
+
+        #LIMIT : 최신데이터 한개만 뽑으려고(첫번째 인덱스 값을 1개 갖고오겠다는것) 
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+        cursor.execute(sql, (
+            id
+            ))
+ 
+        results = cursor.fetchone()
+
+        cursor.close()
+
+        return results if results else None
+
+    def insert_modification_history(self, conn, seller_info):
+
+        sql = """
+            INSERT INTO seller_status_modification_histories
+            (
+                sellers_id,
+                updated_at,
+                seller_status_id,
+                modifier_id
+            )
+            VALUES
+            (
+                %s,
+                %s,
+                %s,
+                %s
+            )
+        """
+
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+        cursor.execute(sql, (
+            seller_info['sellers_id'],
+            seller_info['created_at'],
+            seller_info['seller_status_id'],
+            seller_info['modifier_id']
+            ))
+
+        results = cursor.lastrowid
+
+        cursor.close()
+
+        return results if results else None
+

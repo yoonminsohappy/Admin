@@ -35,36 +35,55 @@ class SellerService:
         """
         return self.dao.find_sellers_by_search_term(conn, search_term, limit)
 
-    # 작성자: 이지연
-    # 작성일: 2020.09.22.화
+
     # 회원가입 endpoint
 
     def sign_up(self, seller_info, db):
         seller_property_id  = self.dao.get_property_id(seller_info['seller_property'],db)
         
-        password            = seller_info['password'].encode('utf-8') 
-        password_crypt      = bcrypt.hashpw(password,bcrypt.gensalt()).decode('utf-8') 
-
-        if seller_info is None:
+        if seller_property_id is None:
             raise Exception("INVALID_PARAMETER")
 
+        password            = seller_info['password'].encode('utf-8') 
+        password_crypt      = bcrypt.hashpw(password,bcrypt.gensalt()).decode('utf-8')
+        
+        if seller_info is None:
+            raise Exception("INVALID_PARAMETER")
+            
+        unique_seller_id = self.dao.insert_sellers(db)
+
+        if unique_seller_id is None:
+            raise Exception("INVALID_PARAMETER")
+            
         seller = {
+            'sellers_id'            : unique_seller_id,
             'seller_account'        : seller_info['seller_account'],
             'password'              : password_crypt,
             'seller_property_id'    : seller_property_id['id'],
             'korean_name'           : seller_info['korean_name'],
             'english_name'          : seller_info['english_name'],
-            'cs_phone'              : seller_info['cs_phone']
+            'cs_phone'              : seller_info['cs_phone'],
+            'modifier_id'           : unique_seller_id,
         }
-        result = self.dao.insert_seller(seller,db)        
-
+        
+        result = self.dao.insert_seller_infomation(seller, db)
+        
         if result is None:
             raise Exception("INVALID_PARAMETER")
 
+        result_seller = self.dao.find_seller_infomation(db, result)
+
+        #변경이력 기록
+        if self.dao.insert_modification_history(db, result_seller) is None:
+            raise Exception("INVALID_PARAMETER1")
+
         manager = {
             'phone_number' : seller_info['phone_number'],
-            'seller_id'    : result
-        }   
+            'sellers_id'    : unique_seller_id
+        }
+
+        if manager is None:
+            raise Exception("INVALID_PARAMETER")
 
         return self.dao.insert_manager(manager,db)
 
@@ -92,20 +111,23 @@ class SellerService:
     def search_seller_list(self, conn, search_info):
         results = {}
 
+        # ##과거 데이터 pk값들 추출하기
+        # past_sellers_pk = self.dao.find_past_sellers(conn)
+
         if search_info is None:
             raise Exception("INVALID_PARAMETER")
 
         total_count = self.dao.find_search_total_seller_list(conn, search_info)
 
-        total_page  = int(total_count/10)
-
+        total_page  = int(total_count/10)+1
+        
         seller_list = []
         
         if search_info['page'] <= total_page:
             seller_list = self.dao.find_search_seller_list(conn, search_info)
 
         results['seller_list'] = seller_list
-        results['total_page']  = int(total_count/10)
+        results['total_page']  = total_page
         results['total_count'] = total_count
         
         return results
