@@ -296,8 +296,6 @@ class ProductService:
     
         return self.make_excel_file("temp/", "선택상품엑셀다운로드_브랜디.xls", results)
 
-
-
     def update_product(self, conn, product_id, images, body):
         product = body.get('product', None)
         if not product:
@@ -427,3 +425,9 @@ class ProductService:
                 else:
                     url = self.upload_image_to_s3(image['image'], image['filename'])
                     self.product_dao.create_product_image(conn, url, i+1, product_id)
+
+    def get_product_history(self, conn, product_id):
+        results = self.product_dao.find_product_history(conn, product_id)
+        for result in results:
+            result['discounted_price'] = int(result['discounted_price'])
+        return results

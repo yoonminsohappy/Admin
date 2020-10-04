@@ -288,7 +288,13 @@ export default {
     },
     isActive(index) {
       this.isActiveBtn = index;
-      console.log(this.isActiveBtn);
+      this.seller_properties = this.eachRadioBtn[index].name;
+      console.log(
+        "isActiveBtn>>>>>",
+        this.isActiveBtn,
+        "sellerProperties>>>>>>>",
+        this.seller_properties
+      );
     },
     showSellerProperties() {
       this.seller_properties = "";
@@ -297,17 +303,18 @@ export default {
 
     handleSubmitBtn() {
       axios
-        .post("", {
+        .post("http://10.251.1.176:5000/sellers/signup", {
           seller_account: this.seller_account,
           password: this.password,
-          seller_properties: this.isActiveBtn,
+          seller_properties: this.seller_properties,
           phone_number: this.phone_number,
           korean_name: this.korean_name,
           english_name: this.english_name,
           cs_phone: this.cs_phone,
         })
         .then((response) => {
-          this.$router.push("/signup");
+          console.log(response);
+          // this.$router.push("/signup");
         });
     },
   },
@@ -320,6 +327,8 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  height: 100%;
 
   .logo-img {
     width: 180px;

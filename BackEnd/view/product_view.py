@@ -440,3 +440,23 @@ class ProductsDownloadView(MethodView):
                 conditional=False)
         finally:
             conn.close()
+
+class ProductHistoryView(MethodView):
+    def __init__(self, service):
+        self.service = service
+
+    def get(self, product_id):
+        try:
+            conn = get_connection(config.database)
+
+            product_id = int(product_id)
+        
+            results = self.service.get_product_history(conn, product_id)
+            
+        except (err.OperationalError, err.InternalError) as e:
+            message = {"errno": e.args[0], "errval": e.args[1]}
+            return jsonify(message), 500
+        else:
+            return jsonify(results), 200
+        finally:
+            conn.close()
