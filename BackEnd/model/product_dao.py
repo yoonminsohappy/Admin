@@ -916,3 +916,39 @@ class ProductDao:
 
         with conn.cursor() as cursor:
             cursor.execute(sql, (product_id, ordering,))
+
+    def find_product_history(self, conn, product_id):
+        sql = """
+            SELECT
+                pd.created_at,
+                pd.is_sold,
+                pd.is_displayed,
+                pd.sale_price,
+                pd.sale_price - (pd.sale_price * 0.01 * pd.discount_rate) AS discounted_price,
+                pd.discount_rate,
+                si.korean_name
+            FROM
+                products AS p
+            JOIN
+                product_details AS pd
+            ON
+                pd.product_id = p.id
+            JOIN
+                sellers AS s
+            ON
+                p.seller_id = s.id
+            JOIN
+                seller_informations AS si
+            ON
+                si.seller_id = s.id
+            WHERE
+                p.id = %s;
+        """
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, (product_id,))
+            results = cursor.fetchall()
+            if not results:
+                raise pymysql.err.InternalError(10017, "DAO_COULD_NOT_FIND_PRODUCT_HISTORY")
+
+        return results
