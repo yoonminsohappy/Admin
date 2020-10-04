@@ -100,7 +100,6 @@ export default {
     handleLoginBtn(e) {
       e.preventDefault();
       axios
-        //config 로 관리하기
         .post("http://10.251.1.176:5000/sellers/signin", {
           seller_account: "star_1234",
           password: "helloA1234!",
@@ -125,7 +124,8 @@ export default {
   flex-direction: column;
   padding-top: 60px;
   padding-bottom: 60px;
-
+  width: 100%;
+  height: 100%;
   .logo-container {
     .logo-img {
       width: 180px;

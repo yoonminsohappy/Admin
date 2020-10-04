@@ -114,10 +114,5 @@ export const router = new VueRouter({
       name: "SideBar",
       component: SideBar,
     },
-    {
-      path: "/nav",
-      name: "Nav",
-      component: Nav,
-    },
   ],
 });

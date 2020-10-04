@@ -24,9 +24,9 @@ export default {};
 
 <style lang="scss">
 .nav {
-  position: relative;
+  position: fixed;
+  top: 0;
   .nav-container {
-    position: absolute;
     background-color: #873b53;
     height: 45px;
     width: 1440px;
