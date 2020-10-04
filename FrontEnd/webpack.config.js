@@ -10,6 +10,7 @@ module.exports = {
   output: {
     filename: "main.js",
     path: path.resolve(__dirname, "./dist"),
+    publicPath: '/'
   },
   module: {
     rules: [
@@ -19,10 +20,10 @@ module.exports = {
         exclude: /node_modules/,
       },
       { test: /\.vue$/, use: "vue-loader" },
-      { test: /\.css$/, use: ["vue-style-loader", "css-loader"] },
+      { test: /\.css$/, use: [MiniCssExtractPlugin.loader, "css-loader"] },
       {
         test: /\.scss$/,
-        use: ["vue-style-loader", "css-loader", "sass-loader"],
+        use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
       },
       {
         test: /\.(png|jpg|gif|svg)$/,
@@ -38,11 +39,11 @@ module.exports = {
       template: "./public/index.html",
     }),
     new VueLoaderPlugin(),
-    // new webpack.HotModuleReplacementPlugin(),
+    new webpack.HotModuleReplacementPlugin(),
     new webpack.ProgressPlugin(),
-    // new MiniCssExtractPlugin({
-    //   filename: "style.css",
-    // }),
+    new MiniCssExtractPlugin({
+      filename: "style.css",
+    }),
   ],
   devServer: {
     open: true,

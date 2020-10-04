@@ -1,74 +1,70 @@
 <template>
   <div class="seller-md">
     <div class="md-title">
-      <label class="md-text">
-        셀러속성 :
-      </label>
+      <label class="md-text"> 셀러속성 : </label>
     </div>
     <div class="md-btn-list">
       <button
-        v-for="(md, index) in mdList"
-        :key="index"
-        @click="clickBtn({ md, index })"
-        :class="{ 'clicked-btn': md.isClicked }"
+        v-for="mdVal of mdList"
+        :key="mdVal.key"
+        @click="clickBtn(mdVal.key)"
+        :class="{ 'clicked-btn': isChecked(mdVal.key) }"
         class="md-btn"
       >
-        {{ md.name }}
+        {{ mdVal.name }}
       </button>
     </div>
   </div>
 </template>
 
 <script>
+import { mapGetters, mapMutations } from "vuex";
 export default {
   data() {
     return {
       mdList: [
-        { name: "전체", isClicked: true },
-        { name: "쇼핑몰", isClicked: false },
-        { name: "마켓", isClicked: false },
-        { name: "로드샵", isClicked: false },
-        { name: "디자이너브랜드", isClicked: false },
-        { name: "제너럴 브랜드", isClicked: false },
-        { name: "내셔럴 브랜드", isClicked: false },
-        { name: "뷰티", isClicked: false },
+        { key: 0, name: "전체" },
+        { key: 1, name: "쇼핑몰" },
+        { key: 2, name: "마켓" },
+        { key: 3, name: "로드샵" },
+        { key: 4, name: "디자이너브랜드" },
+        { key: 5, name: "제너럴 브랜드" },
+        { key: 6, name: "내셔럴 브랜드" },
+        { key: 7, name: "뷰티" },
       ],
     };
   },
-  methods: {
-    clickBtn(data) {
-      if (data.index === 0) {
-        this.mdList[data.index].isClicked = true;
-        for (let i = 1; i < this.mdList.length; i++) {
-          this.mdList[i].isClicked = false;
-        }
-      } else {
-        this.mdList[data.index].isClicked = !this.mdList[data.index].isClicked;
-
-        if (this.clearBtn()) {
-          this.mdList[0].isClicked = true;
-          for (let i = 1; i < this.mdList.length; i++) {
-            this.mdList[i].isClicked = false;
-          }
-        }
-        if (!this.clearBtn()) {
-          this.mdList[0].isClicked = true;
-        }
-        for (let i = 1; i < this.mdList.length; i++) {
-          if (this.mdList[i].isClicked) {
-            this.mdList[0].isClicked = false;
-          }
-        }
-      }
+  computed: {
+    ...mapGetters("order", ["mdValues"]),
+    md() {
+      return this.mdValues;
     },
-    clearBtn() {
-      let result = true;
-      for (let i = 1; i < this.mdList.length; i++) {
-        if (!this.mdList[i].isClicked) {
-          return (result = false);
+  },
+  methods: {
+    ...mapMutations("order", ["setMdValues"]),
+    clickBtn(key) {
+      let arr = [];
+      if (key > 0) {
+        arr = [...this.md];
+        //이미 값이 있는 경우에는 값을 빼기
+        if (arr.includes(key)) {
+          let idx = arr.indexOf(key);
+          arr.splice(idx, 1);
+        }
+        //새로운 값일 경우에는 값을 넣기
+        else if (!arr.includes(key)) {
+          arr = [...arr, key];
         }
       }
-      return result;
+      //새로 만든 배열의 길이가 0이거나 7일 때는 다시 빈배열 []
+      if (arr.length === 0 || arr.length === this.mdList.length - 1) {
+        arr = [];
+      }
+      this.setMdValues(arr.sort((a, b) => a - b));
+    },
+    isChecked(value) {
+      if (this.md.length === 0 && value === 0) return true;
+      return this.md.includes(value);
     },
   },
 };

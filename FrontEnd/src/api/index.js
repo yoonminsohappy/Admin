@@ -1,4 +1,1 @@
-import axios from "axios"
-
-export const config = 'http://10.251.1.176:5000/'
-
+export const config = 'http://3.35.156.251:5000/'

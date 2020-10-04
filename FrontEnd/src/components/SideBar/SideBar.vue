@@ -23,10 +23,10 @@ export default {
           icon: "cart-arrow-down",
           id: 1,
           openMenuList: [
-            { name: "결제완료관리", url: "/paymentComplete" },
-            { name: "상품준비관리", url: "/productPrepare" },
-            { name: "배송중관리", url: "/delivery" },
-            { name: "배송완료관리", url: "/deliveryComplete" },
+            { name: "결제완료관리", url: "/order/paymentComplete" },
+            { name: "상품준비관리", url: "/order/productPrepare" },
+            { name: "배송중관리", url: "/order/delivery" },
+            { name: "배송완료관리", url: "/order/deliveryComplete" },
           ],
         },
         {

@@ -1,7 +1,7 @@
 <template>
   <div class="input-area">
     <div class="select">
-      <select class="select-box">
+      <select @change="optName" class="select-box">
         <optgroup
           v-for="(data, index) in optdata"
           :key="index"
@@ -19,6 +19,7 @@
         type="text"
         class="search-input"
         placeholder="검색어를 입력하세요."
+        @change="searchText"
       />
     </div>
   </div>
@@ -34,6 +35,16 @@ export default {
         { name: ["셀러명", "상품명"], label: "----------------" },
       ],
     };
+  },
+  methods: {
+    optName(e) {
+      let optName = e.target.value;
+      this.$store.commit("order/setOptName", optName);
+    },
+    searchText(e) {
+      let text = e.target.value;
+      this.$store.commit("order/setText", text);
+    },
   },
 };
 </script>

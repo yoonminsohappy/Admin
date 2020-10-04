@@ -107,7 +107,7 @@ export default {
           if (response.data.access_token) {
             localStorage.setItem("access_token", response.data.access_token);
             localStorage.setItem("id", this.idValue);
-            this.$router.push("/paymentComplete");
+            this.$router.push("/order/paymentComplete");
           }
         });
     },

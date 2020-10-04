@@ -381,6 +381,7 @@
 
 <script>
 import axios from "axios";
+import { config } from "../../api/index";
 import { Datetime } from "vue-datetime";
 import "vue-datetime/dist/vue-datetime.css";
 import SearchList from "./SearchList.vue";
@@ -447,10 +448,10 @@ export default {
         this.open_seller_search = !this.open_seller_search;
       }, 300);
     },
-    final_seller_select: function () {
+    final_seller_select: function() {
       axios
         .get(
-          `http://10.251.1.99:5000/products/first-categories?seller-property-id=${this.seller_id_selecter}`,
+          `${config}products/first-categories?seller-property-id=${this.seller_id_selecter}`,
           {
             headers: {
               Authorization:
@@ -489,7 +490,7 @@ export default {
 
       axios
         .get(
-          `http://10.251.1.99:5000/products/second-categories?first-category-id=${e.target.value}`,
+          `${config}products/second-categories?first-category-id=${e.target.value}`,
           {
             headers: {
               Authorization:
@@ -595,9 +596,9 @@ export default {
     },
   },
   watch: { "result.body.detail.origin_date": "origin_date_inputer" },
-  created: function () {
+  created: function() {
     axios
-      .get(`http://10.251.1.99:5000/products/countries`, {
+      .get(`${config}products/countries`, {
         headers: {
           Authorization:
             "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",

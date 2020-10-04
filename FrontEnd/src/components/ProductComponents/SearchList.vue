@@ -9,14 +9,19 @@
           }"
           v-on:click="search_list_opener"
         >
-          <img alt="list-content profile" v-bind:src="selected_photo" v-if="selected_photo" />
+          <img
+            alt="list-content profile"
+            v-bind:src="selected_photo"
+            v-if="selected_photo"
+          />
           {{ selected_name }}
         </div>
         <span
           class="close-button"
           v-on:click="search_reseter"
           v-if="selected_name !== 'Select...'"
-        >x</span>
+          >x</span
+        >
       </div>
       <div v-if="search_list_open">
         <div class="search-input">
@@ -44,6 +49,7 @@
 
 <script>
 import axios from "axios";
+import { config } from "../../api/index";
 
 export default {
   name: "search-list",
@@ -58,10 +64,10 @@ export default {
   }),
   computed: {},
   methods: {
-    search_list_opener: function () {
+    search_list_opener: function() {
       this.search_list_open = !this.search_list_open;
     },
-    select_contents: function (obj) {
+    select_contents: function(obj) {
       this.selected_photo = obj.profile_image;
       this.selected_id = obj.seller_property_id;
       this.selected_name = obj.korean_name;
@@ -69,11 +75,11 @@ export default {
       this.$emit("selected_name", obj.korean_name);
       this.search_list_open = false;
     },
-    search_text_inputer: function (e) {
+    search_text_inputer: function(e) {
       let query = e.target.value;
 
       axios
-        .get(`http://10.251.1.99:5000/products/sellers?q=${query}`, {
+        .get(`${config}products/sellers?q=${query}`, {
           headers: {
             Authorization:
               "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",
@@ -85,7 +91,7 @@ export default {
       //   .get(`public/mockdata/${query}.json`)
       //   .then((res) => (this.datas = res.data));
     },
-    search_reseter: function () {
+    search_reseter: function() {
       this.selected_photo = "";
       this.selected_id = "";
       this.selected_name = "Select...";
