@@ -7,6 +7,8 @@ from pymysql        import err
 
 from botocore.exceptions import ClientError
 
+import traceback
+
 import config
 from connection import get_connection
 from exceptions import (
@@ -27,6 +29,7 @@ from utils.validation import (
     validate_products_is_displayed,
     validate_products_is_discounted,
     validate_product_code,
+    validate_image_status
 )
 
 # 작성자: 김태수
@@ -290,6 +293,55 @@ class ProductView(MethodView):
             return jsonify(result), 200
         finally:
             conn.close()
+
+    def post(self, code):
+        try:
+            conn = get_connection(config.database)
+            
+            images = []
+            for i in range(1, 6):
+                image_status = request.form.get(f'image_status_{i}', None)
+                image_status = validate_image_status(image_status)
+                image = request.files.get(f'image_{i}', None)
+                if image_status == "UPLOAD" and not image:
+                    raise ValidationError("IMAGE_IS_REQUIRED")
+
+                images.append({"image_status": image_status, "image": image})
+
+            body  = json.loads(request.form.get('body', None))
+            
+            conn.begin()
+            
+            self.service.update_product(conn, code, images, body)
+
+        except ClientError as e:
+            conn.rollback()
+            message = { "errno": e.response['Error']['Code'], "errval": e.response['Error']['Message']}
+            return jsonify(message), 500
+        except (err.OperationalError, err.InternalError, err.IntegrityError) as e:
+            traceback.print_exc()
+            conn.rollback()
+            message = { "errno": e.args[0], "errval": e.args[1] }
+            return jsonify(message), 500
+        except (NonPrimaryImageError, NonImageFilenameError, ValidationError) as e:
+            conn.rollback()
+            message = { "message": e.message }
+            return jsonify(message), 400
+        except KeyError as e:   
+            conn.rollback()
+            message = { "message": "FORM_DATA_KEY_ERROR" }
+            return jsonify(message), 400
+        except json.decoder.JSONDecodeError as e:
+            db_connection.rollback()
+            message = { "message": "INVALID_JSON_FORMAT" }
+            return jsonify(message), 400
+        else:
+            conn.commit()
+            message = { "message": "SUCCESS" }
+            return jsonify(message), 200
+        finally:
+            conn.close()
+
 
 class ProductCountriesView(MethodView):
     def __init__(self, service):

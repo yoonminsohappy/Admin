@@ -627,7 +627,7 @@ class ProductDao:
             cursor.execute(sql)
             results = cursor.fetchall()
             if not results:
-                raise pymysql.err.InternalError(10011, "DAO_COULD_NOT_FIND_SIZES")
+                raise pymysql.err.InternalError(10012, "DAO_COULD_NOT_FIND_SIZES")
         return results
 
     def find_products_by_dates(self, conn, start_date, end_date):
@@ -763,3 +763,156 @@ class ProductDao:
             if not results:
                 raise pymysql.err.InternalError(10008, "DAO_COULD_NOT_LIST_PRODUCTS")
         return results
+
+    def update_product(self, conn, product):
+        sql = """
+            UPDATE 
+                products
+            SET 
+                categories_id = %(categories_id)s
+            WHERE 
+                id = %(product_id)s
+            AND
+                is_deleted = 0;
+        """
+
+        with conn.cursor() as cursor:
+            cursor.execute(sql, product)
+
+    def find_product_detail_by_id(self, conn, product_id):
+        sql = """
+            SELECT  
+                is_sold,
+                is_displayed,
+                origin_company,
+                origin_date,
+                country_of_origin_id,
+                name,
+                simple_description,
+                description,
+                sale_price,
+                discount_rate,
+                discount_started_at,
+                discount_ended_at,
+                minimum_sale_amount,
+                maximum_sale_amount
+            FROM
+                product_details
+            WHERE
+                product_id = %s
+            AND
+                expired_at = '9999-12-31 23:59:59'
+        """
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, (product_id,))
+            result = cursor.fetchone()
+            if not result:
+                raise pymysql.err.InternalError(10014, "DAO_COULD_NOT_FIND_PRODUCT")
+        return result
+
+    def update_product_detail(self, conn, product_detail):
+        sql = """
+            UPDATE
+                product_details
+            SET
+                expired_at = NOW()
+            WHERE
+                product_id = %(product_id)s
+            AND
+                expired_at = '9999-12-31 23:59:59';
+        """
+
+        with conn.cursor() as cursor:
+            rows = cursor.execute(sql, product_detail)
+            if rows <= 0:
+                raise pymysql.err.InternalError(10015, "DAO_COULD_NOT_UPDATE_PRODUCT_DETAIL")
+
+        sql2 = """
+            INSERT INTO product_details (
+                name,
+                is_sold,
+                is_displayed,
+                origin_company,
+                origin_date,
+                simple_description,
+                description,
+                sale_price,
+                discount_rate,
+                discount_started_at,
+                discount_ended_at,
+                minimum_sale_amount,
+                maximum_sale_amount,
+                modifier_id,
+                product_id,
+                country_of_origin_id
+            ) VALUES (
+                %(name)s,
+                %(is_sold)s,
+                %(is_displayed)s,
+                %(origin_company)s,
+                %(origin_date)s,
+                %(simple_description)s,
+                %(description)s,
+                %(sale_price)s,
+                %(discount_rate)s,
+                %(discount_started_at)s,
+                %(discount_ended_at)s,
+                %(minimum_sale_amount)s,
+                %(maximum_sale_amount)s,
+                %(modifier_id)s,
+                %(product_id)s,
+                %(country_of_origin_id)s
+            ); 
+        """
+
+        with conn.cursor() as cursor:
+            rows = cursor.execute(sql2, product_detail)
+            if rows <= 0:
+                raise pymysql.err.InternalError(10002, "DAO_COULD_NOT_INSERT_PRODUCT_DETAIL")
+
+    def update_option(self, conn, option):
+        sql = """
+            UPDATE
+                options
+            SET
+                color_id = %(color_id)s,
+                size_id = %(size_id)s,
+                stock = %(stock)s
+            WHERE
+                product_id = %(product_id)s;
+        """
+
+        with conn.cursor() as cursor:
+            rows = cursor.execute(sql, option)
+            if rows <= 0:
+                raise pymysql.err.InternalError(10016, "DAO_COULD_NOT_UPDATE_OPTION")
+
+    def find_product_image(self, conn, product_id, ordering):
+        sql = """
+            SELECT
+                *
+            FROM
+                product_images
+            WHERE
+                product_id = %s
+            AND
+                ordering = %s
+        """
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, (product_id, ordering,))
+            result = cursor.fetchone()
+            return result if result else None
+
+    def delete_product_image(self, conn, product_id, ordering):
+        sql = """
+            DELETE FROM
+                product_images
+            WHERE
+                product_id = %s
+            AND
+                ordering = %s
+        """
+
+        with conn.cursor() as cursor:
+            cursor.execute(sql, (product_id, ordering,))

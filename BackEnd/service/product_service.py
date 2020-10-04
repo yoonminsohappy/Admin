@@ -6,8 +6,7 @@ from decimal import Decimal
 from pyexcel_xls import save_data
 from werkzeug.utils import secure_filename
 
-from exceptions import NonPrimaryImageError, NonImageFilenameError
-
+from exceptions import NonPrimaryImageError, NonImageFilenameError, ValidationError
 # 작성자: 김태수
 # 작성일: 2020.09.17.목
 # Product에 관련된 로직을 처리하는 class
@@ -167,6 +166,8 @@ class ProductService:
         options            = body['options']
         first_category_id  = product['first_category_id']
         second_category_id = product['second_category_id']
+        # 상품 코드는 유니크 해야하기 때문에 uuid 식별자 사용
+        code = str(uuid.uuid4())
 
         filenames = []
         for i, image in enumerate(images):
@@ -187,8 +188,6 @@ class ProductService:
         # 1. 상품 추가
         categories_id  = self.product_dao.find_categories_id(conn, first_category_id, second_category_id)
 
-        # 상품 코드는 유니크 해야하기 때문에 uuid 식별자 사용
-        code = str(uuid.uuid4())
         product['categories_id'] = categories_id['id']
         product['code']          = code
         product_id = self.product_dao.create_product(conn, product)
@@ -296,3 +295,135 @@ class ProductService:
         results = self.product_dao.find_products_by_ids(conn, product_ids)
     
         return self.make_excel_file("temp/", "선택상품엑셀다운로드_브랜디.xls", results)
+
+
+
+    def update_product(self, conn, product_id, images, body):
+        product = body.get('product', None)
+        if not product:
+            raise ValidationError("PRODUCT_CANNOT_BE_NULL")
+        product['product_id'] = int(product_id)
+
+        product_code = product.get('product_code', None)
+        if not product_code:
+            raise ValidationError("PRODUCT_CODE_CANNOT_BE_NULL")
+
+        seller_id = product.get('seller_id', None)
+        if not seller_id:
+            raise ValidationError("SELLER_ID_CANNOT_BE_NULL")
+
+        first_category_id  = product.get('first_category_id', None)
+        second_category_id = product.get('second_category_id', None)
+
+        product_detail = body.get('detail', None)
+        options        = body.get('options', None)
+
+        for image in images:
+            if image['image_status'] == "EXIST" or \
+            image['image_status'] == "DELETE" or \
+            image['image_status'] == "NONE":
+                continue
+
+            if not image["image"]:
+                if i == 0:
+                    raise NonPrimaryImageError("MUST_INCLUDE_PRIMARY_IMAGE")
+            
+            if image["image"].filename == '':
+                raise NonImageFilenameError("MUST_INCLUDE_FILENAME")
+
+            filename = secure_filename(image["image"].filename)
+            filename = f'{product_code}_{filename}'
+            image["filename"] = filename
+            
+        # 1. 상품 업데이트
+        if first_category_id and second_category_id:
+            result = self.product_dao.find_categories_id(conn, first_category_id, second_category_id)
+            product['categories_id'] = result['id']
+            self.product_dao.update_product(conn, product)
+
+        # 2. 상품 상세 추가
+        if product_detail:
+            old_product_detail = self.product_dao.find_product_detail_by_id(conn, product_id)
+            
+            if product_detail.get('is_sold', None):
+                old_product_detail['is_sold'] = product_detail['is_sold']
+
+            if product_detail.get('is_displayed', None):
+                old_product_detail['is_displayed'] = product_detail['is_displayed']
+
+            if product_detail.get('origin_company', None):
+                old_product_detail['origin_company'] = product_detail['origin_company']
+
+            if product_detail.get('origin_date', None):
+                old_product_detail['origin_date'] = product_detail['origin_date']
+
+            if product_detail.get('country_of_origin_id', None):
+                old_product_detail['country_of_origin_id'] = product_detail['country_of_origin_id']
+
+            if product_detail.get('name', None):
+                old_product_detail['name'] = product_detail['name']
+
+            if product_detail.get('simple_description', None):
+                old_product_detail['simple_description'] = product_detail['simple_description']
+
+            if product_detail.get('description', None):
+                old_product_detail['description'] = product_detail['description']
+
+            if product_detail.get('sale_price', None):
+                old_product_detail['sale_price'] = product_detail['sale_price']
+
+            if product_detail.get('discount_rate', None):
+                old_product_detail['discount_rate'] = product_detail['discount_rate']
+
+            if product_detail.get('discount_started_at', None):
+                old_product_detail['discount_started_at'] = product_detail['discount_started_at']
+
+            if product_detail.get('discount_ended_at', None):
+                old_product_detail['discount_ended_at'] = product_detail['discount_ended_at']
+            
+            if product_detail.get('minimum_sale_amount', None):
+                old_product_detail['minimum_sale_amount'] = product_detail['minimum_sale_amount']
+            
+            if product_detail.get('maximum_sale_amount', None):
+                old_product_detail['maximum_sale_amount'] = product_detail['maximum_sale_amount']
+
+            old_product_detail['product_id'] = product_id
+            old_product_detail['modifier_id'] = seller_id
+            
+            self.product_dao.update_product_detail(conn, old_product_detail)
+
+        if options:
+            for option in options:
+                option['product_id'] = product_id
+                self.product_dao.update_option(conn, option)
+
+        # 4. 이미지 S3 업로드 + 이미지 테이블 URL 추가
+        for i, image in enumerate(images):
+            if image['image_status'] == "NONE":
+                break
+            if image['image_status'] == "EXIST":
+                continue
+            if image['image_status'] == "DELETE":
+                result = self.product_dao.find_product_image(conn, product_id, i+1)
+                if not result:
+                    continue
+                key = result['image_path'].split("/")[-1]
+                self.s3.delete_object(
+                    Bucket=self.config['S3_BUCKET'],
+                    Key=key
+                )
+                self.product_dao.delete_product_image(conn, product_id, i+1)
+            if image['image_status'] == "UPLOAD":
+                result = self.product_dao.find_product_image(conn, product_id, i+1)
+                if result:
+                    key = result['image_path'].split("/")[-1]
+                    self.s3.delete_object(
+                        Bucket=self.config['S3_BUCKET'],
+                        Key=key
+                    )
+                    self.product_dao.delete_product_image(conn, product_id, i+1)
+                    url = self.upload_image_to_s3(image['image'], image['filename'])
+                    self.product_dao.create_product_image(conn, url, i+1, product_id)
+                else:
+                    url = self.upload_image_to_s3(image['image'], image['filename'])
+                    self.product_dao.create_product_image(conn, url, i+1, product_id)

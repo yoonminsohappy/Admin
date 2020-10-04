@@ -398,3 +398,12 @@ class Validation_shopping_feedtext(AbstractRule):
         if not regex.match(value):
             errors.append('힌글, 영문, 숫자만 입력해주세요.')
         return errors
+
+def validate_image_status(image_status):
+    if not image_status:
+        return "NONE"
+
+    if image_status != "EXIST" and image_status != "UPLOAD" and image_status != "DELETE" and image_status != "NONE":
+        raise ValidationError("INVALID_IMAGE_STATUS")
+
+    return image_status
