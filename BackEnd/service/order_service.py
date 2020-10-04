@@ -174,4 +174,7 @@ class OrderService:
 
         return order_detail_data
 
+    def put_address(self, db, arguments):
+        self.order_dao.put_address(db, arguments)
 
+        return ''

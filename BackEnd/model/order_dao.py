@@ -49,7 +49,7 @@ class OrderDao:
             o.order_number AS order_number,
             d.order_detail_number AS order_detail_number,
             o.final_price AS final_price,
-            u.name AS user_name,
+            d.orderer_name AS user_name,
             d.quantity AS quantity,
             pd.name AS product_name,
             sl.korean_name AS seller_name,
@@ -63,8 +63,6 @@ class OrderDao:
 
             LEFT JOIN orders o
                 ON d.order_id = o.id
-            LEFT JOIN user_informations u
-                ON o.user_id = u.user_id
             LEFT JOIN options i
                 ON d.option_id = i.id
             LEFT JOIN colors c
@@ -305,7 +303,7 @@ class OrderDao:
             o.order_date AS order_date,
             o.final_price AS final_price,
             osmh.updated_at AS payment_complete,
-            u.phone_number AS user_phone_number,
+            d.orderer_phone_number AS user_phone_number,
             p.id AS product_id,
             pd.name AS product_name,
             pd.sale_price AS sale_price,
@@ -314,7 +312,7 @@ class OrderDao:
             CONCAT(c.name, "/", z.name) AS option_info,
             d.quantity AS quantity,
             u.id AS user_id,
-            u.name AS user_name,
+            d.orderer_name AS user_name,
             d.name AS receiver,
             d.phone_number AS receiver_phone_number,
             d.address AS address,
@@ -447,3 +445,18 @@ class OrderDao:
             raise ValueError
 
         return current_status
+
+    def put_address(self, db, arguments):
+        sql = """
+        UPDATE order_details
+        SET address = %(address)s, detail_address = %(detail_address)s, zip_code = %(zip_code)s
+        WHERE id = %(order_detail_id)s;
+        """
+
+        with db.cursor(pymysql.cursors.DictCursor) as cursor:
+            result = cursor.execute(sql, arguments)
+
+        if not result:
+            raise ValueError
+
+        return ''

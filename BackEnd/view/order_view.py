@@ -162,6 +162,7 @@ class PutOrderStatusView(MethodView):
 
         except ValueError:
             traceback.print_exc()
+            db.rollback()
             return jsonify({'message':'VALUE_ERROR'}), 400
 
         except:
@@ -245,5 +246,40 @@ class GetOrderDetailDataView(MethodView):
 
         else:
             return jsonify(order_detail_data), 200
+        finally:
+            db.close()
+
+class PutAddress(MethodView):
+    def __init__(self, service):
+        self.service = service
+
+    def put(self):
+        try:
+            db = connection.get_connection(config.database)
+
+            data = request.get_json()
+
+            arguments = {
+                'order_detail_id' : data['order_detail_id'],
+                'address'         : data['address'],
+                'detail_address'  : data['detail_address'],
+                'zip_code'        : data['zip_code']
+            }
+
+            self.service.put_address(db, arguments)
+
+        except KeyError:
+            db.rollback()
+            return jsonify({'message':'KEY_ERROR'}), 400
+
+        except:
+            traceback.print_exc()
+            db.rollback()
+            return jsonify({'message':'UNSUCCESS'}), 400
+
+        else:
+            db.commit()
+            return jsonify({'message':'SUCCESS'}), 200
+
         finally:
             db.close()
