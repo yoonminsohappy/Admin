@@ -169,7 +169,7 @@ export default {
   },
   methods: {
     goNext() {
-      if (this.total_page <= this.page) {
+      if (this.total_page >= this.page) {
         axios
           .get(`${config}sellers?page=${this.page}&per_page=${this.per_page}`, {
             headers: {
