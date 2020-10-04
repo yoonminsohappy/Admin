@@ -170,6 +170,7 @@
 
 <script>
 import axios from "axios";
+import {config} from "../../api/index"
 import OptionList from "./OptionList";
 
 export default {
@@ -295,7 +296,7 @@ export default {
   },
   created: function () {
     axios
-      .get(`http://10.251.1.99:5000/products/colors`, {
+      .get(`${config}products/colors`, {
         headers: {
           Authorization:
             "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",
@@ -303,7 +304,7 @@ export default {
       })
       .then((res) => (this.datas.product_color_list = res.data));
     axios
-      .get(`http://10.251.1.99:5000/products/sizes`, {
+      .get(`${config}products/sizes`, {
         headers: {
           Authorization:
             "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",

@@ -34,10 +34,10 @@
 
 <script>
 import DatePicker from "vuejs-datepicker";
+import { mapGetters, mapActions } from "vuex";
+
 export default {
   data() {
-    const today = new Date();
-    today.setDate(today.getDate() - 3);
     return {
       dateBtn: [
         { name: "전체", isClicked: false },
@@ -47,56 +47,39 @@ export default {
         { name: "1개월", isClicked: false },
         { name: "3개월", isClicked: false },
       ],
-      from: today,
-      to: new Date(),
     };
   },
+  computed: {
+    ...mapGetters("order", ["fromData", "toData"]),
+    from: {
+      get() {
+        return this.fromData;
+      },
+      set(value) {
+        this.setFromDate(value);
+      },
+    },
+    to: {
+      get() {
+        return this.toData;
+      },
+      set(value) {
+        this.setToDate(value);
+      },
+    },
+  },
   methods: {
+    ...mapActions("order", ["setFromDate", "setToDate"]),
     btnClick(data) {
       this.dateBtn[data.index].isClicked = true;
       this.clearClicked(data.index);
-      this.changeDate(data);
+      this.$store.commit("order/setDate", data);
     },
     clearClicked(idx) {
       for (let i = 0; i < this.dateBtn.length; i++) {
         if (i !== idx) {
           this.dateBtn[i].isClicked = false;
         }
-      }
-    },
-    changeDate(data) {
-      if (data.item.name === "전체") {
-        this.from = "";
-        this.to = "";
-      }
-      if (data.item.name === "오늘") {
-        const today = new Date();
-        this.from = today;
-        this.to = today;
-      }
-      if (data.item.name === "3일") {
-        const today = new Date();
-        today.setDate(today.getDate() - 3);
-        this.from = today;
-        this.to = new Date();
-      }
-      if (data.item.name === "1주일") {
-        const today = new Date();
-        today.setDate(today.getDate() - 7);
-        this.from = today;
-        this.to = new Date();
-      }
-      if (data.item.name === "1개월") {
-        const today = new Date();
-        today.setMonth(today.getMonth() - 1);
-        this.from = today;
-        this.to = new Date();
-      }
-      if (data.item.name === "3개월") {
-        const today = new Date();
-        today.setMonth(today.getMonth() - 3);
-        this.from = today;
-        this.to = new Date();
       }
     },
   },
@@ -121,7 +104,7 @@ export default {
       height: 30px;
       font-weight: 400;
       font-size: 14px;
-      max-width: 100%;
+      min-width: 70px;
       margin-bottom: 5px;
     }
   }
@@ -183,7 +166,8 @@ export default {
       border-color: #e5e5e5;
       background: #e5e5e5;
       min-width: 39px;
-      padding: 6px 12px;
+      height: 34px;
+      padding: 10px 12px;
       text-align: center;
     }
   }

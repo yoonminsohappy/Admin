@@ -7,7 +7,7 @@
       <div class="seller-list-nav">셀러 회원 리스트</div>
       <div class="pagination-panel-wrapper">
         <span class="pagination-panel">Page</span>
-        <button class="left-button" @click="goPrev"></button>
+        <button class="left-button" @click="goPrev"><</button>
         <input class="pagination-info" type="text" v-model="this.page" />
         <button class="right-button" @click="goNext">></button>
         <span>of</span>
@@ -118,7 +118,7 @@
       </div>
       <div class="pagination-panel-wrapper">
         <span class="pagination-panel">Page</span>
-        <button class="left-button" @click="goPrev"></button>
+        <button class="left-button" @click="goPrev"><</button>
         <input class="pagination-info" type="text" v-model="this.page" />
         <button class="right-button" @click="goNext">></button>
         <span>of</span>

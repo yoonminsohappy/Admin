@@ -3,6 +3,7 @@
     <filter-search></filter-search>
     <filter-date></filter-date>
     <filter-md></filter-md>
+    <search-btn></search-btn>
   </div>
 </template>
 
@@ -10,9 +11,10 @@
 import FilterSearch from "./Components/FilterSearch";
 import FilterDate from "./Components/FilterDate";
 import FilterMd from "./Components/FilterMd";
+import SearchBtn from "./Components/SearchBtn";
 
 export default {
-  components: { FilterSearch, FilterDate, FilterMd },
+  components: { FilterSearch, FilterDate, FilterMd, SearchBtn },
 };
 </script>
 

@@ -13,7 +13,6 @@
 import SideBar from "./components/SideBar/SideBar";
 import NavBar from "./components/Nav/Nav";
 import Footer from "./components/Footer/Footer";
-
 export default {
   components: { SideBar, Footer, NavBar },
   computed: {

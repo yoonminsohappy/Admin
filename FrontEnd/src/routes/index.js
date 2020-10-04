@@ -2,10 +2,7 @@ import Vue from "vue";
 import VueRouter from "vue-router";
 import Login from "../views/Signin&Signup/Signin.vue";
 import Signup from "../views/Signin&Signup/Signup.vue";
-import PaymentComplete from "../views/Order/PaymentComplete.vue";
-import ProductPrepare from "../views/Order/ProductPrepareList.vue"
-import Delivery from "../views/Order/DeliveryList.vue"
-import DeliveryComplete from "../views/Order/DeliveryCompleteList.vue"
+import Order from "../views/Order/Order.vue";
 import RefundRequest from "../views/Refund/RefundRequest.vue";
 import RefundComplete from "../views/Refund/RefundCompleteList.vue";
 import CancelComplete from "../views/Refund/CancelCompleteList.vue";
@@ -37,22 +34,10 @@ export const router = new VueRouter({
       component: Signup,
     },
     {
-      path: "/paymentComplete",
-      name: "PaymentComplete",
-      component: PaymentComplete,
-    },
-    {
-      path: "/productPrepare",
-      name: "ProductPrepare",
-      component: ProductPrepare,
-    },    {
-      path: "/delivery",
-      name: "Delivery",
-      component: Delivery,
-    },    {
-      path: "/deliveryComplete",
-      name: "DeliveryComplete",
-      component: DeliveryComplete,
+      path: "/order/:id",
+      name: "Order",
+      component: Order,
+      props:true
     },
     {
       path: "/product",
