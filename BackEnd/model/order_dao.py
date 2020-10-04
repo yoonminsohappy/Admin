@@ -28,12 +28,14 @@ class OrderDao:
                 "option_info"         : 옵션정보,
                 "order_detail_number" : 주문상세번호,
                 "order_number"        : 주문 번호,
-                "current_updated_at"  : 결제완료 일시,
+                "current_updated_at"  : 현재 상태 업데이트 일자,
                 "phone_number"        : 핸드폰 번호,
                 "product_name"        : 상품명,
                 "quantity"            : 수량,
                 "seller_name"         : 셀러명,
-                "user_name"           : 주문자명
+                "user_name"           : 주문자명,
+                "order_cancel_reason" : 주문 취소 사유,
+                "order_refund_reason" : 환불 요청 사유
             }]
         Author :
             김태수
@@ -51,18 +53,18 @@ class OrderDao:
             d.quantity AS quantity,
             pd.name AS product_name,
             sl.korean_name AS seller_name,
-            s.phone_number AS phone_number,
+            d.phone_number AS phone_number,
             osmh.updated_at AS current_updated_at,
-            CONCAT(c.name, "/", z.name) AS option_info
+            CONCAT(c.name, "/", z.name) AS option_info,
+            ocr.name AS order_cancel_reason,
+            orr.name AS order_refund_reason
         FROM
             order_details d
 
             LEFT JOIN orders o
                 ON d.order_id = o.id
-            LEFT JOIN users u
-                ON o.user_id = u.id
-            LEFT JOIN shipping_informations s
-                ON s.id = o.shipping_information_id
+            LEFT JOIN user_informations u
+                ON o.user_id = u.user_id
             LEFT JOIN options i
                 ON d.option_id = i.id
             LEFT JOIN colors c
@@ -73,10 +75,14 @@ class OrderDao:
                 ON i.product_id = p.id
             LEFT JOIN product_details pd
                 ON pd.id = i.product_id
-            LEFT JOIN sellers sl
+            LEFT JOIN seller_informations sl
                 ON sl.id = p.seller_id
             LEFT JOIN order_status_modification_histories osmh
                 ON osmh.order_detail_id = d.id
+            LEFT JOIN order_cancel_reasons ocr
+                ON d.order_cancel_reason_id = ocr.id
+            LEFT JOIN order_refund_reasons orr
+                ON d.order_refund_reason_id = orr.id
         WHERE
             osmh.updated_at >= %(start_date)s
             AND osmh.updated_at <= %(end_date)s
@@ -96,11 +102,15 @@ class OrderDao:
         elif arguments['user_name'] != "%"+"%":
             sql_1 += "AND u.name LIKE " + "%(user_name)s"
         elif arguments['phone_number'] != "%"+"%":
-            sql_1 += "AND s.phone_number LIKE " + "%(phone_number)s"
+            sql_1 += "AND d.phone_number LIKE " + "%(phone_number)s"
         elif arguments['seller_name'] != "%"+"%":
             sql_1 += "AND sl.korean_name LIKE " + "%(seller_name)s"
         elif arguments['product_name'] != "%"+"%":
             sql_1 += "AND pd.name LIKE " + "%(product_name)s"
+        if arguments['order_cancel_reason']:
+            sql_1 += "AND ocr.name = %(order_cancel_reason)s"
+        elif arguments['order_refund_reason']:
+            sql_1 += "AND orr.name = %(order_refund_reason)s"
 
         sql = sql_1 + sql_2
 
@@ -110,30 +120,31 @@ class OrderDao:
 
         return order_data
 
-    def get_payment_complete_status_date(self, db, argument):
+    def get_status_date(self, db, argument):
         """
-         결제일자 정보 - Persistence Layer(model) function
+         변경일자 정보 - Persistence Layer(model) function
         Args:
             arguments = {
-                "order_detail_id" : 주문 상세 아이디
+                "order_detail_id" : 주문 상세 아이디,
+                "status_id"       : 주문 상태 아이디
             }
             db = DATABASE Connection Instance
         Returns :
-            {current_status_date : 현재 상태 업데이트 일자}
+            {status_date : 변경 일자}
         Author :
             김태수
         History:
             2020-09-28 : 초기 생성
-            2020-09-29 : 현재 상태 업데이트 일자 > 결제일자
+            2020-09-29 : 현재 상태 업데이트 일자 > 결제일자 > 변경일자
         """
         sql = """
         SELECT
-            updated_at AS payment_complete
+            updated_at
         FROM
             order_status_modification_histories
         WHERE
             order_detail_id = %(order_detail_id)s
-            AND order_status_id = 1;
+            AND order_status_id = %(status_id)s;
         """
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
             cursor.execute(sql, argument)
@@ -181,7 +192,8 @@ class OrderDao:
         주문 상태 업데이트 - Persistence Layer(model) function
         Args:
             arguments = {
-                "status_id"       : 상태아이디,
+                "to_status"       : 변경할 상태명,
+                "status_id"       : 변경할 상태아이디,
                 "order_detail_id" : 주문 상세 아이디
             }
             db = DATABASE Connection Instance
@@ -192,14 +204,26 @@ class OrderDao:
         History:
             2020-09-28 : 초기 생성
         """
-        sql = """
+        sql_1 = """
         UPDATE
             order_details
         SET
             order_detail_statuses_id = %(status_id)s
+        """
+
+        sql_2 = """
         WHERE
             id IN %(order_detail_id)s;
         """
+
+        if arguments['order_cancel_reason_id']:
+            sql_1 += ", order_cancel_reason_id = %(order_cancel_reason_id)s"
+
+        elif arguments['order_refund_reason_id']:
+            sql_1 += ", order_refund_reason_id = %(order_refund_reason_id)s"
+
+        sql = sql_1 + sql_2
+
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
             result = cursor.execute(sql, arguments)
 
@@ -291,18 +315,21 @@ class OrderDao:
             d.quantity AS quantity,
             u.id AS user_id,
             u.name AS user_name,
-            si.name AS receiver,
-            si.phone_number AS receiver_phone_number,
-            si.address AS address,
-            si.shipping_memo AS shipping_memo
+            d.name AS receiver,
+            d.phone_number AS receiver_phone_number,
+            d.address AS address,
+            d.shipping_memo AS shipping_memo,
+            ocr.name AS order_cancel_reason,
+            orr.name AS order_refund_reason,
+            d.order_refund_reason_description AS cancel_refund_detail_description
         FROM
             order_details d
         LEFT JOIN orders o
             ON o.id = d.order_id
         LEFT JOIN order_status_modification_histories osmh
             ON d.id = osmh.order_detail_id
-        LEFT JOIN users u
-            ON o.user_id = u.id
+        LEFT JOIN user_informations u
+            ON o.user_id = u.user_id
         LEFT JOIN options op
             ON op.id = d.option_id
         LEFT JOIN colors c
@@ -313,10 +340,12 @@ class OrderDao:
             ON p.id = op.product_id
         LEFT JOIN product_details pd
             ON pd.product_id = op.product_id
-        LEFT JOIN sellers sl
-            ON sl.id = p.seller_id
-        LEFT JOIN shipping_informations si
-            ON si.id = o.shipping_information_id
+        LEFT JOIN seller_informations sl
+            ON sl.seller_id = p.seller_id
+        LEFT JOIN order_cancel_reasons ocr
+            ON ocr.id = d.order_cancel_reason_id
+        LEFT JOIN order_refund_reasons orr
+            ON orr.id = d.order_refund_reason_id
         WHERE
             d.id = %(order_detail_id)s
         AND osmh.order_status_id = 1
@@ -370,3 +399,51 @@ class OrderDao:
             raise ValueError
 
         return order_status_history
+
+    def get_cancel_reason_id(self, db, argument):
+        sql = """
+        SELECT id
+        FROM order_cancel_reasons
+        WHERE name = %(order_cancel_reason)s;
+        """
+
+        with db.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, argument)
+            order_cancel_reason_id = cursor.fetchone()
+
+        if not order_cancel_reason_id:
+            raise ValueError
+
+        return order_cancel_reason_id
+
+    def get_refund_reason_id(self, db, argument):
+        sql = """
+        SELECT id
+        FROM order_refund_reasons
+        WHERE name = %(order_refund_reason)s;
+        """
+
+        with db.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, argument)
+            order_refund_reason_id = cursor.fetchone()
+
+        if not order_refund_reason_id:
+            raise ValueError
+
+        return order_refund_reason_id
+
+    def get_order_current_status(self, db, arguments):
+        sql = """
+        SELECT order_status_id
+        FROM order_status_modification_histories
+        WHERE order_detail_id = %(order_detail_id)s;
+        """
+
+        with db.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, arguments)
+            current_status = cursor.fetchall()[-2]
+
+        if not current_status:
+            raise ValueError
+
+        return current_status

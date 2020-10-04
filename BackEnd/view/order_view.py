@@ -16,18 +16,20 @@ class GetOrderDataView(MethodView):
         주문정보리스트  - Presentation Layer(view) function
         Args:
             arguments = {
-                'start_date'        : 조회 시작일,
-                'end_date'          : 조회 종료일,
-                'status_name'       : 주문 상태명,
-                'order_number'      : 주문 번호(검색),
-                'detail_number'     : 주문 상세 번호(검색),
-                'user_name'         : 주문자명(검색),
-                'phone_number'      : 핸드폰번호(검색),
-                'seller_name'       : 셀러명(검색),
-                'product_name'      : 상품명(검색),
-                'seller_properties' : 셀러속성(검색),
-                'offset'            : 페이지네이션 시작지점,
-                'limit'             : 전달할 주문 리스트 개수
+                'start_date'          : 조회 시작일,
+                'end_date'            : 조회 종료일,
+                'status_name'         : 주문 상태명,
+                'order_number'        : 주문 번호(검색),
+                'detail_number'       : 주문 상세 번호(검색),
+                'user_name'           : 주문자명(검색),
+                'phone_number'        : 핸드폰번호(검색),
+                'seller_name'         : 셀러명(검색),
+                'product_name'        : 상품명(검색),
+                'seller_properties'   : 셀러속성(검색),
+                'offset'              : 페이지네이션 시작지점,
+                'limit'               : 전달할 주문 리스트 개수,
+                'order_cancel_reason' : 주문 취소 사유(검색),
+                'order_refund_reason' : 환불 요청 사유(검색)
             }
         Returns :
             KEY_ERROR, 400
@@ -54,18 +56,20 @@ class GetOrderDataView(MethodView):
         try:
             db = connection.get_connection(config.database)
 
-            start_date        = request.headers.get('start_date', None)
-            end_date          = request.headers.get('end_date', None)
-            seller_properties = ast.literal_eval(request.headers.get('seller_properties', None))
-            status_name       = request.args.get('status', None)
-            offset            = int(request.args.get('offset', -1))
-            limit             = int(request.args.get('limit', -1))
-            order_number      = "%" + request.args.get('order_number', "") + "%"
-            detail_number     = "%" + request.args.get('detail_number', "") + "%"
-            user_name         = "%" + request.args.get('user_name', "") + "%"
-            phone_number      = "%" + request.args.get('phone_number', "") + "%"
-            seller_name       = "%" + request.args.get('seller_name', "") + "%"
-            product_name      = "%" + request.args.get('product_name', "") + "%"
+            start_date          = request.headers.get('start_date', None)
+            end_date            = request.headers.get('end_date', None)
+            seller_properties   = ast.literal_eval(request.headers.get('seller_properties', None))
+            status_name         = request.args.get('status', None)
+            offset              = int(request.args.get('offset', -1))
+            limit               = int(request.args.get('limit', -1))
+            order_cancel_reason = request.args.get('order_cancel_reason', None)
+            order_refund_reason = request.args.get('order_refund_reason', None)
+            order_number        = "%" + request.args.get('order_number', "") + "%"
+            detail_number       = "%" + request.args.get('detail_number', "") + "%"
+            user_name           = "%" + request.args.get('user_name', "") + "%"
+            phone_number        = "%" + request.args.get('phone_number', "") + "%"
+            seller_name         = "%" + request.args.get('seller_name', "") + "%"
+            product_name        = "%" + request.args.get('product_name', "") + "%"
 
             if (not status_name) or (not start_date) or (offset == -1) or (limit == -1):
                 return jsonify({'message':'KEY_ERROR'}), 400
@@ -74,26 +78,29 @@ class GetOrderDataView(MethodView):
                 end_date = str(date.today())
 
             day      = timedelta(days = 1)
-            end_date = date.fromisoformat(end_date) + day
+            end_date = str(date.fromisoformat(end_date) + day)
 
             arguments = {
-                'start_date'        : start_date,
-                'end_date'          : end_date,
-                'status_name'       : status_name,
-                'order_number'      : order_number,
-                'detail_number'     : detail_number,
-                'user_name'         : user_name,
-                'phone_number'      : phone_number,
-                'seller_name'       : seller_name,
-                'product_name'      : product_name,
-                'seller_pro뷰perties' : seller_properties,
-                'offset'            : offset,
-                'limit'             : limit
+                'start_date'          : start_date,
+                'end_date'            : end_date,
+                'status_name'         : status_name,
+                'order_number'        : order_number,
+                'detail_number'       : detail_number,
+                'user_name'           : user_name,
+                'phone_number'        : phone_number,
+                'seller_name'         : seller_name,
+                'product_name'        : product_name,
+                'seller_properties'   : seller_properties,
+                'offset'              : offset,
+                'limit'               : limit,
+                'order_cancel_reason' : order_cancel_reason,
+                'order_refund_reason' : order_refund_reason
             }
 
             order_data = self.service.get_order_data(db, arguments)
 
         except ValueError:
+            traceback.print_exc()
             return jsonify({'message':'VALUE_ERROR'}), 400
 
         except:
@@ -131,20 +138,30 @@ class PutOrderStatusView(MethodView):
         try:
             db = connection.get_connection(config.database)
             data = request.get_json()
-            order_detail_id = ast.literal_eval(data['order_detail_id'])
-            to_status = data['to_status']
+
             arguments = {
-                'order_detail_id' : order_detail_id,
-                'to_status'       : to_status
+                'order_detail_id' : ast.literal_eval(data['order_detail_id']),
+                'to_status'       : data['to_status'],
+                'order_cancel_reason' : None,
+                'order_refund_reason' : None
             }
+
+            if data['to_status'] == '주문취소완료':
+                arguments['order_cancel_reason'] = data['order_cancel_reason']
+                arguments['order_refund_reason'] = None
+            elif data['to_status'] == '환불요청':
+                arguments['order_refund_reason'] = data['order_refund_reason']
+                arguments['order_cancel_reason'] = None
 
             self.service.update_order_status(db, arguments)
 
         except KeyError:
+            traceback.print_exc()
             db.rollback()
             return jsonify({'message':'KEY_ERROR'}), 400
 
         except ValueError:
+            traceback.print_exc()
             return jsonify({'message':'VALUE_ERROR'}), 400
 
         except:

@@ -9,18 +9,20 @@ class OrderService:
         주문정보 - Business Layer(service) function
         Args:
             arguments = {
-                'start_date'        : 조회 시작일,
-                'end_date'          : 조회 종료일,
-                'status_name'       : 주문 상태명,
-                'order_number'      : 주문 번호(검색),
-                'detail_number'     : 주문 상세 번호(검색),
-                'user_name'         : 주문자명(검색),
-                'phone_number'      : 핸드폰번호(검색),
-                'seller_name'       : 셀러명(검색),
-                'product_name'      : 상품명(검색),
-                'seller_properties' : 셀러속성(검색),
-                'offset'            : 페이지네이션 시작지점,
-                'limit'             : 전달할 주문 리스트 개수
+                'start_date'          : 조회 시작일,
+                'end_date'            : 조회 종료일,
+                'status_name'         : 주문 상태명,
+                'order_number'        : 주문 번호(검색),
+                'detail_number'       : 주문 상세 번호(검색),
+                'user_name'           : 주문자명(검색),
+                'phone_number'        : 핸드폰번호(검색),
+                'seller_name'         : 셀러명(검색),
+                'product_name'        : 상품명(검색),
+                'seller_properties'   : 셀러속성(검색),
+                'offset'              : 페이지네이션 시작지점,
+                'limit'               : 전달할 주문 리스트 개수
+                'order_cancel_reason' : 주문 취소 사유,
+                'order_refund_reason' : 환불 요청 사유
             }
             db = DATABASE Connection Instance
         Returns :
@@ -44,15 +46,28 @@ class OrderService:
             2020-09-28 : 초기 생성
             2020-09-29 : 결제 일자 기준이 아닌 현재 상태 기준으로 조회하도록 변경
         """
+
         status_name            = {'status_name':arguments['status_name']}
         arguments['status_id'] = self.order_dao.get_order_status_id(db, status_name)['id']
         order_data  = self.order_dao.get_order_data(db, arguments)
 
         for order_datum in order_data:
-            order_datum['payment_complete'] = self.order_dao.get_payment_complete_status_date(
+            if arguments['status_name'] == "환불요청":
+                order_datum['shipping_started_at'] = self.order_dao.get_status_date(
+                    db,
+                    {
+                        'order_detail_id': order_datum['id'],
+                        'status_id'      : self.order_dao.get_order_status_id(db, {'status_name':'배송중'})['id']
+                    }
+                )['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
+
+            order_datum['payment_complete'] = self.order_dao.get_status_date(
                 db,
-                {'order_detail_id' : order_datum['id']}
-            )['payment_complete'].strftime('%Y-%m-%d %H:%M:%S')
+                {
+                    'order_detail_id' : order_datum['id'],
+                    'status_id'       : self.order_dao.get_order_status_id(db, {'status_name':'결제완료'})['id']
+                }
+            )['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
 
             order_datum['current_updated_at']   = order_datum['current_updated_at'].strftime('%Y-%m-%d %H:%M:%S')
 
@@ -74,8 +89,23 @@ class OrderService:
         History:
             2020-09-28 : 초기 생성
         """
-        status_name            = {'status_name':arguments['to_status']}
-        arguments['status_id'] = self.order_dao.get_order_status_id(db, status_name)['id']
+        if arguments['to_status'] == "환불요청취소":
+            for order_detail_id in arguments['order_detail_id']:
+                arguments['status_id'] = self.order_dao.get_order_current_status(db, {'order_detail_id':order_detail_id})['order_status_id']
+        else:
+            arguments['status_id'] = self.order_dao.get_order_status_id(db, {'status_name':arguments['to_status']})['id']
+
+        if arguments['order_cancel_reason']:
+            arguments['order_cancel_reason_id'] = self.order_dao.get_cancel_reason_id(db, {"order_cancel_reason":arguments['order_cancel_reason']})['id']
+            arguments['order_refund_reason_id'] = None
+
+        elif arguments['order_refund_reason']:
+            arguments['order_refund_reason_id'] = self.order_dao.get_refund_reason_id(db, {"order_refund_reason":arguments['order_refund_reason']})['id']
+            arguments['order_cancel_reason_id'] = None
+
+        else:
+            arguments['order_cancel_reason_id'] = None
+            arguments['order_refund_reason_id'] = None
 
         self.order_dao.update_order_status(db, arguments)
 
