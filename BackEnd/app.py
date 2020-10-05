@@ -14,6 +14,8 @@ class Services:
 # 수정일: 2020.09.21.월
 def create_app(test_config = None):
     app = Flask(__name__)
+    app.config['JSON_AS_ASCII'] = False
+    
     CORS(app)
 
     if test_config is None:
@@ -34,5 +36,6 @@ def create_app(test_config = None):
     services.user_service    = UserService(user_dao, app.config)
 
     create_endpoints(app, services)
+
 
     return app

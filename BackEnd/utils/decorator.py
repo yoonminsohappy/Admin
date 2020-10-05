@@ -6,6 +6,7 @@ from flask            import request,Response,jsonify
 from model.seller_dao import SellerDao
 from connection       import get_connection
 
+import traceback
 
 import config,connection
 
@@ -26,9 +27,10 @@ def login_decorator(f):
                 wldus9503@gmail.com(이지연)
             
             History:
-                2020 - 09 - 24(wldus9503@gmail.com) : 데코레이터 초기 생성
-                2020 - 09 - 28(wldus9503@gmail.com) : 유효성 검사 customexception -> validationexception 변경
-                2020 - -0 - 29(wldus9503@gmail.com) : 클래스 Validation_order 추가, DB ORDER기능 위한것
+                2020.09.24(이지연) : 데코레이터 초기 생성
+                2020.09.28(이지연) : 유효성 검사 customexception -> validationexception 변경
+                2020.09.29(이지연) : 클래스 Validation_order 추가, DB ORDER기능 위한것
+                2020.10.05(이지연) : 데코레이터 
     """
 
     @wraps(f)
@@ -52,9 +54,11 @@ def login_decorator(f):
 
                 conn.close() #db 연결 종료
                 if result:
+                    request.user = result
                     return f(*args, **kwargs)
                 return jsonify({'message':'INVALID_USER'}), 400
         except jwt.exceptions.DecodeError:
+            traceback.print_exc()
             return jsonify({'message':'INVALID_TOKEN'}), 400
     return wrapper
 
@@ -82,7 +86,8 @@ def catch_exception(f, *args, **kwargs):
         try:
             return f(*args, **kwargs)
         except Exception as e:
-            print(e.args!=None)
-            return "asd"
-            # return jsonify({"message" : f"INVALID_PARAMETER_{e.args[0]}"}), 400
+            traceback.print_exc()
+            if len(e.args)==0:
+                return jsonify({"message" : "INVALID_PARAMETER"}), 400
+            return jsonify({"message" : f"INVALID_PARAMETER_{e.args[0]}"}), 405
     return wrapper

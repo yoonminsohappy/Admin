@@ -48,9 +48,9 @@ ALTER TABLE banks COMMENT '은행 이름';
 CREATE TABLE seller_informations
 (
     `id`                           INT              NOT NULL    AUTO_INCREMENT COMMENT '셀러 아이디', 
-    `sellers_id`                   INT              NOT NULL    COMMENT '셀러 고유 아이디', 
+    `seller_id`                    INT              NOT NULL    COMMENT '셀러 고유 아이디', 
     `seller_status_id`             INT              NOT NULL    DEFAULT '1' COMMENT '셀러 상태 아이디', 
-    `seller_account`               VARCHAR(128)     NOT NULL    UNIQUE COMMENT '셀러 계정', 
+    `seller_account`               VARCHAR(128)     NOT NULL    COMMENT '셀러 계정', 
     `english_name`                 VARCHAR(128)     NOT NULL    COMMENT '영문이름', 
     `korean_name`                  VARCHAR(128)     NOT NULL    COMMENT '한글이름', 
     `cs_phone`                     VARCHAR(64)      NOT NULL    COMMENT '고객센터 전화번호', 
@@ -102,8 +102,10 @@ ALTER TABLE seller_informations
         REFERENCES sellers (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ALTER TABLE seller_informations
-    ADD CONSTRAINT FK_seller_informations_sellers_id_sellers_id FOREIGN KEY (sellers_id)
+    ADD CONSTRAINT FK_seller_informations_sellers_id_sellers_id FOREIGN KEY (seller_id)
         REFERENCES sellers (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+
 
 -- 셀러 담당자
 CREATE TABLE seller_managers
@@ -112,21 +114,21 @@ CREATE TABLE seller_managers
     `name`          VARCHAR(64)     NOT NULL    DEFAULT '미등록' COMMENT '이름', 
     `phone_number`  VARCHAR(64)     NOT NULL    COMMENT '전화번호', 
     `email`         VARCHAR(128)    NOT NULL    DEFAULT '미등록' COMMENT '이메일',
-    `sellers_id`    INT             NOT NULL    COMMENT '셀러고유아이디', 
+    `seller_id`     INT             NOT NULL    COMMENT '셀러고유아이디', 
     PRIMARY KEY (id)
 );
 
 ALTER TABLE seller_managers COMMENT '셀러 담당자 테이블';
 
 ALTER TABLE seller_managers
-    ADD CONSTRAINT FK_seller_managers_sellers_id_sellers_id FOREIGN KEY (sellers_id)
+    ADD CONSTRAINT FK_seller_managers_seller_id_sellers_id FOREIGN KEY (seller_id)
         REFERENCES sellers (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 -- 셀러 상태 변경 이력
 CREATE TABLE seller_status_modification_histories
 (
     `id`                INT         NOT NULL    AUTO_INCREMENT, 
-    `sellers_id`        INT         NOT NULL    COMMENT '셀러 고유 아이디', 
+    `seller_id`         INT         NOT NULL    COMMENT '셀러 고유 아이디', 
     `updated_at`        DATETIME    NOT NULL    COMMENT '셀러 상태에 따라 사용하기', 
     `seller_status_id`  INT         NOT NULL    COMMENT '셀러 상태 아이디', 
     `modifier_id`       INT         NOT NULL    COMMENT '수정자 아이디', 
@@ -136,15 +138,15 @@ CREATE TABLE seller_status_modification_histories
 ALTER TABLE seller_status_modification_histories COMMENT '셀러상태 변경이력';
 
 ALTER TABLE seller_status_modification_histories
-    ADD CONSTRAINT FK_seller_status_modification_histories_seller_status_id FOREIGN KEY (seller_status_id)
+    ADD CONSTRAINT seller_status_modification_histories_seller_status_id FOREIGN KEY (seller_status_id)
         REFERENCES seller_statuses (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ALTER TABLE seller_status_modification_histories
-    ADD CONSTRAINT FK_seller_status_modification_histories_sellers_id_sellers_id FOREIGN KEY (sellers_id)
+    ADD CONSTRAINT seller_status_modification_histories_seller_id FOREIGN KEY (seller_id)
         REFERENCES sellers (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ALTER TABLE seller_status_modification_histories
-    ADD CONSTRAINT FK_seller_status_modification_histories_modifier_id_sellers_id FOREIGN KEY (modifier_id)
+    ADD CONSTRAINT seller_status_modification_histories_modifier_id FOREIGN KEY (modifier_id)
         REFERENCES sellers (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 -- 2차 카테고리
@@ -355,7 +357,7 @@ ALTER TABLE issue_types COMMENT '일반, 쿠폰코드, 시리얼번호';
 -- coupons Table Create SQL
 CREATE TABLE coupons
 (
-    `id`                   INT            NOT NULL    AUTO_INCREMENT, 
+    `id`                   INT            NOT NULL          AUTO_INCREMENT, 
     `name`                 VARCHAR(64)    NOT NULL    			COMMENT '쿠폰이름', 
     `started_at`           DATETIME       NOT NULL    			COMMENT '쿠폰 유효 시작일', 
     `ended_at`             DATETIME       NOT NULL    			COMMENT '쿠폰 유효 종료일', 

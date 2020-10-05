@@ -8,7 +8,7 @@ class UserDao:
             SELECT
             count(*) as count
             FROM users u
-            INNER JOIN user_informations ui ON ui.users_id = u.id
+            INNER JOIN user_informations ui ON ui.user_id = u.id
             WHERE u.id like %s
                 AND ui.account_id like %s
                 AND ui.email like %s
@@ -42,7 +42,7 @@ class UserDao:
             ui.email,
             ui.phone_number
             FROM users u
-            INNER JOIN user_informations ui ON ui.users_id = u.id
+            INNER JOIN user_informations ui ON ui.user_id = u.id
             WHERE u.id like %s
                 AND ui.account_id like %s
                 AND ui.email like %s
@@ -55,7 +55,7 @@ class UserDao:
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         
         cursor.execute(sql, (
-            "%" + search_info['id'] +"%",
+            "%" +   ['id'] +"%",
             "%" + search_info['account_id'] + "%",
             "%" + search_info['user_email'] +"%",
             "%" + search_info['user_phone'] + "%",

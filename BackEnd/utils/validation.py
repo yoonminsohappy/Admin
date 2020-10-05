@@ -3,6 +3,7 @@ import datetime
 
 from flask_request_validator import AbstractRule
 from exceptions import ValidationError
+
 """
         validation API
 
@@ -27,10 +28,11 @@ from exceptions import ValidationError
                 wldus9503@gmail.com(이지연)
             
             History:
-                2020 - 09 - 25(wldus9503@gmail.com) : 유효성 검사
-                2020 - 09 - 28(wldus9503@gmail.com) : 유효성 검사 customexception -> validationexception 변경
-                2020 - 09 - 29(wldus9503@gmail.com) : 클래스 Validation_order 추가, DB ORDER기능 위한것
-                2020 - 09 - 30(wldus9503@gmail.com) : 수정 페이지를 위한 유효성 검사 추가
+                2020.09.25(이지연) : 유효성 검사
+                2020.09.28(이지연) : 유효성 검사 customexception -> validationexception 변경
+                2020.09.29(이지연) : 클래스 Validation_order 추가, DB ORDER기능 위한것
+                2020.09.30(이지연) : 수정 페이지를 위한 유효성 검사 추가
+                2020.10.05(이지연) : 유효성 검사 -비밀번호 수정
 """
 
 #AbstractRule : 우선 순위를 보통으로 설정하고 상태를 활성으로 설정하는 기본 생성자
@@ -38,13 +40,15 @@ from exceptions import ValidationError
 class Validation_seller_account(AbstractRule):
 
     def validate(self, value):
-        errors = []
+        # errors = []
         seller_account_reg = r"^[0-9a-zA-Z][0-9a-zA-Z_-]{5,20}$"
         regex  = re.compile(seller_account_reg)
 
         if not regex.match(value):
-            errors.append('아이디는 5~20글자의 영문, 숫자, 언더바, 하이픈만 사용 가능하며 시작 문자는 영문 또는 숫자입니다.')
-        return errors
+            # errors.append('아이디는 5~20글자의 영문, 숫자, 언더바, 하이픈만 사용 가능하며 시작 문자는 영문 또는 숫자입니다.')
+            return value
+
+        # return errors
 
 class Validation_password(AbstractRule):
     

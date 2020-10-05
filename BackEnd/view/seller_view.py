@@ -44,6 +44,7 @@ from utils.decorator import (
 )
 
 import config,connection
+import traceback
 
 class ProductSellerSearchView(MethodView):
     def __init__(self, service):
@@ -100,28 +101,28 @@ class SellerSignUpView(MethodView):
         self.service = service #(app->init->view)
 
     @catch_exception
+    #validator에서 오류가 날 경우 500이 아닌 400에러를 반환
     @validate_params(
-        Param('seller_account',JSON,str,required=True,rules=[Validation_seller_account()]),
-        Param('password',JSON,str,required=True,rules=[Validation_password()]),
-        Param('phone_number',JSON,str,required=True,rules=[Validation_phone_number()]),
-        Param('korean_name',JSON,str,required=True,rules=[Validation_korean_name()]),
-        Param('english_name',JSON,str,required=True,rules=[Validation_english_name()]),
-        Param('cs_phone',JSON,str,required=True,rules=[Validation_cs_phone()]),
-        Param('seller_property',JSON,str,required=True,rules=[Validation_seller_property()])
+        #들어온 파라미터들을 유효성 검사한다.
+        Param('seller_account',JSON,str,required=True),
+        Param('password',JSON,str,required=True),
+        Param('phone_number',JSON,str,required=True),
+        Param('korean_name',JSON,str,required=True),
+        Param('english_name',JSON,str,required=True),
+        Param('cs_phone',JSON,str,required=True),
+        Param('seller_property',JSON,str,required=True)
     )
     def post(self, *args):
         """
-        기본 회원가입 API
+        새로운 셀러를 생성합니다.
 
             Args:
-                --sellers table
                     seller_account     : 셀러 아이디 ,
                     english_name       : 영문 셀러명,
                     korean_name        : 셀러명,
                     cs_phone           : 고객센터 전화번호 ,
                     seller_property_id : 셀러 속성 PK(쇼핑몰 마켓  로드샵  디자이너브랜드  제너럴브랜드  내셔널브랜드  뷰티),
                     password           : 패스워드,
-                --seller_managers table
                     phone_number       : 담당자 전화번호,
                     seller_id          : 셀러 FK
             Retruns:
@@ -147,9 +148,12 @@ class SellerSignUpView(MethodView):
                 2020 - 09 - 23(wldus9503@gmail.com) : 수정
                                 -> view에서 db commit하도록 변경, 에러 처리 추가
                 2020 - 09 - 25(wldus9503@gmail.com) : 유효성 검사 추가
+                2020.10.02(이지연) : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
         """
 
         try:
+            print(request.get_json())
+            print(args)
             conn          = connection.get_connection(config.database)   
             seller_info   = {
                 'seller_account'    :   args[0],
@@ -160,15 +164,17 @@ class SellerSignUpView(MethodView):
                 'cs_phone'          :   args[5],
                 'seller_property'   :   args[6]
             }
-            
             sign_up       = self.service.sign_up(seller_info, conn)
+        #DB와 관련된 오류
         except (err.IntegrityError,err.DataError, err.NotSupportedError, err.OperationalError,err.InternalError) as e:
+            traceback.print_exc
             conn.rollback()
             message = {"errno": e.args[0], "errval": e.args[1]}
             return jsonify(message), 400
+        #그 외 모든 에러들
         except Exception as e:
             conn.rollback()
-            return jsonify({'message': str(e)}), 400 
+            return jsonify({'message': str(e)}), 400
         else:
             conn.commit()    
             return jsonify({'message':'SUCCESS'}), 200 
@@ -176,18 +182,9 @@ class SellerSignUpView(MethodView):
             conn.close()  
             
 # 로그인 endpoint
-class SellerSignInView(MethodView): 
+class SellerSignInView(MethodView):
 
-    def __init__(self, service):
-        self.service = service 
-
-    @catch_exception
-    @validate_params(
-        Param('seller_account',JSON,str,required=True,rules=[Validation_seller_account()]),
-        Param('password',JSON,str,required=True,rules=[Validation_password()]),
-    )
-    def post(self, *args):
-        """
+    """
         기본 로그인 API
 
         Args:
@@ -220,30 +217,41 @@ class SellerSignInView(MethodView):
             -> view에서 db commit하도록 변경, 에러 처리 추가
             2020 - 09 - 25(wldus9503@gmail.com) : 유효성 검사 추가
             2020 - 09 - 28(wldus9503@gmail.com) : 유효성 검사 customexception -> validationexception 변경
+            2020.10.02(이지연) : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
 
-        """
+    """ 
+    def __init__(self, service):
+        self.service = service 
 
+    @catch_exception
+    @validate_params(
+        Param('seller_account',JSON,str,required=True),
+        Param('password',JSON,str,required=True)
+    )
+    def post(self, *args):
+       
         try:
             conn          = connection.get_connection(config.database)
             seller_info   = {
                 'seller_account'    :   args[0],
                 'password'          :   args[1]
             }
+            print(request.get_json())
+            print(args)
             
-            # 로그인 성공 시 access_token 생성 메소드 실행
+            # 로그인 성공 시 access_token 생성 메소드 실행 -> 성공 x : INVALID_USER, INVALID_TOKEN
             access_token  = self.service.sign_in(seller_info,conn)
-
+        #DB 오류
         except (err.IntegrityError,err.DataError, err.NotSupportedError, err.OperationalError,err.InternalError) as e:
-        #     print(str(e))
-            conn.rollback()
+            traceback.print_exc()
             message = {"errno": e.args[0], "errval": e.args[1]}
             # (1054, "Unknown column 'seller_accounts' in 'field list'")
             return jsonify(message), 400
+        #그 외 오류(컬럼명 오타 등)
         except Exception as e:
-            conn.rollback()
-            return jsonify({'message': 'UNSUCCESS'}),400
+            traceback.print_exc()
+            return jsonify({'message': str(e)}),405
         else:
-            conn.commit()
             return jsonify({'access_token':access_token}),200
         finally:
             conn.close() 
@@ -254,6 +262,7 @@ class  SellerSerachView(MethodView):
     def __init__(self, service):
         self.service = service
 
+    @login_decorator
     @catch_exception
     @validate_params(
         Param('id', GET, str, required=False, default=''),
@@ -267,8 +276,8 @@ class  SellerSerachView(MethodView):
         Param('manager_email', GET, str, required=False,default=''),
         Param('from', GET, str, required=False, default=''),
         Param('to',GET, str, required=False, default=''),
-        Param('page',GET, int, required=False, default=1),
-        Param('order',GET, str, required=False, default='DESC',rules=[Validation_order()])
+        Param('page',GET, int, required=False, default=1), #현재 페이지
+        Param('order',GET, str, required=False, default='DESC',rules=[Validation_order()]) # DAO에서 sql 정렬방식
     )
     def get(self,*args):
         """
@@ -300,10 +309,12 @@ class  SellerSerachView(MethodView):
             wldus9503@gmail.com(이지연)
         
         History:(
-            2020 - 09 - 27(wldus9503@gmail.com) : 셀러 리스트 초기 생성   
-            2002 - 09 - 28(wldus9503@gmail.com) : 수정
+            2020.09.27(이지연) : 셀러 리스트 초기 생성   
+            2002.09.28(이지연) : 수정
                                     ->  유효성 검사 함수를 DAO로 이동
-            2020 - 09 - 29(wldus9503@gmail.com) : 셀러 검색 추가, 페이지 네이션 추가 
+            2020.09.29(이지연) : 셀러 검색 추가, 페이지 네이션 추가 
+            2020.10.02(이지연) : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+
         """
 
         try:
@@ -324,7 +335,7 @@ class  SellerSerachView(MethodView):
                 'page'                      :   args[11],
                 'order'                     :   args[12]
             }
-
+            #from , to - 등록일시 -> 이상/이하 미적용, 구현예정 
             results     = self.service.search_seller_list(conn, search_info)
 
         except Exception as e:
@@ -340,98 +351,114 @@ class SellerUpdateView(MethodView):
     def __init__(self, service):
         self.service = service
     
+    @login_decorator
     @catch_exception
     @validate_params(
-        Param('sellers_id', PATH, str, required=True, default=None), #
-        Param('profile_image', JSON, str, required=False, default=None), #
-        Param('seller_status', JSON, str, required=False, default=None), #
-        Param('seller_property', JSON, str, required=False, default=None,rules=[Validation_seller_property()]), #
-        Param('korean_name', JSON, str, required=False, default=None, rules=[Validation_korean_name()]), #
-        Param('english_name', JSON, str, required=False, default=None, rules=[Validation_english_name()]), #
-        Param('seller_account', JSON, str, required=False, default=None, rules=[Validation_seller_account()]), #
-        Param('password', JSON, str, required=False, default=None, rules=[Validation_password()]), #
-        Param('background_image', JSON, str, required=False, default=None), #
-        Param('simple_description', JSON, str, required=False, default=None), #
-        Param('detail_description', JSON, str, required=False, default=None), #
-        #담당자정보
-        Param('manager_id', JSON, str, required=False, default=None),
-        Param('manager_name', JSON, str, required=False, default=None, rules=[Validation_managers_name()]), #
-        Param('manager_phone_number', JSON, str, required=False, default=None, rules=[Validation_phone_number()]), #
-        Param('manager_email', JSON, str, required=False, default=None, rules=[Validation_managers_email()]),
-        #
-        Param('cs_phone', JSON, str, required=False, default=None, rules=[Validation_cs_phone()]), #
-        Param('zip_code', JSON, str, required=False, default=None), #
-        Param('address', JSON, str, required=False, default=None), #
-        Param('detail_address', JSON, str, required=False, default=None), #
-        Param('open_time', JSON, str, required=False, default=None), #
-        Param('close_time', JSON, str, required=False, default=None), #
-        #은행
-        Param('bank_id', JSON, str, required=False, default=None), #
-        Param('bank_name', JSON, str, required=False, default=None, rules=[Validation_bank_name()]),
-        #
-        Param('account_number', JSON, str, required=False, default=None, rules=[Validation_account_number()]),
-        Param('account_name', JSON, str, required=False, default=None, rules=[Validation_account_name()]),
-        Param('shipping_information', JSON, str, required=False, default=None, rules=[Validation_shipping_information()]),
-        Param('exchange_refund_information', JSON, str, required=False, default=None, rules=[Validation_exchange_refund_information()]),
-        Param('model_height', JSON, str, required=False, default=None, rules=[Validation_model_height()]),
-        Param('model_top_size', JSON, str, required=False, default=None, rules=[Validation_model_top_size()]),
-        Param('model_bottom_size', JSON, str, required=False,default=None, rules=[Validation_model_bottom_size()]),
-        Param('model_feet_size', JSON, str, required=False, default=None, rules=[Validation_model_feet_size()]),
-        Param('shopping_feedtext', JSON, str, required=False, default=None, rules=[Validation_shopping_feedtext()]),
-        Param('registered_product_count', JSON, int, required=False, default=None),
-        Param('is_deleted', JSON, bool, required=False, default=False), #
-        # Param('modifier_id', JSON, str, required=False, default=None)
+        Param('seller_id', PATH, int, required=True, default=None),
+        Param('seller_status', FORM , str, required=True, default=None),
+        Param('seller_property', FORM, str, required=True, default=None),
+        Param('seller_account', FORM, str, required=True, default=None),
+        Param('simple_description', FORM, str, required=False, default=None),
+        Param('detail_description', FORM, str, required=False, default=None),
+        Param('cs_phone', FORM, str, required=True, default=None),
+        Param('zip_code', FORM, str, required=False, default=None),
+        Param('address', FORM, str, required=False, default=None),
+        Param('detail_address', FORM, str, required=False, default=None),
+        Param('open_time', FORM, str, required=False, default=None),
+        Param('close_time', FORM, str, required=False, default=None),
+        Param('bank', FORM, str, required=False, default=None),
+        Param('account_number', FORM, str, required=False, default=None),
+        Param('account_name', FORM, str, required=False, default=None),
+        Param('shipping_information', FORM, str, required=False, default=None),
+        Param('exchange_refund_information', FORM, str, required=False, default=None),
+        Param('model_height', FORM, str, required=False, default=None),
+        Param('model_top_size', FORM, str, required=False, default=None),
+        Param('model_bottom_size', FORM, str, required=False, default=None),
+        Param('model_feet_size', FORM, str, required=False, default=None),
+        Param('shopping_feedtext', FORM, str, required=False, default=None),
+        Param('password', FORM, str, required=False, default=None),
+        Param('manager_info[0]', FORM, dict, required=True, default=None),
+        Param('manager_info[1]', FORM, dict, required=False, default=None),
+        Param('manager_info[2]', FORM, dict, required=False, default=None)
     )
+    #Form으로 한 이유: 이미지 파일과 json데이터를 한꺼번에 요청하기 위해서
+
     def put(self,*args):
-        try:
+        try:    
             conn = connection.get_connection(config.database)
 
             update_info   = {
-                'sellers_id'                    :   args[0],
-                'profile_image'                 :   args[1],
-                'seller_status'                 :   args[2],
-                'seller_property'               :   args[3],
-                'korean_name'                   :   args[4],
-                'english_name'                  :   args[5],
-                'seller_account'                :   args[6],
-                'password'                      :   args[7],
-                'background_image'              :   args[8],
-                'simple_description'            :   args[9],
-                'detail_description'            :   args[10],
-                #담당자정보
-                'manager_id'                    :   args[11],
-                'manager_name'                  :   args[12],                                      
-                'manager_phone_number'          :   args[13],
-                'manager_email'                 :   args[14],
-                #
-                'cs_phone'                      :   args[15],
-                'zip_code'                      :   args[16],
-                'address'                       :   args[17],
-                'detail_address'                :   args[18],
-                'open_time'                     :   args[19],
-                'close_time'                    :   args[20],
-                #은행
-                'bank_id'                       :   args[21],
-                'bank_name'                     :   args[22],
-                #
-                'account_number'                :   args[23],
-                'account_name'                  :   args[24],
-                'shipping_information'          :   args[25],
-                'exchange_refund_information'   :   args[26],
-                'model_height'                  :   args[27],
-                'model_top_size'                :   args[28],
-                'model_bottom_size'             :   args[29],
-                'model_feet_size'               :   args[30],
-                'shopping_feedtext'             :   args[31],
-                'registered_product_count'      :   args[32],
-                'is_deleted'                    :   args[33]
+                'seller_id'                   : args[0],
+                'seller_status'               : args[1],
+                'seller_property'             : args[2],
+                'seller_account'              : args[3],
+                'simple_description'          : args[4],
+                'detail_description'          : args[5],
+                'cs_phone'                    : args[6],
+                'zip_code'                    : args[7],
+                'address'                     : args[8],
+                'detail_address'              : args[9],
+                'open_time'                   : args[10],
+                'close_time'                  : args[11],
+                'bank'                        : args[12],
+                'account_number'              : args[13],
+                'account_name'                : args[14],
+                'shipping_information'        : args[15],
+                'exchange_refund_information' : args[16],
+                'model_height'                : args[17],
+                'model_top_size'              : args[18],
+                'model_bottom_size'           : args[19],
+                'model_feet_size'             : args[20],
+                'shopping_feedtext'           : args[21],
+                'password'                    : args[22],
+                'manager_infos'               : None
             }
 
-            print(update_info)
+            #매니저정보 1개 이상 최대 3개를 받음.
+            manager_infos = []
 
-            results = "aa"
+            #None이 아닌 매니저 정보는 리스트에 담는다(args-23,24,25까지)
+            for i in range(23,26):
+                if args[i] != None:
+                    manager_infos.append(args[i])
+            #update_info에 리스트를 담는다.
+            update_info['manager_infos'] = manager_infos
+
+            #데코레이터로 부터 저장한 요청자의 id값 = 수정자의 id
+            modifier_user = request.user
+            
+            #프로필 이미지 및 배경화면 이미지 값 받아오기
+            profile_image = request.files.get('profile_image', None)
+            background_image = request.files.get('background_image', None)
+            
+            results = self.service.update_seller(conn, update_info,profile_image,background_image,modifier_user)
         except Exception as e:
+            conn.rollback()
             return jsonify({'message': str(e)}),400
+        else:
+            conn.commit()
+            return jsonify(results), 200
+        finally:
+            conn.close()
+
+    @catch_exception
+    @validate_params(
+        Param('seller_id', PATH, str, required=True, default=None)
+    )
+    def get(self,*args):
+
+        try: 
+            #db연결
+            conn            = get_connection(config.database)
+            #seller_id를 인자로 갖 고온다.
+            seller_id       = args[0]
+            #service에서 넘겨준 값을 results변수에 담는다.
+            results          = self.service.detail_seller(conn, seller_id)
+        
+        #예외처리
+        except Exception as e:
+
+            return jsonify({'message':str(e)}), 400
         else:
             return jsonify(results), 200
         finally:
