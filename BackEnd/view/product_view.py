@@ -66,7 +66,6 @@ class FirstCategoriesBySellerPropertyIdView(MethodView):
         셀러 속성 아이디로 1차 카테고리들을 조회한다.
 
         Args:
-            service: 서비스 레이어 객체
 
         Returns:
             200: 
@@ -111,7 +110,6 @@ class SecondCategoriesByFirstCategoryIdView(MethodView):
         1차 카테고리 아이디로 2차 카테고리들을 조회한다.
 
         Args:
-            service: 서비스 레이어 객체
 
         Returns:
             200: 
@@ -158,7 +156,6 @@ class ProductsView(MethodView):
         예외처리를 담당한다.
 
         Args:
-            service: 서비스 레이어 객체
 
         Returns:
             200: 
@@ -178,7 +175,7 @@ class ProductsView(MethodView):
             이충희(choonghee.dev@gmail.com)
 
         History:
-            2020-09-27(이충희): 초기 생성
+            2020-09-28(이충희): 초기 생성
             2020-09-29(이충희): 커스텀 에러 처리 추가
         """
         try:
@@ -222,9 +219,30 @@ class ProductsView(MethodView):
             conn.close()
 
     def get(self):
+        """
+        상품 리스트 조회 뷰
+
+        Args:
+
+        Returns:
+            200: 
+                SUCCESS: 상품 리스트 리턴
+            400: 
+                ValidationError: 쿼리스트링 검사 에러
+            500:
+                OperationalError: 데이터베이스 조작 에러
+                InternalError   : 데이터베이스 내부 에러
+
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-09-30(이충희): 초기 생성
+        """
         try:
             conn = get_connection(config.database)
 
+            # 필터 조건을 쿼리스트링으로 받아온다.
             limit               = request.args.get('limit', '10')
             offset              = request.args.get('offset', '0')
             start_date          = request.args.get('start_date', None)
@@ -238,6 +256,7 @@ class ProductsView(MethodView):
             is_displayed        = request.args.get('is_displayed', None)
             is_discounted       = request.args.get('is_discounted', None)
 
+            # 쿼리 스트링 검사
             limit  = validate_products_limit(limit)
             offset = validate_products_offset(offset)
             validate_products_start_end_date(start_date, end_date)
@@ -266,6 +285,7 @@ class ProductsView(MethodView):
             message = {"message": e.message}
             return jsonify(message), 400
         except (err.OperationalError, err.InternalError) as e:
+            traceback.print_exc()
             message = {"errno": e.args[0], "errval": e.args[1]}
             return jsonify(message), 500
         else:
@@ -278,6 +298,27 @@ class ProductView(MethodView):
         self.service = service
 
     def get(self, code):
+        """
+        상품 상세 조회 뷰
+
+        Args:
+            code: 조회하고 싶은 상품 코드
+
+        Returns:
+            200: 
+                SUCCESS: 하나의 상품에 대한 상세 정보 리턴
+            400: 
+                ValidationError: path parameter 검사 에러
+            500:
+                OperationalError: 데이터베이스 조작 에러
+                InternalError   : 데이터베이스 내부 에러
+
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-09-30(이충희): 초기 생성
+        """
         try:
             conn = get_connection(config.database)
             validate_product_code(code)
@@ -295,9 +336,40 @@ class ProductView(MethodView):
             conn.close()
 
     def post(self, code):
+        """
+        상품 수정 뷰
+
+        Args:
+            code: 수정하고 싶은 상품 아이디
+
+        Returns:
+            200: 
+                SUCCESS: 하나의 상품에 대한 상세 정보 리턴
+            400: 
+                NonPrimaryImageError : 대표 이미지 없음 에러
+                NonImageFilenameError: 이미지 파일 이름 없음 에러
+                ValidationError      : 상품 정보 validation 에러
+                KeyError             : 딕셔너리 키 에러
+                JSONDecodeError      : 올바른 JSON 형식이 아닌 에러
+            500:
+                ClientError     : S3 관련 에러
+                OperationalError: 데이터베이스 조작 에러
+                InternalError   : 데이터베이스 내부 에러
+                IntegrityError  : 데이터베이스 무결성 에러
+
+
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-04(이충희): 초기 생성
+        """
+
         try:
             conn = get_connection(config.database)
             
+            # 이미지 업데이트 상태
+            # 이미지 파일
             images = []
             for i in range(1, 6):
                 image_status = request.form.get(f'image_status_{i}', None)
@@ -308,6 +380,7 @@ class ProductView(MethodView):
 
                 images.append({"image_status": image_status, "image": image})
 
+            # 수정할 데이터 json body
             body  = json.loads(request.form.get('body', None))
             
             conn.begin()
@@ -348,6 +421,24 @@ class ProductCountriesView(MethodView):
         self.service = service
 
     def get(self):
+        """
+        원산지 국가 리스트 조회 뷰
+
+        Args:
+
+        Returns:
+            200: 
+                SUCCESS: 원산지 국가 리스트 리턴
+            500:
+                OperationalError: 데이터베이스 조작 에러
+                InternalError   : 데이터베이스 내부 에러
+
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-02(이충희): 초기 생성
+        """
         try:
             conn = get_connection(config.database)
 
@@ -365,6 +456,25 @@ class ProductColorsView(MethodView):
         self.service = service
     
     def get(self):
+        """
+        상품 옵션 색상 리스트 뷰
+
+        Args:
+
+        Returns:
+            200: 
+                SUCCESS: 상품 옵션 색상 리스트 리턴
+            500:
+                OperationalError: 데이터베이스 조작 에러
+                InternalError   : 데이터베이스 내부 에러
+
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-02(이충희): 초기 생성
+        """
+
         try:
             conn = get_connection(config.database)
 
@@ -382,6 +492,25 @@ class ProductSizesView(MethodView):
         self.service = service
 
     def get(self):
+        """
+        상품 옵션 사이즈 리스트 뷰
+
+        Args:
+
+        Returns:
+            200: 
+                SUCCESS: 상품 옵션 사이즈 리스트 리턴
+            500:
+                OperationalError: 데이터베이스 조작 에러
+                InternalError   : 데이터베이스 내부 에러
+
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-02(이충희): 초기 생성
+        """
+
         try:
             conn = get_connection(config.database)
 
@@ -399,9 +528,33 @@ class ProductsDownloadView(MethodView):
         self.service = service
 
     def get(self):
+        """
+        상품 리스트 엑셀 다운로드 뷰
+
+        Args:
+
+        Returns:
+            200: 
+                SUCCESS: 엑셀 파일 다운로드
+            400:
+                ValidationError         : 상품 아이디 검사 에러
+                OneOfDatesAreNoneError  : 시작날짜 종료날짜 중 하나가 없음 에러
+                ProductIdListEmptyError : 상품 아이디 리스트가 비었음을 나타내는 에러
+                InvalidDownloadTypeError: 다운로드 타입이 all 또는 select가 아닌 에러
+            500:
+                OperationalError: 데이터베이스 조작 에러
+                InternalError   : 데이터베이스 내부 에러
+
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-03(이충희): 초기 생성
+        """
         try:
             conn = get_connection(config.database)
 
+            # 다운로드 타입 all(날짜 조건의 모든 상품) / select (선택상품)
             download_type = request.args.get('type', '')
             if download_type == "all":
                 start_date = request.args.get('start_date', None)
@@ -433,6 +586,7 @@ class ProductsDownloadView(MethodView):
             message = {"errno": e.args[0], "errval": e.args[1]}
             return jsonify(message), 500
         else:
+            # 액셀 파일 리턴
             return send_file(directory + filename,
                 mimetype="application/vnd.ms-excel",
                 as_attachment=True,
@@ -446,6 +600,24 @@ class ProductHistoryView(MethodView):
         self.service = service
 
     def get(self, product_id):
+        """
+        상품 이력 조회 뷰
+
+        Args:
+
+        Returns:
+            200: 
+                SUCCESS: 상품 이력 리스트 리턴
+            500:
+                OperationalError: 데이터베이스 조작 에러
+                InternalError   : 데이터베이스 내부 에러
+
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-03(이충희): 초기 생성
+        """
         try:
             conn = get_connection(config.database)
 

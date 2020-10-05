@@ -942,7 +942,10 @@ class ProductDao:
             ON
                 si.seller_id = s.id
             WHERE
-                p.id = %s;
+                p.id = %s
+            ORDER BY
+                pd.created_at
+            DESC;
         """
 
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
