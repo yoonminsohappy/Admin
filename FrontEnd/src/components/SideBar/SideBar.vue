@@ -84,6 +84,7 @@ export default {
 
 <style lang="scss" scoped>
 .page-side-bar {
+  margin-top: 45px;
   width: 215px;
   background-color: #35363a;
 
