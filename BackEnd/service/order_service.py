@@ -53,23 +53,17 @@ class OrderService:
 
         for order_datum in order_data:
             if arguments['status_name'] == "환불요청":
-                order_datum['shipping_started_at'] = self.order_dao.get_status_date(
-                    db,
-                    {
+                order_datum['shipping_started_at'] = self.order_dao.get_status_date(db, {
                         'order_detail_id': order_datum['id'],
                         'status_id'      : self.order_dao.get_order_status_id(db, {'status_name':'배송중'})['id']
-                    }
-                )['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
+                    })['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
 
-            order_datum['payment_complete'] = self.order_dao.get_status_date(
-                db,
-                {
-                    'order_detail_id' : order_datum['id'],
-                    'status_id'       : self.order_dao.get_order_status_id(db, {'status_name':'결제완료'})['id']
-                }
-            )['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
+            order_datum['payment_complete'] = self.order_dao.get_status_date(db, {
+                'order_detail_id' : order_datum['id'],
+                'status_id'       : self.order_dao.get_order_status_id(db, {'status_name':'결제완료'})['id']
+                })['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
 
-            order_datum['current_updated_at']   = order_datum['current_updated_at'].strftime('%Y-%m-%d %H:%M:%S')
+            order_datum['current_updated_at'] = order_datum['current_updated_at'].strftime('%Y-%m-%d %H:%M:%S')
 
         return order_data
 
@@ -78,8 +72,10 @@ class OrderService:
         주문 상태 변경 - Business Layer(service) function
         Args:
             arguments = {
-                'order_detail_id' : 주문 상세 아이디,
-                'to_status'       : 변경하고자 하는 주문상태명
+                'order_detail_id'     : 주문 상세 아이디,
+                'to_status'           : 변경하고자 하는 주문상태명,
+                'order_cancel_reason' : 주문 취소 사유,
+                'order_refund_reason' : 주문 환불 사유
             }
             db = DATABASE Connection Instance
         Returns :
@@ -88,12 +84,26 @@ class OrderService:
             김태수
         History:
             2020-09-28 : 초기 생성
+            2020-10-04 : 환불 요청 취소 반영
         """
+
         if arguments['to_status'] == "환불요청취소":
             for order_detail_id in arguments['order_detail_id']:
-                arguments['status_id'] = self.order_dao.get_order_current_status(db, {'order_detail_id':order_detail_id})['order_status_id']
-        else:
-            arguments['status_id'] = self.order_dao.get_order_status_id(db, {'status_name':arguments['to_status']})['id']
+                argument = {
+                    'order_detail_id'        : [order_detail_id],
+                    'status_id'              : self.order_dao.get_order_current_status(db, {'order_detail_id':order_detail_id})['order_status_id'],
+                    'order_refund_reason_id' : None,
+                    'order_cancel_reason_id' : None
+                }
+                self.order_dao.update_order_status(db, argument)
+                self.order_dao.insert_order_status_history(db, argument)
+
+            return ''
+
+        arguments['status_id'] = self.order_dao.get_order_status_id(db, {'status_name':arguments['to_status']})['id']
+
+        arguments['order_cancel_reason_id'] = None
+        arguments['order_refund_reason_id'] = None
 
         if arguments['order_cancel_reason']:
             arguments['order_cancel_reason_id'] = self.order_dao.get_cancel_reason_id(db, {"order_cancel_reason":arguments['order_cancel_reason']})['id']
@@ -102,10 +112,6 @@ class OrderService:
         elif arguments['order_refund_reason']:
             arguments['order_refund_reason_id'] = self.order_dao.get_refund_reason_id(db, {"order_refund_reason":arguments['order_refund_reason']})['id']
             arguments['order_cancel_reason_id'] = None
-
-        else:
-            arguments['order_cancel_reason_id'] = None
-            arguments['order_refund_reason_id'] = None
 
         self.order_dao.update_order_status(db, arguments)
 
@@ -169,12 +175,28 @@ class OrderService:
         for status in order_status_history:
             status['date'] = status['date'].strftime('%Y-%m-%d %H:%M:%S')
 
-        order_status_history = {'order_status_history' : order_status_history}
-        order_detail_data.update(order_status_history)
+        order_detail_data.update({'order_status_history' : order_status_history})
 
         return order_detail_data
 
     def put_address(self, db, arguments):
+        """
+        배송지 정보 수정 - Business layer(service) function
+        Args:
+            arguments = {
+                'order_detail_id' : 주문 상세 아이디,
+                'address'         : 배송지 주소,
+                'detail_address'  : 배송지 상세 주소,
+                'zip_code'        : 우편번호
+            }
+            db = DATABASE Connection Instance
+        Returns :
+            ''
+        Author :
+            김태수
+        History:
+            2020-10-04 : 초기 생성
+        """
         self.order_dao.put_address(db, arguments)
 
         return ''

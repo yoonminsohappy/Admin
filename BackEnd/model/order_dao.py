@@ -41,8 +41,11 @@ class OrderDao:
             김태수
         History:
             2020-09-28 : 초기 생성
+            2020-09-28 : 조건 별로 쿼리문 다르게 수정
             2020-09-29 : 결제 일자 기준이 아닌 현재 상태 기준으로 조회하도록 변경
+            2020-10-04 : 스키마 변경에 따른 테이블 참조 수정
         """
+
         sql_1 = """
         SELECT
             d.id AS id,
@@ -98,13 +101,14 @@ class OrderDao:
         elif arguments['detail_number'] != "%"+"%":
             sql_1 += "AND d.order_detail_number LIKE " + "%(detail_number)s"
         elif arguments['user_name'] != "%"+"%":
-            sql_1 += "AND u.name LIKE " + "%(user_name)s"
+            sql_1 += "AND d.orderer_name LIKE " + "%(user_name)s"
         elif arguments['phone_number'] != "%"+"%":
             sql_1 += "AND d.phone_number LIKE " + "%(phone_number)s"
         elif arguments['seller_name'] != "%"+"%":
             sql_1 += "AND sl.korean_name LIKE " + "%(seller_name)s"
         elif arguments['product_name'] != "%"+"%":
             sql_1 += "AND pd.name LIKE " + "%(product_name)s"
+
         if arguments['order_cancel_reason']:
             sql_1 += "AND ocr.name = %(order_cancel_reason)s"
         elif arguments['order_refund_reason']:
@@ -128,13 +132,17 @@ class OrderDao:
             }
             db = DATABASE Connection Instance
         Returns :
-            {status_date : 변경 일자}
+            status_date = {
+                "updated_at" : 변경 일자
+            }
+            ValueError: 인자로 잘못된 값이 들어왔을 경우 발생
         Author :
             김태수
         History:
             2020-09-28 : 초기 생성
             2020-09-29 : 현재 상태 업데이트 일자 > 결제일자 > 변경일자
         """
+
         sql = """
         SELECT
             updated_at
@@ -146,15 +154,15 @@ class OrderDao:
         """
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
             cursor.execute(sql, argument)
-            payment_complete = cursor.fetchone()
+            status_date = cursor.fetchone()
 
-        if not payment_complete:
+        if not status_date:
             raise ValueError
 
-        return payment_complete
+        return status_date
 
     def get_order_status_id(self, db, argument):
-        """
+        """생
         주문 상태 아이디 정보 - Persistence Layer(model) function
         Args:
             arguments = {
@@ -162,12 +170,16 @@ class OrderDao:
             }
             db = DATABASE Connection Instance
         Returns :
-            {status_id : 상태 아이디}
+            status_id = {
+                "status_id" : 상태 아이디
+            }
+            ValueError: 인자로 잘못된 값이 전달 되었을 때 발생
         Author :
             김태수
         History:
             2020-09-28 : 초기 생성
         """
+
         sql = """
         SELECT
             id
@@ -190,9 +202,10 @@ class OrderDao:
         주문 상태 업데이트 - Persistence Layer(model) function
         Args:
             arguments = {
-                "to_status"       : 변경할 상태명,
                 "status_id"       : 변경할 상태아이디,
-                "order_detail_id" : 주문 상세 아이디
+                "order_detail_id" : 주문 상세 아이디,
+                "order_cancel_reason_id" : 주문 취소 사유 아이디,
+                "order_refund_reason_id" : 환불 요청 사유 아이디
             }
             db = DATABASE Connection Instance
         Returns :
@@ -202,6 +215,7 @@ class OrderDao:
         History:
             2020-09-28 : 초기 생성
         """
+
         sql_1 = """
         UPDATE
             order_details
@@ -216,9 +230,10 @@ class OrderDao:
 
         if arguments['order_cancel_reason_id']:
             sql_1 += ", order_cancel_reason_id = %(order_cancel_reason_id)s"
-
         elif arguments['order_refund_reason_id']:
             sql_1 += ", order_refund_reason_id = %(order_refund_reason_id)s"
+        else:
+            sql_1 += ", order_refund_reason_id = null"
 
         sql = sql_1 + sql_2
 
@@ -230,7 +245,7 @@ class OrderDao:
 
         return ''
 
-    def insert_order_status_history(self, db, argument):
+    def insert_order_status_history(self, db, arguments):
         """
         주문 상태 변경내역 업데이트 - Persistence Layer(model) function
         Args:
@@ -246,15 +261,16 @@ class OrderDao:
         History:
             2020-09-28 : 초기 생성
         """
+
         sql = """
         INSERT INTO
-            order_status_modification_histories
-        (order_detail_id, updated_at, order_status_id)
-            VALUES
-        (%(order_detail_id)s, NOW(), %(status_id)s);
+            order_status_modification_histories (order_detail_id, updated_at, order_status_id)
+        VALUES
+            (%(order_detail_id)s, NOW(), %(status_id)s);
         """
+
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
-            result = cursor.execute(sql, argument)
+            result = cursor.execute(sql, arguments)
 
         if not result:
             raise
@@ -270,8 +286,10 @@ class OrderDao:
             }
             db = DATABASE Connection Instance
         Returns :
+            ValueError: 존재하지 않는 주문 상세에 대한 내용을 요청한 경우 발생
             order_detail_data = {
                 "address"               : 주소,
+                "detail_address"        : 상세 주소,
                 "discount_rate"         : 할인율,
                 "final_price"           : 결제금액,
                 "option_info"           : 옵션정보,
@@ -289,12 +307,16 @@ class OrderDao:
                 "shipping_memo"         : 배송메모,
                 "user_id"               : 회원번호,
                 "user_name"             : 주문자명,
-                "user_phone_number"     : 주문자휴대폰번호
+                "user_phone_number"     : 주문자휴대폰번호,
+                "order_cancel_reason"   : 주문 취소 사유,
+                "order_refund_reason""  : 환불 요청 사유,
+                "cancel_refund_detail_description" : 취소/환불 상세 사유
             }
         Author :
             김태수
         History:
             2020-09-28 : 초기 생성
+            2020-10-04 : 스키마 수정에 따른 참조 테이블명 수정
         """
         sql = """
         SELECT
@@ -316,6 +338,7 @@ class OrderDao:
             d.name AS receiver,
             d.phone_number AS receiver_phone_number,
             d.address AS address,
+            d.detail_address AS detail_address,
             d.shipping_memo AS shipping_memo,
             ocr.name AS order_cancel_reason,
             orr.name AS order_refund_reason,
@@ -346,8 +369,8 @@ class OrderDao:
             ON orr.id = d.order_refund_reason_id
         WHERE
             d.id = %(order_detail_id)s
-        AND osmh.order_status_id = 1
-        AND osmh.order_detail_id = %(order_detail_id)s;
+            AND osmh.order_status_id = 1
+            AND osmh.order_detail_id = %(order_detail_id)s;
         """
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
             cursor.execute(sql, arguments)
@@ -367,7 +390,7 @@ class OrderDao:
             }
             db = DATABASE Connection Instance
         Returns :
-            "order_status_history" = [
+            order_status_history = [
                 {
                     "date"         : 날짜,
                     "order_status" : 주문상태
@@ -378,6 +401,7 @@ class OrderDao:
         History:
             2020-09-29 : 초기 생성
         """
+
         sql = """
         SELECT
             osmh.updated_at AS date,
@@ -389,6 +413,7 @@ class OrderDao:
         WHERE
             osmh.order_detail_id = %(order_detail_id)s;
         """
+
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
             cursor.execute(sql, arguments)
             order_status_history = cursor.fetchall()
@@ -399,10 +424,31 @@ class OrderDao:
         return order_status_history
 
     def get_cancel_reason_id(self, db, argument):
+        """
+        주문 취소 사유 아이디 - Persistence Layer(model) function
+        Args:
+            arguments = {
+                'order_cancel_reason' : 주문 취소 사유
+            }
+            db = DATABASE Connection Instance
+        Returns :
+            ValueError: 잘못된 취소 사유를 인자로 전달시 발생
+            order_cancel_reason_id = {
+                    "id" : 주문 취소 사유 아이디
+            }
+        Author :
+            김태수
+        History:
+            2020-10-04 : 초기 생성
+        """
+
         sql = """
-        SELECT id
-        FROM order_cancel_reasons
-        WHERE name = %(order_cancel_reason)s;
+        SELECT
+            id
+        FROM
+            order_cancel_reasons
+        WHERE
+            name = %(order_cancel_reason)s;
         """
 
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
@@ -415,10 +461,31 @@ class OrderDao:
         return order_cancel_reason_id
 
     def get_refund_reason_id(self, db, argument):
+        """
+        환불 요청 사유 아이디 - Persistence Layer(model) function
+        Args:
+            arguments = {
+                'order_refund_reason' : 환불 요청 사유
+            }
+            db = DATABASE Connection Instance
+        Returns :
+            ValueError: 잘못된 환불 요청 사유를 인자로 전달시 발생
+            order_refund_reason_id = {
+                    "id" : 환불 요청 사유 아이디
+            }
+        Author :
+            김태수
+        History:
+            2020-10-04 : 초기 생성
+        """
+
         sql = """
-        SELECT id
-        FROM order_refund_reasons
-        WHERE name = %(order_refund_reason)s;
+        SELECT
+            id
+        FROM
+            order_refund_reasons
+        WHERE
+            name = %(order_refund_reason)s;
         """
 
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
@@ -431,10 +498,31 @@ class OrderDao:
         return order_refund_reason_id
 
     def get_order_current_status(self, db, arguments):
+        """
+        환불 요청 이전의 상태 조회 - Persistence Layer(model) function
+        Args:
+            arguments = {
+                'order_detail_id' : 주문 상세 아이디
+            }
+            db = DATABASE Connection Instance
+        Returns :
+            ValueError: 잘못된 주문 상세 아이디가 인자로 전달시 발생
+            current_state = {
+                    "order_status_id" : 환불 요청 이전의 상태 아이디
+            }
+        Author :
+            김태수
+        History:
+            2020-10-04 : 초기 생성
+        """
+
         sql = """
-        SELECT order_status_id
-        FROM order_status_modification_histories
-        WHERE order_detail_id = %(order_detail_id)s;
+        SELECT
+            order_status_id
+        FROM
+            order_status_modification_histories
+        WHERE
+            order_detail_id = %(order_detail_id)s;
         """
 
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
@@ -447,10 +535,34 @@ class OrderDao:
         return current_status
 
     def put_address(self, db, arguments):
+        """
+        배송지 정보 수정 - Persistence Layer(model) function
+        Args:
+            arguments = {
+                'address' : 변경할 배송지,
+                'detail_address' : 변경할 배송지 상세 주소,
+                'zip_code': 변경할 배송지 우편번호,
+                'order_detail_id' : 변경할 주문 상세 아이디
+            }
+            db = DATABASE Connection Instance
+        Returns :
+            ValueError
+            ''
+        Author :
+            김태수
+        History:
+            2020-10-04 : 초기 생성
+        """
+
         sql = """
-        UPDATE order_details
-        SET address = %(address)s, detail_address = %(detail_address)s, zip_code = %(zip_code)s
-        WHERE id = %(order_detail_id)s;
+        UPDATE
+            order_details
+        SET
+            address = %(address)s,
+            detail_address = %(detail_address)s,
+            zip_code = %(zip_code)s
+        WHERE
+            id = %(order_detail_id)s;
         """
 
         with db.cursor(pymysql.cursors.DictCursor) as cursor:

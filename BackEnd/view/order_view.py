@@ -46,13 +46,16 @@ class GetOrderDataView(MethodView):
                 "quantity"            : 수량,
                 "seller_name"         : 셀러명,
                 "user_name"           : 주문자명,
-                "current_updated_at"  : 현재 상태 업데이트 일자
-            }]
+                "current_updated_at"  : 현재 상태 업데이트 일자,
+                "order_cancel_reason" : 주문 취소 사유,
+                "order_refund_reason" : 환불 요청 사유
+            }], 200
         Author :
             김태수
         History:
             2020-09-28 : 초기 생성
         """
+
         try:
             db = connection.get_connection(config.database)
 
@@ -135,13 +138,14 @@ class PutOrderStatusView(MethodView):
         History:
             2020-09-28 : 초기 생성
         """
+
         try:
             db = connection.get_connection(config.database)
             data = request.get_json()
 
             arguments = {
-                'order_detail_id' : ast.literal_eval(data['order_detail_id']),
-                'to_status'       : data['to_status'],
+                'order_detail_id'     : ast.literal_eval(data['order_detail_id']),
+                'to_status'           : data['to_status'],
                 'order_cancel_reason' : None,
                 'order_refund_reason' : None
             }
@@ -223,6 +227,7 @@ class GetOrderDetailDataView(MethodView):
         History:
             2020-09-29 : 초기 생성
         """
+
         try:
             db = connection.get_connection(config.database)
 
@@ -246,6 +251,7 @@ class GetOrderDetailDataView(MethodView):
 
         else:
             return jsonify(order_detail_data), 200
+
         finally:
             db.close()
 
@@ -254,6 +260,25 @@ class PutAddress(MethodView):
         self.service = service
 
     def put(self):
+        """
+        배송지 정보 수정 - Presentation Layer(view) function
+        Args:
+            arguments = {
+                'order_detail_id' : 주문 상세 아이디,
+                'address'         : 배송지 주소,
+                'detail_address'  : 배송지 상세 주소,
+                'zip_code'        : 우편번호
+            }
+        Returns :
+            KEY_ERROR, 400
+            UNSUCCESS, 400
+            SUCCESS, 200
+        Author :
+            김태수
+        History:
+            2020-10-04 : 초기 생성
+        """
+
         try:
             db = connection.get_connection(config.database)
 
@@ -271,6 +296,10 @@ class PutAddress(MethodView):
         except KeyError:
             db.rollback()
             return jsonify({'message':'KEY_ERROR'}), 400
+
+        except ValueError:
+            db.rollback()
+            return jsonify({'message':'VALUE_ERROR'}), 400
 
         except:
             traceback.print_exc()
