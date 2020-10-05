@@ -936,7 +936,7 @@ class ProductDao:
             JOIN
                 sellers AS s
             ON
-                p.seller_id = s.id
+                pd.modifier_id = s.id
             JOIN
                 seller_informations AS si
             ON
