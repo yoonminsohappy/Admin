@@ -62,9 +62,9 @@ class GetOrderDataView(MethodView):
             start_date          = request.headers.get('start_date', None)
             end_date            = request.headers.get('end_date', None)
             seller_properties   = ast.literal_eval(request.headers.get('seller_properties', None))
-            status_name         = request.args.get('status', None)
+            status_id           = request.args.get('status_id', None)
             offset              = int(request.args.get('offset', -1))
-            limit               = int(request.args.get('limit', -1))
+            limit               = offset + int(request.args.get('limit', -1))
             order_cancel_reason = request.args.get('order_cancel_reason', None)
             order_refund_reason = request.args.get('order_refund_reason', None)
             order_number        = "%" + request.args.get('order_number', "") + "%"
@@ -74,7 +74,7 @@ class GetOrderDataView(MethodView):
             seller_name         = "%" + request.args.get('seller_name', "") + "%"
             product_name        = "%" + request.args.get('product_name', "") + "%"
 
-            if (not status_name) or (not start_date) or (offset == -1) or (limit == -1):
+            if (not status_id) or (not start_date) or (offset == -1) or (limit == -1):
                 return jsonify({'message':'KEY_ERROR'}), 400
 
             if end_date == None:
@@ -86,7 +86,7 @@ class GetOrderDataView(MethodView):
             arguments = {
                 'start_date'          : start_date,
                 'end_date'            : end_date,
-                'status_name'         : status_name,
+                'status_id'           : status_id,
                 'order_number'        : order_number,
                 'detail_number'       : detail_number,
                 'user_name'           : user_name,
@@ -102,6 +102,11 @@ class GetOrderDataView(MethodView):
 
             order_data = self.service.get_order_data(db, arguments)
 
+            result = {
+                "count"      : len(order_data),
+                "order_data" : order_data[offset : limit]
+            }
+
         except ValueError:
             traceback.print_exc()
             return jsonify({'message':'VALUE_ERROR'}), 400
@@ -111,7 +116,7 @@ class GetOrderDataView(MethodView):
             return jsonify({'message':'UNSUCCESS'}), 400
 
         else:
-            return jsonify(order_data), 200
+            return jsonify(result), 200
 
         finally:
             db.close()
@@ -150,10 +155,10 @@ class PutOrderStatusView(MethodView):
                 'order_refund_reason' : None
             }
 
-            if data['to_status'] == '주문취소완료':
+            if data['to_status'] == 6:
                 arguments['order_cancel_reason'] = data['order_cancel_reason']
                 arguments['order_refund_reason'] = None
-            elif data['to_status'] == '환불요청':
+            elif data['to_status'] == 7:
                 arguments['order_refund_reason'] = data['order_refund_reason']
                 arguments['order_cancel_reason'] = None
 

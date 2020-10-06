@@ -57,7 +57,7 @@ class OrderDao:
             pd.name AS product_name,
             sl.korean_name AS seller_name,
             d.phone_number AS phone_number,
-            osmh.updated_at AS current_updated_at,
+            MAX(osmh.updated_at) AS current_updated_at,
             CONCAT(c.name, "/", z.name) AS option_info,
             ocr.name AS order_cancel_reason,
             orr.name AS order_refund_reason
@@ -92,27 +92,27 @@ class OrderDao:
             AND osmh.order_status_id = %(status_id)s
         """
         sql_2 = """
-        ORDER BY osmh.updated_at DESC
-        LIMIT %(offset)s, %(limit)s;
+        GROUP BY d.id
+        ORDER BY osmh.updated_at DESC;
         """
 
-        if arguments['order_number'] != "%"+"%":
-            sql_1 += "AND o.order_number LIKE " + "%(order_number)s"
-        elif arguments['detail_number'] != "%"+"%":
-            sql_1 += "AND d.order_detail_number LIKE " + "%(detail_number)s"
-        elif arguments['user_name'] != "%"+"%":
-            sql_1 += "AND d.orderer_name LIKE " + "%(user_name)s"
-        elif arguments['phone_number'] != "%"+"%":
-            sql_1 += "AND d.phone_number LIKE " + "%(phone_number)s"
-        elif arguments['seller_name'] != "%"+"%":
-            sql_1 += "AND sl.korean_name LIKE " + "%(seller_name)s"
-        elif arguments['product_name'] != "%"+"%":
-            sql_1 += "AND pd.name LIKE " + "%(product_name)s"
+        if arguments['order_number'] != "%\%":
+            sql_1 += " AND o.order_number LIKE %(order_number)s"
+        elif arguments['detail_number'] != "%\%":
+            sql_1 += " AND d.order_detail_number LIKE %(detail_number)s"
+        elif arguments['user_name'] != "%\%":
+            sql_1 += " AND d.orderer_name LIKE %(user_name)s"
+        elif arguments['phone_number'] != "%\%":
+            sql_1 += " AND d.phone_number LIKE %(phone_number)s"
+        elif arguments['seller_name'] != "%\%":
+            sql_1 += " AND sl.korean_name LIKE %(seller_name)s"
+        elif arguments['product_name'] != "%\%":
+            sql_1 += " AND pd.name LIKE %(product_name)s"
 
         if arguments['order_cancel_reason']:
-            sql_1 += "AND ocr.name = %(order_cancel_reason)s"
+            sql_1 += " AND ocr.name = %(order_cancel_reason)s"
         elif arguments['order_refund_reason']:
-            sql_1 += "AND orr.name = %(order_refund_reason)s"
+            sql_1 += " AND orr.name = %(order_refund_reason)s"
 
         sql = sql_1 + sql_2
 
@@ -522,7 +522,8 @@ class OrderDao:
         FROM
             order_status_modification_histories
         WHERE
-            order_detail_id = %(order_detail_id)s;
+            order_detail_id = %(order_detail_id)s
+        ORDER BY id;
         """
 
         with db.cursor(pymysql.cursors.DictCursor) as cursor:

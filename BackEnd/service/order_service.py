@@ -11,7 +11,7 @@ class OrderService:
             arguments = {
                 'start_date'          : 조회 시작일,
                 'end_date'            : 조회 종료일,
-                'status_name'         : 주문 상태명,
+                'status_id'           : 주문 상태 아이디,
                 'order_number'        : 주문 번호(검색),
                 'detail_number'       : 주문 상세 번호(검색),
                 'user_name'           : 주문자명(검색),
@@ -47,20 +47,18 @@ class OrderService:
             2020-09-29 : 결제 일자 기준이 아닌 현재 상태 기준으로 조회하도록 변경
         """
 
-        status_name            = {'status_name':arguments['status_name']}
-        arguments['status_id'] = self.order_dao.get_order_status_id(db, status_name)['id']
         order_data  = self.order_dao.get_order_data(db, arguments)
 
         for order_datum in order_data:
-            if arguments['status_name'] == "환불요청":
+            if arguments['status_id'] == 7:
                 order_datum['shipping_started_at'] = self.order_dao.get_status_date(db, {
                         'order_detail_id': order_datum['id'],
-                        'status_id'      : self.order_dao.get_order_status_id(db, {'status_name':'배송중'})['id']
+                        'status_id'      : 3
                     })['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
 
             order_datum['payment_complete'] = self.order_dao.get_status_date(db, {
                 'order_detail_id' : order_datum['id'],
-                'status_id'       : self.order_dao.get_order_status_id(db, {'status_name':'결제완료'})['id']
+                'status_id'       : 1
                 })['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
 
             order_datum['current_updated_at'] = order_datum['current_updated_at'].strftime('%Y-%m-%d %H:%M:%S')
@@ -73,7 +71,7 @@ class OrderService:
         Args:
             arguments = {
                 'order_detail_id'     : 주문 상세 아이디,
-                'to_status'           : 변경하고자 하는 주문상태명,
+                'to_status'           : 변경하고자 하는 주문상태 아이디,
                 'order_cancel_reason' : 주문 취소 사유,
                 'order_refund_reason' : 주문 환불 사유
             }
@@ -87,7 +85,7 @@ class OrderService:
             2020-10-04 : 환불 요청 취소 반영
         """
 
-        if arguments['to_status'] == "환불요청취소":
+        if arguments['to_status'] == 0:
             for order_detail_id in arguments['order_detail_id']:
                 argument = {
                     'order_detail_id'        : [order_detail_id],
@@ -99,8 +97,6 @@ class OrderService:
                 self.order_dao.insert_order_status_history(db, argument)
 
             return ''
-
-        arguments['status_id'] = self.order_dao.get_order_status_id(db, {'status_name':arguments['to_status']})['id']
 
         arguments['order_cancel_reason_id'] = None
         arguments['order_refund_reason_id'] = None
@@ -118,7 +114,7 @@ class OrderService:
         for order_detail_id in arguments['order_detail_id']:
             argument = {
                 'order_detail_id' : order_detail_id,
-                'status_id'       : arguments['status_id']
+                'status_id'       : arguments['to_status']
             }
             self.order_dao.insert_order_status_history(db, argument)
 
