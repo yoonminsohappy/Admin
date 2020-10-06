@@ -1,4 +1,5 @@
 import json
+import datetime
 from ast import literal_eval
 
 from flask          import jsonify, request, send_file
@@ -565,7 +566,7 @@ class ProductsDownloadView(MethodView):
 
                 validate_products_start_end_date(start_date, end_date)
 
-                directory, filename = self.service.make_excel_all(conn, start_date, end_date)
+                directory, filename, filename_for_user = self.service.make_excel_all(conn, start_date, end_date)
             elif download_type == "select":
                 product_ids = literal_eval(request.args.get('product_ids', '[]'))
 
@@ -575,7 +576,7 @@ class ProductsDownloadView(MethodView):
                 for product_id in product_ids:
                     validate_products_product_id(str(product_id))
 
-                directory, filename = self.service.make_excel_select(conn, tuple(product_ids))
+                directory, filename, filename_for_user = self.service.make_excel_select(conn, tuple(product_ids))
             else:
                 raise InvalidDownloadTypeError("TYPE_MUST_BE_ALL_OR_SELECT")
 
@@ -587,10 +588,12 @@ class ProductsDownloadView(MethodView):
             return jsonify(message), 500
         else:
             # 액셀 파일 리턴
+            now_date = datetime.datetime.now().strftime("%Y%m%d")
+            filename_for_user = now_date + "_" + filename_for_user
             return send_file(directory + filename,
                 mimetype="application/vnd.ms-excel",
                 as_attachment=True,
-                attachment_filename=filename,
+                attachment_filename=filename_for_user,
                 conditional=False)
         finally:
             conn.close()

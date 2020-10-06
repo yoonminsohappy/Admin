@@ -355,11 +355,11 @@ class ProductDao:
         sql = """
             SELECT
                 p.id,
-                p.register_date, 
+                DATE_FORMAT(CONVERT_TZ(p.register_date, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS register_date,
                 pi.image_path, 
-                pd.name, 
+                pd.name AS product_name, 
                 p.code, 
-                sp.name, 
+                sp.name AS seller_name, 
                 si.korean_name,
                 pd.sale_price,
                 pd.discount_rate,
@@ -367,26 +367,16 @@ class ProductDao:
                 pd.is_displayed
             FROM 
                 product_details AS pd
-            JOIN
-                products AS p
-            ON 
-                pd.product_id = p.id
-            JOIN
-                product_images AS pi
-            ON
-                pi.product_id = p.id
-            JOIN
-                sellers AS s
-            ON
-                s.id = p.seller_id
-            JOIN
-	            seller_informations AS si
-            ON
-	            s.id = si.seller_id
-            JOIN
-                seller_properties AS sp
-            ON
-                sp.id = si.seller_property_id
+            INNER JOIN products AS p 
+                ON pd.product_id = p.id
+            INNER JOIN product_images AS pi 
+                ON pi.product_id = p.id
+            INNER JOIN sellers AS s 
+                ON s.id = p.seller_id
+            INNER JOIN seller_informations AS si 
+                ON s.id = si.seller_id
+            INNER JOIN seller_properties AS sp 
+                ON sp.id = si.seller_property_id
             WHERE 
                 pd.expired_at = '9999-12-31 23:59:59'
             AND 
@@ -505,29 +495,21 @@ class ProductDao:
                 pd.description,
                 pd.sale_price,
                 pd.discount_rate,
-                pd.discount_started_at,
-                pd.discount_ended_at,
+                DATE_FORMAT(CONVERT_TZ(pd.discount_started_at, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_started_at,
+                DATE_FORMAT(CONVERT_TZ(pd.discount_ended_at, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_ended_at,
                 pd.minimum_sale_amount,
                 pd.maximum_sale_amount,
                 pd.country_of_origin_id
             FROM
                 products AS p
-            JOIN
-                product_details AS pd
-            ON
-                pd.product_id = p.id
-            JOIN
-                first_category_second_categories AS fcsc
-            ON
-                p.categories_id = fcsc.id
-            JOIN
-                first_categories AS fc
-            ON 
-                fcsc.first_category_id = fc.id
-            JOIN
-                second_categories AS sc
-            ON
-                fcsc.second_category_id = sc.id
+            INNER JOIN
+                product_details AS pd ON pd.product_id = p.id
+            INNER JOIN
+                first_category_second_categories AS fcsc ON p.categories_id = fcsc.id
+            INNER JOIN
+                first_categories AS fc ON fcsc.first_category_id = fc.id
+            INNER JOIN
+                second_categories AS sc ON fcsc.second_category_id = sc.id
             WHERE
                 p.code = %s
             AND
@@ -567,13 +549,9 @@ class ProductDao:
             FROM
                 options AS o
             INNER JOIN
-                colors AS c
-            ON 
-                o.color_id = c.id
+                colors AS c ON o.color_id = c.id
             INNER JOIN
-                sizes AS s
-            ON
-                o.size_id = s.id
+                sizes AS s ON o.size_id = s.id
             WHERE
                 product_id = %s;
         """
@@ -633,40 +611,30 @@ class ProductDao:
     def find_products_by_dates(self, conn, start_date, end_date):
         sql = """
             SELECT 
-                p.register_date AS 등록일,
-                pi.image_path AS 대표이미지,
-                pd.name AS 상품명,
-                p.code AS 상품코드,
-                p.id AS 상품번호,
-                sp.name AS 셀러속성,
-                si.korean_name AS 셀러명,
-                pd.sale_price AS 판매가,
-                pd.sale_price - (pd.discount_rate * 0.01 * pd.sale_price) AS 할인가,
-                pd.is_sold AS 판매여부,
-                pd.is_displayed AS 진열여부,
-                pd.discount_rate AS 할인여부
+                DATE_FORMAT(CONVERT_TZ(p.register_date, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS register_date,
+                pi.image_path,
+                pd.name AS product_name,
+                p.code,
+                p.id,
+                sp.name AS seller_property_name,
+                si.korean_name AS seller_name,
+                pd.sale_price,
+                pd.sale_price - (pd.discount_rate * 0.01 * pd.sale_price) AS discounted_price,
+                pd.is_sold,
+                pd.is_displayed,
+                pd.discount_rate
             FROM
                 products AS p
-            JOIN
-                product_details AS pd
-            ON
-                p.id = pd.product_id
-            JOIN
-                product_images AS pi
-            ON
-                p.id = pi.product_id
-            JOIN
-                sellers AS s
-            ON
-                p.seller_id = s.id
-            JOIN
-                seller_informations AS si
-            ON
-                s.id = si.seller_id
-            JOIN
-                seller_properties AS sp
-            ON
-                si.seller_property_id = sp.id
+            INNER JOIN
+                product_details AS pd ON p.id = pd.product_id
+            INNER JOIN
+                product_images AS pi ON p.id = pi.product_id
+            INNER JOIN
+                sellers AS s ON p.seller_id = s.id
+            INNER JOIN
+                seller_informations AS si ON s.id = si.seller_id
+            INNER JOIN
+                seller_properties AS sp ON si.seller_property_id = sp.id
             WHERE
                 p.register_date BETWEEN %s AND %s
             AND
@@ -694,40 +662,30 @@ class ProductDao:
     def find_products_by_ids(self, conn, product_ids):
         sql = """
             SELECT 
-                p.register_date AS 등록일,
-                pi.image_path AS 대표이미지,
-                pd.name AS 상품명,
-                p.code AS 상품코드,
-                p.id AS 상품번호,
-                sp.name AS 셀러속성,
-                si.korean_name AS 셀러명,
-                pd.sale_price AS 판매가,
-                pd.sale_price - (pd.discount_rate * 0.01 * pd.sale_price) AS 할인가,
-                pd.is_sold AS 판매여부,
-                pd.is_displayed AS 진열여부,
-                pd.discount_rate AS 할인여부
+                DATE_FORMAT(CONVERT_TZ(p.register_date, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS register_date,
+                pi.image_path,
+                pd.name AS product_name,
+                p.code,
+                p.id,
+                sp.name AS seller_property_name,
+                si.korean_name AS seller_name,
+                pd.sale_price,
+                pd.sale_price - (pd.discount_rate * 0.01 * pd.sale_price) AS discounted_price,
+                pd.is_sold,
+                pd.is_displayed,
+                pd.discount_rate
             FROM
                 products AS p
-            JOIN
-                product_details AS pd
-            ON
-                p.id = pd.product_id
-            JOIN
-                product_images AS pi
-            ON
-                p.id = pi.product_id
-            JOIN
-                sellers AS s
-            ON
-                p.seller_id = s.id
-            JOIN
-                seller_informations AS si
-            ON
-                s.id = si.seller_id
-            JOIN
-                seller_properties AS sp
-            ON
-                si.seller_property_id = sp.id
+            INNER JOIN
+                product_details AS pd ON p.id = pd.product_id
+            INNER JOIN
+                product_images AS pi ON p.id = pi.product_id
+            INNER JOIN
+                sellers AS s ON p.seller_id = s.id
+            INNER JOIN
+                seller_informations AS si ON s.id = si.seller_id
+            INNER JOIN
+                seller_properties AS sp ON si.seller_property_id = sp.id
             WHERE
                 p.is_deleted = 0
             AND
@@ -792,8 +750,8 @@ class ProductDao:
                 description,
                 sale_price,
                 discount_rate,
-                discount_started_at,
-                discount_ended_at,
+                DATE_FORMAT(CONVERT_TZ(discount_started_at, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_started_at,
+                DATE_FORMAT(CONVERT_TZ(discount_ended_at, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_ended_at,
                 minimum_sale_amount,
                 maximum_sale_amount
             FROM
@@ -838,8 +796,8 @@ class ProductDao:
                 description,
                 sale_price,
                 discount_rate,
-                discount_started_at,
-                discount_ended_at,
+                DATE_FORMAT(CONVERT_TZ(discount_started_at, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_started_at,
+                DATE_FORMAT(CONVERT_TZ(discount_ended_at, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_ended_at,
                 minimum_sale_amount,
                 maximum_sale_amount,
                 modifier_id,
@@ -929,18 +887,12 @@ class ProductDao:
                 si.korean_name
             FROM
                 products AS p
-            JOIN
-                product_details AS pd
-            ON
-                pd.product_id = p.id
-            JOIN
-                sellers AS s
-            ON
-                pd.modifier_id = s.id
-            JOIN
-                seller_informations AS si
-            ON
-                si.seller_id = s.id
+            INNER JOIN
+                product_details AS pd ON pd.product_id = p.id
+            INNER JOIN
+                sellers AS s ON pd.modifier_id = s.id
+            INNER JOIN
+                seller_informations AS si ON si.seller_id = s.id
             WHERE
                 p.id = %s
             ORDER BY

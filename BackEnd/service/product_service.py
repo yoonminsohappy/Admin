@@ -408,31 +408,27 @@ class ProductService:
             2020-10-03(이충희)
         """
  
-        data    = []
+        data = [['등록일', '대표이미지', '상품명', '상품코드', '상품번호', '셀러속성', '셀러명', '판매가', '할인가', '판매여부', '진열여부', '할인여부']]
         for idx, item in enumerate(results):
-            # 첫 줄에는 헤더
-            if idx == 0:
-                data.append(list(item.keys()))
-
             # 두 번째 줄 부터 데이터 넣기
             data.append([
-                item['등록일'].strftime("%Y-%m-%d %H:%M:%S"),
-                item['대표이미지'],
-                item['상품명'],
-                item['상품코드'],
-                item['상품번호'],
-                item['셀러속성'],
-                item['셀러명'],
-                item['판매가'],
-                int(item['할인가']),
-                item['판매여부'],
-                item['진열여부'],
-                1 if item['할인여부'] > 0 else 0
+                item['register_date'],
+                item['image_path'],
+                item['product_name'],
+                item['code'],
+                item['id'],
+                item['seller_property_name'],
+                item['seller_name'],
+                item['sale_price'],
+                int(item['discounted_price']),
+                item['is_sold'],
+                item['is_displayed'],
+                1 if item['discount_rate'] > 0 else 0
             ])
 
-        now_date = datetime.datetime.now().strftime("%Y%m%d")
-        filename = now_date + "_" + filename
-        save_data(directory + filename, {now_date: data})
+        # now_date = datetime.datetime.now().strftime("%Y%m%d")
+        # filename = now_date + "_" + filename
+        save_data(directory + filename, {"data": data})
         
         return directory, filename
 
@@ -457,7 +453,8 @@ class ProductService:
         """
         results = self.product_dao.find_products_by_dates(conn, start_date, end_date)
 
-        return self.make_excel_file("temp/", "모든상품엑셀다운로드_브랜디.xls", results)
+        directory, filename =  self.make_excel_file("temp/", f"{str(uuid.uuid4())}.xls", results)
+        return directory, filename, "전체상품엑셀다운로드_브랜디.xls"
 
     def make_excel_select(self, conn, product_ids):
         """
@@ -479,7 +476,8 @@ class ProductService:
         """
         results = self.product_dao.find_products_by_ids(conn, product_ids)
     
-        return self.make_excel_file("temp/", "선택상품엑셀다운로드_브랜디.xls", results)
+        directory, filename = self.make_excel_file("temp/", f"{str(uuid.uuid4())}.xls", results)
+        return directory, filename, "선택상품엑셀다운로드_브랜디.xls"
 
     def update_product(self, conn, product_id, images, body):
         """
