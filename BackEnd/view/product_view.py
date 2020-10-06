@@ -1,5 +1,6 @@
 import json
 import datetime
+import os
 from ast import literal_eval
 
 from flask          import jsonify, request, send_file
@@ -596,6 +597,7 @@ class ProductsDownloadView(MethodView):
                 attachment_filename=filename_for_user,
                 conditional=False)
         finally:
+            os.remove(os.path.join('temp/', filename))
             conn.close()
 
 class ProductHistoryView(MethodView):
