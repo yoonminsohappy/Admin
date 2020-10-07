@@ -33,31 +33,7 @@ from utils.validation import (
     validate_product_code,
     validate_image_status
 )
-
-# 작성자: 김태수
-# 작성일: 2020.09.17.목
-# 원산지 데이터와 연결된 class
-class CountryOfOriginView(MethodView):
-    def __init__(self, service):
-        self.service = service
-
-    def get(self, country_id):
-        try:
-            db = connection.get_connection(config.database)
-            country_of_origin = self.service.get_country_of_origin(db, country_id)
-
-            if country_of_origin == None:
-                # 요청한 데이터가 존재하지 않는 경우 INVALID_VALUE 에러 전달
-                return jsonify({'message':'INVALID_VALUE'}), 400
-
-        except:
-            db.rollback()
-            return jsonify({'message':'UNSUCCESS'}), 400
-        else:
-            db.commit()
-            db.close()
-            return jsonify(country_of_origin), 200
-
+from utils.decorator import login_decorator
 
 class FirstCategoriesBySellerPropertyIdView(MethodView):
     def __init__(self, service):
@@ -220,6 +196,7 @@ class ProductsView(MethodView):
         finally:
             conn.close()
 
+    @login_decorator
     def get(self):
         """
         상품 리스트 조회 뷰
@@ -299,6 +276,7 @@ class ProductView(MethodView):
     def __init__(self, service):
         self.service = service
 
+    @login_decorator
     def get(self, code):
         """
         상품 상세 조회 뷰
@@ -394,7 +372,6 @@ class ProductView(MethodView):
             message = { "errno": e.response['Error']['Code'], "errval": e.response['Error']['Message']}
             return jsonify(message), 500
         except (err.OperationalError, err.InternalError, err.IntegrityError) as e:
-            traceback.print_exc()
             conn.rollback()
             message = { "errno": e.args[0], "errval": e.args[1] }
             return jsonify(message), 500

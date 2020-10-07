@@ -1,5 +1,4 @@
 from .product_view import (
-    CountryOfOriginView,
     FirstCategoriesBySellerPropertyIdView,
     SecondCategoriesByFirstCategoryIdView,
     ProductsView,
@@ -28,18 +27,20 @@ from .user_view import (
     UserSerachView
 )
 
+from .coupon_view import (
+    CouponsView
+)
+
 def create_endpoints(app, services):
     product_service = services.product_service
     seller_service  = services.seller_service
     order_service   = services.order_service
     user_service    = services.user_service
+    coupon_service  = services.coupon_service
 
-    app.add_url_rule('/country_of_origin/<int:country_id>',
-        view_func = CountryOfOriginView.as_view('country_of_origin', product_service)
-    )
+    # 상품
     app.add_url_rule('/products/sellers', 
         view_func = ProductSellerSearchView.as_view('product_seller_search_view', seller_service)
-
     )
     app.add_url_rule('/products/first-categories',
         view_func = FirstCategoriesBySellerPropertyIdView.as_view('first_categories_by_seller_property_id_view', product_service)
@@ -89,3 +90,6 @@ def create_endpoints(app, services):
     app.add_url_rule('/sellers/<int:seller_id>', view_func=SellerUpdateView.as_view('seller_update_view',seller_service))
     # 작성일: 2020.10.01.목
     app.add_url_rule('/users',view_func=UserSerachView.as_view('user_search_view',user_service)) 
+
+    # 쿠폰
+    app.add_url_rule('/coupons',view_func=CouponsView.as_view('coupons_view', coupon_service))

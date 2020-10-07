@@ -1,38 +1,10 @@
 import pymysql
-from flask import jsonify
-from connection import get_connection
 
 class DAOInsertFailError(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-
-# 작성자: 김태수
-# 수정일: 2020.09.21.월
-# Product와 연결된 Class
 class ProductDao:
-    # 작성자: 김태수
-    # 작성일: 2020.09.21.월
-    # 원산지 데이터를 데이터베이스에서 가져오는 함수
-    def get_country_of_origin(self, db, country_id):
-        try:
-            cursor = db.cursor(pymysql.cursors.DictCursor)
-
-            sql = """
-            SELECT id, name
-            FROM tests
-            WHERE id = %s;
-            """
-
-            cursor.execute(sql, country_id)
-            result = cursor.fetchone()
-        except:
-            raise
-        else:
-            return result if result else None
-        finally:
-            cursor.close()
-
     def find_first_categories_by_seller_property_id(self, conn, seller_property_id):
         """
         1차 카테고리를 셀러 속성 아이디로 조회한다.
