@@ -2,6 +2,90 @@ DROP DATABASE IF EXISTS brandi;
 CREATE DATABASE brandi character set utf8mb4 collate utf8mb4_general_ci;
 USE brandi;
 
+-- coupon_issues Table Create SQL
+CREATE TABLE coupon_issues
+(
+    `id`    INT            NOT NULL    AUTO_INCREMENT, 
+    `name`  VARCHAR(64)    NOT NULL, 
+    PRIMARY KEY (id)
+);
+
+ALTER TABLE coupon_issues COMMENT '일반, 쿠폰코드, 시리얼번호';
+        
+-- coupon_types Table Create SQL
+CREATE TABLE coupon_types
+(
+    `id`    INT            NOT NULL    AUTO_INCREMENT COMMENT '아이디', 
+    `name`  VARCHAR(45)    NOT NULL    COMMENT '이름', 
+    PRIMARY KEY (id)
+);
+
+ALTER TABLE coupon_types COMMENT '쿠폰 종류 테이블';
+        
+CREATE TABLE coupons
+(
+    `id`          INT        NOT NULL    AUTO_INCREMENT COMMENT '쿠폰 고유아이디', 
+    `is_deleted`  BOOLEAN    NOT NULL    DEFAULT 0 COMMENT '삭제여부', 
+    PRIMARY KEY (id)
+);
+
+ALTER TABLE coupons COMMENT '쿠폰 테이블';
+
+-- coupon_details Table Create SQL
+CREATE TABLE coupon_details
+(
+    `id`                        INT             NOT NULL    AUTO_INCREMENT, 
+    `coupon_id`                 INT             NOT NULL    COMMENT '쿠폰 아이디', 
+    `name`                      VARCHAR(64)     NOT NULL    COMMENT '쿠폰이름', 
+    `coupon_type_id`            INT             NOT NULL    COMMENT '쿠폰 종류 아이디', 
+    `is_downloadable`           BOOLEAN         NOT NULL    COMMENT 'true=다운로드/false=직접발급', 
+    `coupon_issue_id`           INT             NOT NULL    COMMENT '쿠폰 발급 유형 아이디', 
+    `coupon_code`               VARCHAR(128)    NULL        COMMENT '쿠폰코드', 
+    `description`               TEXT            NOT NULL    COMMENT '쿠폰 상세설명', 
+    `download_started_at`       DATETIME        NULL        COMMENT '쿠폰 다운로드 시작일', 
+    `download_ended_at`         DATETIME        NULL        COMMENT '쿠폰 다운로드 종료일', 
+    `valid_started_at`          DATETIME        NOT NULL    COMMENT '쿠폰 유효 시작일', 
+    `valid_ended_at`            DATETIME        NOT NULL    COMMENT '쿠폰 유효 종료일', 
+    `discount_price`            INT             NOT NULL    COMMENT '원(won) - 정액', 
+    `limit_count`               INT UNSIGNED    NULL        COMMENT 'null = 무한대', 
+    `minimum_price`             INT             NULL        COMMENT '원(won) / null = 최소 사용금액 제한 없음', 
+    `download_count`            INT UNSIGNED    NOT NULL    DEFAULT 0 COMMENT 'default=0', 
+    `use_count`                 INT UNSIGNED    NOT NULL    DEFAULT 0 COMMENT 'default = 0', 
+    `updated_at`                DATETIME        NOT NULL    DEFAULT NOW() COMMENT 'detaulf = now()', 
+    `modifier_id`               INT             NOT NULL    COMMENT '수정자 아이디', 
+    PRIMARY KEY (id)
+);
+
+ALTER TABLE coupon_details COMMENT '쿠폰 상세 테이블';
+
+ALTER TABLE coupon_details
+    ADD CONSTRAINT FK_coupon_details_coupon_issue_id_issues_id FOREIGN KEY (coupon_issue_id)
+        REFERENCES coupon_issues (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE coupon_details
+    ADD CONSTRAINT FK_coupon_details_coupon_id_coupons_id FOREIGN KEY (coupon_id)
+        REFERENCES coupons (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE coupon_details
+    ADD CONSTRAINT FK_coupon_details_coupon_type_id_types_id FOREIGN KEY (coupon_type_id)
+        REFERENCES coupon_types (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
+        
+-- coupon_serial_numbers table        
+CREATE TABLE coupon_serial_numbers
+(
+    `id`             INT            NOT NULL    AUTO_INCREMENT COMMENT '아이디', 
+    `serial_number`  VARCHAR(64)    NOT NULL    COMMENT '시리얼 넘버', 
+    `is_used`        TINYINT        NOT NULL    DEFAULT 0 COMMENT '사용 여부', 
+    `used_date`		 DATETIME		NULL		COMMENT '사용된 날짜',
+    `coupon_id`      INT            NOT NULL    COMMENT '쿠폰 아이디', 
+    PRIMARY KEY (id)
+);
+
+ALTER TABLE coupon_serial_numbers COMMENT '쿠폰 시리얼 넘버 테이블';
+
+ALTER TABLE coupon_serial_numbers
+    ADD CONSTRAINT FK_coupon_serial_numbers_coupon_id_coupons_id FOREIGN KEY (coupon_id)
+        REFERENCES coupons (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 -- 셀러 유저 테이블
 CREATE TABLE sellers
@@ -12,13 +96,6 @@ CREATE TABLE sellers
     PRIMARY KEY (id)
 );
 ALTER TABLE sellers COMMENT '셀러 유저 테이블';
-
-CREATE TABLE coupons
-(
-    `id`          INT        NOT NULL    COMMENT '쿠폰 고유아이디', 
-    `is_deleted`  TINYINT    NOT NULL    COMMENT '삭제여부', 
-    PRIMARY KEY (id)
-);
 
 -- 셀러 속성
 CREATE TABLE seller_properties
@@ -208,8 +285,8 @@ CREATE TABLE products
     `sale_amount`    INT             NOT NULL    DEFAULT 0 COMMENT '판매량', 
     `register_date`  DATETIME        NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '등록일', 
     `code`           VARCHAR(128)    NOT NULL    UNIQUE COMMENT '상품코드', 
-    `review_count`   INT             NOT NULL    DEFAULT 0 COMMENT '리뷰 개수', 
-    `qna_count`      INT             NOT NULL    DEFAULT 0 COMMENT 'Q&A 개수', 
+    `review_count`   INT UNSIGNED    NOT NULL    DEFAULT 0 COMMENT '리뷰 개수', 
+    `qna_count`      INT UNSIGNED    NOT NULL    DEFAULT 0 COMMENT 'Q&A 개수', 
     `is_deleted`     BOOLEAN         NOT NULL    DEFAULT 0 COMMENT '삭제 여부', 
     `seller_id`      INT             NOT NULL    COMMENT '셀러 아이디', 
     `categories_id`  INT             NOT NULL    COMMENT '1차 & 2차 카테고리 중간 테이블 id',
@@ -337,8 +414,6 @@ CREATE TABLE issue_types
 );
 ALTER TABLE issue_types COMMENT '일반, 쿠폰코드, 시리얼번호';
 
--- coupons Table Create SQL
-
 
 -- event_types Table Create SQL
 CREATE TABLE event_types
@@ -369,17 +444,6 @@ CREATE TABLE event_statuses
     PRIMARY KEY (id)
 );
 ALTER TABLE event_statuses COMMENT '진행중 / 종료 / 대기';
-
-
--- coupon_issues Table Create SQL
-CREATE TABLE coupon_issues
-(
-    `id`    INT            NOT NULL    AUTO_INCREMENT, 
-    `name`  VARCHAR(64)    NOT NULL, 
-    PRIMARY KEY (id)
-);
-
-ALTER TABLE coupon_issues COMMENT '일반, 쿠폰코드, 시리얼번호';
 
 -- event_buttons Table Create SQL
 CREATE TABLE event_buttons
@@ -481,22 +545,7 @@ ALTER TABLE product_events
 ALTER TABLE product_events
     ADD CONSTRAINT FK_events_product_id FOREIGN KEY (product_id)
         REFERENCES products (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
-
--- second_categories Table Create SQL
-CREATE TABLE product_coupons
-(
-    `id`          INT    NOT NULL    AUTO_INCREMENT COMMENT '아이디', 
-    `product_id`  INT    NOT NULL    COMMENT '상품 아이디', 
-    `coupon_id`   INT    NOT NULL    COMMENT '쿠폰 아이디', 
-    PRIMARY KEY (id)
-);
-ALTER TABLE product_coupons
-    ADD CONSTRAINT FK_product_coupons_coupon_id FOREIGN KEY (coupon_id)
-        REFERENCES coupons (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
-ALTER TABLE product_coupons
-    ADD CONSTRAINT FK_product_coupons_product_id FOREIGN KEY (product_id)
-        REFERENCES products (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
-
+        
 -- 유저
 CREATE TABLE users
 (
@@ -552,6 +601,25 @@ ALTER TABLE shipping_informations COMMENT '배송지 정보';
 ALTER TABLE shipping_informations
     ADD CONSTRAINT FK_shipping_informations_user_id_users_id FOREIGN KEY (user_id)
         REFERENCES users (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
+        
+-- users_coupon Table Create SQL
+CREATE TABLE user_coupons
+(
+    `id`         INT    NOT NULL    AUTO_INCREMENT, 
+    `user_id`    INT    NOT NULL    COMMENT '유저 아이디', 
+    `coupon_id`  INT    NOT NULL    COMMENT '쿠폰 아이디', 
+    PRIMARY KEY (id)
+);
+
+ALTER TABLE user_coupons COMMENT '유저 - 쿠폰 조인테이블 (옵션)';
+
+ALTER TABLE user_coupons
+    ADD CONSTRAINT FK_user_coupons_coupon_id_coupons_id FOREIGN KEY (coupon_id)
+        REFERENCES coupons (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE user_coupons
+    ADD CONSTRAINT FK_user_coupons_user_id_users_id FOREIGN KEY (user_id)
+        REFERENCES users (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 CREATE TABLE wearing_sensations
 (
@@ -561,16 +629,6 @@ CREATE TABLE wearing_sensations
 );
 
 ALTER TABLE wearing_sensations COMMENT '착용감 아이디';   
-
--- coupon_types Table Create SQL
-CREATE TABLE coupon_types
-(
-    `id`    INT            NOT NULL    AUTO_INCREMENT COMMENT '아이디', 
-    `name`  VARCHAR(45)    NOT NULL    COMMENT '이름', 
-    PRIMARY KEY (id)
-);
-
-ALTER TABLE coupon_types COMMENT '쿠폰 종류 테이블';
 
 CREATE TABLE reviews
 (
@@ -752,43 +810,3 @@ ALTER TABLE order_status_modification_histories
 ALTER TABLE order_status_modification_histories
     ADD CONSTRAINT FK_order_status_id FOREIGN KEY (order_status_id)
         REFERENCES order_statuses (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
-
--- coupon_details Table Create SQL
-CREATE TABLE coupon_details
-(
-    `id`                        INT            NOT NULL    AUTO_INCREMENT, 
-    `coupon_id`                 INT            NOT NULL    COMMENT '쿠폰 아이디', 
-    `name`                      VARCHAR(64)    NOT NULL    COMMENT '쿠폰이름', 
-    `coupon_type_id`            INT            NOT NULL    COMMENT '쿠폰 종류 아이디', 
-    `is_downloadable`           TINYINT        NOT NULL    COMMENT 'true=다운로드/false=직접발급', 
-    `coupon_issue_id`           INT            NOT NULL    COMMENT '쿠폰 발급 유형 아이디', 
-    `description`               TEXT           NOT NULL    COMMENT '쿠폰 상세설명', 
-    `download_started_at`       DATETIME       NULL        COMMENT '쿠폰 다운로드 시작일', 
-    `download_expired_at`       DATETIME       NULL        COMMENT '쿠폰 다운로드 종료일', 
-    `valid_started_at`          DATETIME       NOT NULL    COMMENT '쿠폰 유효 시작일', 
-    `valid_ended_at`            DATETIME       NOT NULL    COMMENT '쿠폰 유효 종료일', 
-    `discount_price`            INT            NOT NULL    COMMENT '원(won) - 정액', 
-    `is_limited_coupon`         TINYINT        NOT NULL    COMMENT 'true = 제한됨/false = 무제한', 
-    `limit_count`               INT            NULL        COMMENT 'null = 무한대', 
-    `is_limited_minimum_price`  TiNYINT        NOT NULL    COMMENT 'true = 제한됨/false = 무제한', 
-    `minimum_price`             INT            NULL        COMMENT '원(won) / null = 최소 사용금액 제한 없음', 
-    `download_count`            INT            NOT NULL    COMMENT 'default=0', 
-    `use_count`                 INT            NOT NULL    COMMENT 'default = 0', 
-    `updated_at`                DATETIME       NOT NULL    COMMENT '수정 일자', 
-    `modifier_id`               INT            NOT NULL    COMMENT '수정자 아이디', 
-    PRIMARY KEY (id)
-);
-
-ALTER TABLE coupon_details COMMENT '쿠폰 상세 테이블';
-
-ALTER TABLE coupon_details
-    ADD CONSTRAINT FK_coupon_details_coupon_issue_id_coupon_issues_id FOREIGN KEY (coupon_issue_id)
-        REFERENCES coupon_issues (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
-
-ALTER TABLE coupon_details
-    ADD CONSTRAINT FK_coupon_details_coupon_id_coupons_id FOREIGN KEY (coupon_id)
-        REFERENCES coupons (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
-
-ALTER TABLE coupon_details
-    ADD CONSTRAINT FK_coupon_details_coupon_type_id_coupon_types_id FOREIGN KEY (coupon_type_id)
-        REFERENCES coupon_types (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
