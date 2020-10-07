@@ -33,6 +33,9 @@ from .coupon_view import (
     CouponSerialsView,
     CouponCodeView
 )
+from .event_view import(
+    PostEventView
+)
 
 def create_endpoints(app, services):
     product_service = services.product_service
@@ -40,6 +43,7 @@ def create_endpoints(app, services):
     order_service   = services.order_service
     user_service    = services.user_service
     coupon_service  = services.coupon_service
+    event_service   = services.event_service
 
     # 상품
     app.add_url_rule('/products/sellers', 
@@ -72,6 +76,8 @@ def create_endpoints(app, services):
     app.add_url_rule('/products/<int:product_id>/history',
         view_func = ProductHistoryView.as_view('product_history_view', product_service)
     )
+
+    # 주문관리, 취소/환불 관리
     app.add_url_rule('/order',
         view_func = GetOrderDataView.as_view('order_data_view', order_service)
     )
@@ -99,3 +105,6 @@ def create_endpoints(app, services):
     app.add_url_rule('/coupons/<int:coupon_id>', view_func=CouponView.as_view('coupon_view', coupon_service))
     app.add_url_rule('/coupons/<int:coupon_id>/code', view_func=CouponCodeView.as_view('coupon_code_view', coupon_service))
     app.add_url_rule('/coupons/<int:coupon_id>/serials', view_func=CouponSerialsView.as_view('coupon_serials_view', coupon_service))
+
+    # 기획전
+    app.add_url_rule('/events', view_func=PostEventView.as_view('event_view', event_service))

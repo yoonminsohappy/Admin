@@ -58,11 +58,11 @@ class GetOrderDataView(MethodView):
         """
 
         try:
-            db = connection.get_connection(config.database)
+            db = connection.get_connection()
 
-            start_date          = request.headers.get('start_date', None)
-            end_date            = request.headers.get('end_date', None)
-            seller_properties   = ast.literal_eval(request.headers.get('seller_properties', None))
+            start_date          = request.args.get('start_date', None)
+            end_date            = request.args.get('end_date', None)
+            seller_properties   = ast.literal_eval(request.args.get('seller_properties', None))
             status_id           = request.args.get('status_id', None)
             offset              = int(request.args.get('offset', -1))
             limit               = offset + int(request.args.get('limit', -1))
@@ -75,14 +75,23 @@ class GetOrderDataView(MethodView):
             seller_name         = "%" + request.args.get('seller_name', "") + "%"
             product_name        = "%" + request.args.get('product_name', "") + "%"
 
-            if (not status_id) or (not start_date) or (offset == -1) or (limit == -1):
+            if isinstance(seller_properties, int):
+                seller_properties = [seller_properties]
+
+            if (not status_id) or (offset == -1) or (limit == -1):
                 return jsonify({'message':'KEY_ERROR'}), 400
 
-            if end_date == None:
+            if not start_date:
+                start_date = str(date.min)
+
+            if not end_date:
                 end_date = str(date.today())
 
             day      = timedelta(days = 1)
             end_date = str(date.fromisoformat(end_date) + day)
+
+            if start_date > end_date:
+                return jsonify({'message':'INVALID DATE'}), 400
 
             arguments = {
                 'start_date'          : start_date,
@@ -149,7 +158,7 @@ class PutOrderStatusView(MethodView):
         """
 
         try:
-            db = connection.get_connection(config.database)
+            db = connection.get_connection()
             data = request.get_json()
 
             arguments = {
@@ -241,7 +250,7 @@ class GetOrderDetailDataView(MethodView):
         """
 
         try:
-            db = connection.get_connection(config.database)
+            db = connection.get_connection()
 
             order_detail_id = request.args.get('order_detail_id', None)
 
@@ -295,7 +304,7 @@ class PutAddress(MethodView):
         """
 
         try:
-            db = connection.get_connection(config.database)
+            db = connection.get_connection()
 
             data = request.get_json()
 
