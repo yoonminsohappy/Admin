@@ -35,9 +35,7 @@
         </div>
         <div class="btn-container">
           <button class="join-btn" @click="handleJoinBtn">셀러가입</button>
-          <button class="login-btn" @click="handleLoginBtn">
-            로그인
-          </button>
+          <button class="login-btn" @click="handleLoginBtn">로그인</button>
         </div>
       </div>
     </div>
@@ -72,6 +70,7 @@
 <script>
 import Signup from "./Signup";
 import axios from "axios";
+import { config } from "../../api/index";
 
 export default {
   data: function() {
@@ -100,14 +99,15 @@ export default {
     handleLoginBtn(e) {
       e.preventDefault();
       axios
-        .post("http://10.251.1.176:5000/sellers/signin", {
-          seller_account: "star_1234",
-          password: "helloA1234!",
+        .post(`${config}sellers/signin`, {
+          seller_account: this.idValue,
+          password: this.pwdValue,
         })
         .then((response) => {
           if (response.data.access_token) {
-            localStorage.setItem("user", JSON.stringify(response.data));
-            return response.data;
+            localStorage.setItem("access_token", response.data.access_token);
+            localStorage.setItem("id", this.idValue);
+            this.$router.push("/paymentComplete");
           }
         });
     },

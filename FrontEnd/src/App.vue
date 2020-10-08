@@ -50,12 +50,12 @@ export default {
   width: 100%;
 }
 .product-resgist,
-.admin-frame {
+.admein-fram {
   border-radius: 0 0 0 10px;
   background-color: white;
 }
-
 .admin-frame {
+  background-color: white;
   padding: 25px 20px 20px 20px;
   margin-top: 45px;
 }

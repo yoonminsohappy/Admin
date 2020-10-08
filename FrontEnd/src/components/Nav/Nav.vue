@@ -12,14 +12,34 @@
         <div class="staging-text">staging (staging)</div>
       </div>
       <div class="right-container">
-        <div class="id-text">intern_master</div>
+        <button class="id-wrapper">
+          <div class="id-text">{{ this.sellerId }}</div>
+        </button>
+        <div class="dropdown-content">
+          <a @click="logout">Log Out</a>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-export default {};
+export default {
+  data: function() {
+    return {
+      sellerId: "",
+    };
+  },
+  methods: {
+    logout() {
+      this.$router.push("/");
+      localStorage.removeItem("id");
+    },
+  },
+  created() {
+    this.sellerId = localStorage.getItem("id");
+  },
+};
 </script>
 
 <style lang="scss" scoped>
@@ -68,18 +88,54 @@ export default {};
     }
 
     .right-container {
-      .id-text {
+      position: relative;
+      display: inline-block;
+      &:hover .dropdown-content {
+        display: block;
+        cursor: pointer;
+      }
+      .id-wrapper {
+        width: 150px;
         height: 45px;
-        font-size: 13px;
-        font-weight: 700;
-        color: #cecfd3;
-        border-left: 1px solid black;
-        padding: 13px 20px 0 10px;
-        &::after {
-          font-family: FontAwesome;
-          content: "\f107";
-          position: absolute;
-          margin-left: 10px;
+        &:hover {
+          background-color: #414247;
+        }
+        .id-text {
+          height: 45px;
+          color: #cecfd3;
+          border-left: 1px solid black;
+          padding-top: 13px;
+          &::after {
+            font-family: FontAwesome;
+            content: "\f107";
+            position: absolute;
+            margin-left: 10px;
+          }
+        }
+      }
+      .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f1f1f1;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+        a {
+          color: black;
+          padding: 18px 16px 12px 35px;
+          text-decoration: none;
+          display: block;
+
+          &:hover {
+            background-color: #ddd;
+          }
+          &::before {
+            font-family: FontAwesome;
+            content: "\f084";
+            position: absolute;
+            left: 10px;
+            top: 18px;
+          }
         }
       }
     }
