@@ -89,7 +89,7 @@ class OrderService:
             for order_detail_id in arguments['order_detail_id']:
                 argument = {
                     'order_detail_id'        : [order_detail_id],
-                    'status_id'              : self.order_dao.get_order_current_status(db, {'order_detail_id':order_detail_id})['order_status_id'],
+                    'to_status'              : self.order_dao.get_order_current_status(db, {'order_detail_id':order_detail_id})['order_status_id'],
                     'order_refund_reason_id' : None,
                     'order_cancel_reason_id' : None
                 }
@@ -114,7 +114,7 @@ class OrderService:
         for order_detail_id in arguments['order_detail_id']:
             argument = {
                 'order_detail_id' : order_detail_id,
-                'status_id'       : arguments['to_status']
+                'to_status'       : arguments['to_status']
             }
             self.order_dao.insert_order_status_history(db, argument)
 

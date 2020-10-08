@@ -2,6 +2,7 @@ from flask import jsonify, request
 from flask.views import MethodView
 
 from datetime import date, timedelta
+from pymysql  import err
 
 import config, connection, ast
 
@@ -111,6 +112,9 @@ class GetOrderDataView(MethodView):
             traceback.print_exc()
             return jsonify({'message':'VALUE_ERROR'}), 400
 
+        except err.OperationalError:
+            return jsonify({'message':'DB_DISCONNECTED'}), 400
+
         except:
             traceback.print_exc()
             return jsonify({'message':'UNSUCCESS'}), 400
@@ -173,6 +177,9 @@ class PutOrderStatusView(MethodView):
             traceback.print_exc()
             db.rollback()
             return jsonify({'message':'VALUE_ERROR'}), 400
+
+        except err.OperationalError:
+            return jsonify({'message':'DB_DISCONNECTED'}), 400
 
         except:
             traceback.print_exc()
@@ -250,6 +257,9 @@ class GetOrderDetailDataView(MethodView):
         except ValueError:
             return jsonify({'message':'VALUE_ERROR'}), 400
 
+        except err.OperationalError:
+            return jsonify({'message':'DB_DISCONNECTED'}), 400
+
         except:
             traceback.print_exc()
             return jsonify({'message':'UNSUCCESS'}), 400
@@ -305,6 +315,9 @@ class PutAddress(MethodView):
         except ValueError:
             db.rollback()
             return jsonify({'message':'VALUE_ERROR'}), 400
+
+        except err.OperationalError:
+            return jsonify({'message':'DB_DISCONNECTED'}), 400
 
         except:
             traceback.print_exc()
