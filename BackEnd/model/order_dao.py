@@ -1,4 +1,6 @@
 import pymysql
+
+from pymysql    import err
 from connection import get_connection
 
 class OrderDao:
@@ -120,7 +122,9 @@ class OrderDao:
             cursor.execute(sql, arguments)
             order_data = cursor.fetchall()
 
-        return order_data
+            return order_data
+
+        raise err.OperationalError
 
     def get_status_date(self, db, argument):
         """
@@ -156,10 +160,12 @@ class OrderDao:
             cursor.execute(sql, argument)
             status_date = cursor.fetchone()
 
-        if not status_date:
-            raise ValueError
+            if not status_date:
+                raise ValueError
 
-        return status_date
+            return status_date
+
+        raise err.OperationalError
 
     def get_order_status_id(self, db, argument):
         """생
@@ -192,10 +198,12 @@ class OrderDao:
             cursor.execute(sql, argument)
             status_id = cursor.fetchone()
 
-        if not status_id:
-            raise ValueError
+            if not status_id:
+                raise ValueError
 
-        return status_id
+            return status_id
+
+        raise err.OperationalError
 
     def update_order_status(self, db, arguments):
         """
@@ -220,7 +228,7 @@ class OrderDao:
         UPDATE
             order_details
         SET
-            order_detail_statuses_id = %(status_id)s
+            order_detail_statuses_id = %(to_status)s
         """
 
         sql_2 = """
@@ -240,10 +248,12 @@ class OrderDao:
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
             result = cursor.execute(sql, arguments)
 
-        if not result:
-            raise
+            if not result:
+                raise
 
-        return ''
+            return ''
+
+        raise err.OperationalError
 
     def insert_order_status_history(self, db, arguments):
         """
@@ -266,16 +276,18 @@ class OrderDao:
         INSERT INTO
             order_status_modification_histories (order_detail_id, updated_at, order_status_id)
         VALUES
-            (%(order_detail_id)s, NOW(), %(status_id)s);
+            (%(order_detail_id)s, NOW(), %(to_status)s);
         """
 
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
             result = cursor.execute(sql, arguments)
 
-        if not result:
-            raise
+            if not result:
+                raise
 
-        return ''
+            return ''
+
+        raise err.OperationalError
 
     def get_order_detail_data(self, db, arguments):
         """
@@ -376,10 +388,12 @@ class OrderDao:
             cursor.execute(sql, arguments)
             order_detail_data = cursor.fetchone()
 
-        if not order_detail_data:
-            raise ValueError
+            if not order_detail_data:
+                raise ValueError
 
-        return order_detail_data
+            return order_detail_data
+
+        raise err.OperationalError
 
     def get_order_status_history(self, db, arguments):
         """
@@ -418,10 +432,12 @@ class OrderDao:
             cursor.execute(sql, arguments)
             order_status_history = cursor.fetchall()
 
-        if not order_status_history:
-            raise ValueError
+            if not order_status_history:
+                raise ValueError
 
-        return order_status_history
+            return order_status_history
+
+        raise err.OperationalError
 
     def get_cancel_reason_id(self, db, argument):
         """
@@ -455,10 +471,12 @@ class OrderDao:
             cursor.execute(sql, argument)
             order_cancel_reason_id = cursor.fetchone()
 
-        if not order_cancel_reason_id:
-            raise ValueError
+            if not order_cancel_reason_id:
+                raise ValueError
 
-        return order_cancel_reason_id
+            return order_cancel_reason_id
+
+        raise err.OperationalError
 
     def get_refund_reason_id(self, db, argument):
         """
@@ -492,10 +510,12 @@ class OrderDao:
             cursor.execute(sql, argument)
             order_refund_reason_id = cursor.fetchone()
 
-        if not order_refund_reason_id:
-            raise ValueError
+            if not order_refund_reason_id:
+                raise ValueError
 
-        return order_refund_reason_id
+            return order_refund_reason_id
+
+        raise err.OperationalError
 
     def get_order_current_status(self, db, arguments):
         """
@@ -523,17 +543,23 @@ class OrderDao:
             order_status_modification_histories
         WHERE
             order_detail_id = %(order_detail_id)s
-        ORDER BY id;
+            AND order_status_id IN (3, 4)
+        ORDER BY
+            id DESC
+        LIMIT
+            1;
         """
 
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
             cursor.execute(sql, arguments)
-            current_status = cursor.fetchall()[-2]
+            current_status = cursor.fetchone()
 
-        if not current_status:
-            raise ValueError
+            if not current_status:
+                raise ValueError
 
-        return current_status
+            return current_status
+
+        raise err.OperationalError
 
     def put_address(self, db, arguments):
         """
@@ -569,7 +595,9 @@ class OrderDao:
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
             result = cursor.execute(sql, arguments)
 
-        if not result:
-            raise ValueError
+            if not result:
+                raise ValueError
 
-        return ''
+            return ''
+
+        raise err.OperationalError
