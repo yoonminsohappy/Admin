@@ -18,7 +18,7 @@ class UserService:
         total_page  = int(total_count/10)+1
 
         user_list = []
-        # print(search_info['page'])
+
         if search_info['page'] <= total_page:
             user_list = self.dao.find_search_user_list(conn, search_info)
             

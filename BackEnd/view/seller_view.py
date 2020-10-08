@@ -35,7 +35,8 @@ from utils.validation import (
     Validation_model_top_size,
     Validation_model_bottom_size,
     Validation_model_feet_size,
-    Validation_shopping_feedtext
+    Validation_shopping_feedtext,
+    # Validate_seller_from_to
 )
 
 from utils.decorator import (
@@ -96,7 +97,7 @@ class ProductSellerSearchView(MethodView):
 
 # 회원가입 endpoint
 class SellerSignUpView(MethodView): 
-    
+
     def __init__(self, service):
         self.service = service #(app->init->view)
 
@@ -149,11 +150,10 @@ class SellerSignUpView(MethodView):
                                 -> view에서 db commit하도록 변경, 에러 처리 추가
                 2020 - 09 - 25(wldus9503@gmail.com) : 유효성 검사 추가
                 2020.10.02(이지연) : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+                2020.10.07(이지연)  : 회원가입할 시 셀러 계정아이디, 셀러 cs_phone, manager_phone unique처리 추가
         """
 
         try:
-            print(request.get_json())
-            print(args)
             conn          = connection.get_connection(config.database)   
             seller_info   = {
                 'seller_account'    :   args[0],
@@ -173,6 +173,7 @@ class SellerSignUpView(MethodView):
             return jsonify(message), 400
         #그 외 모든 에러들
         except Exception as e:
+            traceback.print_exc()
             conn.rollback()
             return jsonify({'message': str(e)}), 400
         else:
@@ -236,11 +237,10 @@ class SellerSignInView(MethodView):
                 'seller_account'    :   args[0],
                 'password'          :   args[1]
             }
-            print(request.get_json())
-            print(args)
             
             # 로그인 성공 시 access_token 생성 메소드 실행 -> 성공 x : INVALID_USER, INVALID_TOKEN
             access_token  = self.service.sign_in(seller_info,conn)
+
         #DB 오류
         except (err.IntegrityError,err.DataError, err.NotSupportedError, err.OperationalError,err.InternalError) as e:
             traceback.print_exc()
@@ -257,15 +257,14 @@ class SellerSignInView(MethodView):
             conn.close() 
 
 # 검색 기능 endpoint
-class  SellerSerachView(MethodView):
-
+class  SellerSearchView(MethodView):
     def __init__(self, service):
         self.service = service
 
     @login_decorator
     @catch_exception
     @validate_params(
-        Param('id', GET, str, required=False, default=''),
+        Param('id', GET, str, required=False, default=None),
         Param('seller_account', GET, str, required=False, default=''),
         Param('korean_name', GET, str, required=False, default=''),
         Param('english_name', GET, str, required=False, default=''),
@@ -274,11 +273,13 @@ class  SellerSerachView(MethodView):
         Param('manager_name', GET, str, required=False, default=''),
         Param('manager_phone', GET, str, required=False, default=''),
         Param('manager_email', GET, str, required=False,default=''),
-        Param('from', GET, str, required=False, default=''),
-        Param('to',GET, str, required=False, default=''),
+        Param('start_date', GET, str, required=False, default=''),
+        Param('end_date',GET, str, required=False, default=''),
         Param('page',GET, int, required=False, default=1), #현재 페이지
-        Param('order',GET, str, required=False, default='DESC',rules=[Validation_order()]) # DAO에서 sql 정렬방식
+        Param('per_page',GET, int, required=False, default=10),
+        Param('order',GET, str, required=False, default='DESC',rules=[Validation_order()]) # DAO에서 sql 정렬방식 
     )
+    
     def get(self,*args):
         """
         셀러 계정 관리 검색 API
@@ -330,22 +331,24 @@ class  SellerSerachView(MethodView):
                 'manager_name'              :   args[6],
                 'manager_phone'             :   args[7],
                 'manager_email'             :   args[8],
-                'from'                      :   args[9],
-                'to'                        :   args[10],
+                'start_date'                :   args[9],
+                'end_date'                  :   args[10],
                 'page'                      :   args[11],
-                'order'                     :   args[12]
+                'per_page'                  :   args[12],
+                'order'                     :   args[13]
             }
-            #from , to - 등록일시 -> 이상/이하 미적용, 구현예정 
+
             results     = self.service.search_seller_list(conn, search_info)
 
-        except Exception as e:
-            return jsonify({'message': str(e)}),400
+        except:
+            traceback.print_exc()
+            return jsonify({'message': 'UNSUCCESS'}), 400
         else:
             return jsonify(results), 200
         finally:
             conn.close()
 
-#t셀러 수정 기능
+#셀러 수정 기능
 class SellerUpdateView(MethodView):
 
     def __init__(self, service):
@@ -384,7 +387,7 @@ class SellerUpdateView(MethodView):
     #Form으로 한 이유: 이미지 파일과 json데이터를 한꺼번에 요청하기 위해서
 
     def put(self,*args):
-        try:    
+        try:
             conn = connection.get_connection(config.database)
 
             update_info   = {
@@ -433,9 +436,11 @@ class SellerUpdateView(MethodView):
             
             results = self.service.update_seller(conn, update_info,profile_image,background_image,modifier_user)
         except Exception as e:
+            traceback.print_exc()
             conn.rollback()
             return jsonify({'message': str(e)}),400
         else:
+            traceback.print_exc()
             conn.commit()
             return jsonify(results), 200
         finally:

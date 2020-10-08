@@ -620,6 +620,8 @@ ALTER TABLE user_coupons
 ALTER TABLE user_coupons
     ADD CONSTRAINT FK_user_coupons_user_id_users_id FOREIGN KEY (user_id)
         REFERENCES users (id) ON DELETE RESTRICT ON UPDATE RESTRICT;
+        
+ALTER TABLE user_coupons ADD UNIQUE idx_user_coupon(user_id, coupon_id);
 
 CREATE TABLE wearing_sensations
 (

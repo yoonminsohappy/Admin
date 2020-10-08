@@ -77,33 +77,44 @@ class SellerService:
                                 -> view에서 db commit하도록 변경, 에러 처리 추가
                 2020.09.25(이지연)) : 유효성 검사 추가
                 2020.10.02(이지연) : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+                2020.10.07(이지연) : 회원가입할 시 셀러 계정아이디, 셀러 cs_phone, manager_phone unique처리 추가
         """
 
+        #유니크 검사 (seller_account, email, cs_phone, phone_number)
+        #seller_account
+        if self.dao.unique_seller_account(conn, seller_info['seller_account']): #0이 아니면 if문 조건 참, 0이면 거짓
+            raise Exception("UNIQUE_SELLER_ACCOUNT") #참인경우는 즉, 동일한 아이디에 대한 데이터가 있다
+        
+        #seller_property_id
         seller_property_id  = self.dao.get_property_id(conn,seller_info['seller_property'])
-    
         if seller_property_id is None:
             raise Exception("INVALID_PARAMETER")
 
+        #password
         password            = seller_info['password'].encode() 
         password_crypt      = bcrypt.hashpw(password,bcrypt.gensalt()).decode('utf-8')
 
         if seller_info is None:
             raise Exception("INVALID_PARAMETER")
-
-        unique_seller_id = self.dao.insert_sellers(conn)
- 
-        if unique_seller_id is None:
+        
+        #sellers테이블에 넣은 id값
+        pk_seller_id = self.dao.insert_sellers(conn) #sellers의 id(pk)값을 의미
+        if pk_seller_id is None:
             raise Exception("INVALID_PARAMETER")
-            
+
+        #cs_phone
+        if self.dao.unique_cs_phone(conn, seller_info['cs_phone']):
+            raise Exception("UNIQUE_SELLER_CS_PHONE")
+
         seller = {
-            'seller_id'             : unique_seller_id,
+            'seller_id'             : pk_seller_id,
             'seller_account'        : seller_info['seller_account'],
             'password'              : password_crypt,
             'seller_property_id'    : seller_property_id['id'],
             'korean_name'           : seller_info['korean_name'],
             'english_name'          : seller_info['english_name'],
             'cs_phone'              : seller_info['cs_phone'],
-            'modifier_id'           : unique_seller_id,
+            'modifier_id'           : pk_seller_id
         }
         
         result = self.dao.insert_seller_infomation(seller, conn)
@@ -117,9 +128,12 @@ class SellerService:
         if self.dao.insert_modification_history(conn, result_seller) is None:
             raise Exception("INVALID_PARAMETER1")
 
+        if self.dao.unique_manager_phone(conn, seller_info['phone_number']):
+            raise Exception("UNIQUE_SELLER_MANAGER_PHONE")
+
         manager = {
             'manager_phone'     : seller_info['phone_number'],
-            'seller_id'         : unique_seller_id,
+            'seller_id'         : pk_seller_id,
             'manager_name'      : '미등록', #이유:회원가입시 담당자 관련 정보는 전화번호만 받지만 
             'manager_email'     : '미등록'  #컬럼을 null값으로 두고 검색기능쪽에서 like를 통해서 "%%"로 전체검색을 하더라도 null값이여서 인식이 안되기 때문 
         }                                   # select * from seller_informations where seller_account like "%%"; 
@@ -136,14 +150,17 @@ class SellerService:
         
         #DB에 실제 아이디값이 존재하는지 확인 위해
         seller_data    = self.dao.select_seller(seller_account, conn)
+        
         if seller_data is not None:
-            if bcrypt.checkpw( seller_info['password'].encode('utf-8'), seller_data['password'].encode('utf-8')):  #--(1)
-                access_token = jwt.encode({'seller_account': seller_account}, self.config['SECRET_KEY'], algorithm = self.config['ALGORITHM']) #--(2)
-                # 첫번째 인자로 준 {'seller_account': seller_account} 딕셔너리를 암호화를 하는데 
+            if bcrypt.checkpw( seller_info['password'].encode('utf-8'), seller_data['password'].encode('utf-8')):
+                access_token = jwt.encode({'seller_id': seller_data['seller_id']}, self.config['SECRET_KEY'], algorithm = self.config['ALGORITHM']) 
+
+                # 첫번째 인자로 준 {'seller_account': seller_account} 딕셔너리를 암호화를 하는데 #seller_id 즉, sellers pk 로 암호화
                 # 이때, 두번쨰 인자로 secret_key라는 값과 조합해서 인코드 합니다. 
                 # 암호화하는 방식은 3번째 인자값인 algorithm으로 암호화해서 반환한다.
                 
                 access_token = access_token.decode('utf-8') #--(3) 그 반환 결과가 바이트 이기 때문에 decode를 통해 다시 문자열로 변환시켜준다.
+ 
                 return access_token
             raise Exception("Invalid Password")
         raise Exception("Invalid Account")
@@ -161,7 +178,7 @@ class SellerService:
         #조건에 맞는 총 개수 구함
         total_count = self.dao.find_search_total_seller_list(conn, search_info)
         #총 페이지 개수 구함
-        total_page  = int(total_count/10)+1
+        total_page  = int(total_count/search_info['per_page'])+1
         
         #한 ID당 하나의 리스트 값들을 넣기 위해서 
         seller_list = []
@@ -185,9 +202,17 @@ class SellerService:
     #셀러계정관리- 수정/조회페이지
     def update_seller(self, conn, update_info, profile_image, background_image, modifier_user):
         #수정자가 자신이거나 mater인지 검사
+        
         if modifier_user['seller_id'] != update_info['seller_id'] and modifier_user['is_master'] == 0:
             raise Exception("UNAUTHORIZATION")
         
+        # unique
+        if self.dao.unique_seller_account(conn, update_info['seller_account']): #0이 아니면 if문 조건 참, 0이면 거짓
+            raise Exception("UNIQUE_SELLER_ACCOUNT") #참인경우는 즉, 동일한 아이디에 대한 데이터가 있다
+
+        if self.dao.unique_cs_phone(conn, update_info['cs_phone']):
+            raise Exception("UNIQUE_SELLER_CS_PHONE")
+
         #현재 데이터
         past_seller_info = self.dao.find_seller(conn, update_info['seller_id'])
         
@@ -232,7 +257,7 @@ class SellerService:
             #S3에 넣을 파일명 지정 seller_id + 이미지종류 + 실제 파일명
             filename = str(updated_info["seller_id"])+"_profile_image_"+filename
             #s3업로드 결과 url 반환
-            updated_info['profile_image'] = self.save_sellr_image(profile_image,filename)
+            updated_info['profile_image'] = self.save_seller_image(profile_image,filename)
         
         #background_image 처리
         if background_image != None:
@@ -241,7 +266,7 @@ class SellerService:
             #S3에 넣을 파일명 지정 seller_id + 이미지종류 + 실제 파일명
             filename = str(updated_info["seller_id"])+"_background_image_"+filename
             #s3업로드 결과 url 반환
-            updated_info['background_image'] = self.save_sellr_image(background_image,filename)
+            updated_info['background_image'] = self.save_seller_image(background_image,filename)
             
         #수정할 데이터로 update (최신)
         results = self.dao.update_seller_information(conn, updated_info, past_seller_info['id'])
@@ -266,7 +291,7 @@ class SellerService:
         return results
 
     # s3에 이미지 파일 업로드
-    def save_sellr_image(self, image, filename):
+    def save_seller_image(self, image, filename):
         self.s3.upload_fileobj(
             image,
             self.config['S3_BUCKET_SELLER'],
@@ -362,5 +387,4 @@ class SellerService:
         results['manager'] = manager
         results['seller_modification'] = seller_modification
         
-
         return results

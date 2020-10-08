@@ -17,12 +17,12 @@ def create_app(test_config = None):
     app.config['JSON_AS_ASCII'] = False
     
     CORS(app)
-
+    
     if test_config is None:
         app.config.from_pyfile("config.py")
     else:
         app.config.update(test_config)
-
+    
     product_dao = ProductDao()
     seller_dao  = SellerDao()
     order_dao   = OrderDao()
@@ -30,7 +30,7 @@ def create_app(test_config = None):
     coupon_dao  = CouponDao()
 
     services = Services
-
+    
     services.product_service = ProductService(product_dao, app.config)
     services.seller_service  = SellerService(seller_dao, app.config)
     services.order_service   = OrderService(order_dao, app.config)
