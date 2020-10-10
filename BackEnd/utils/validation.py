@@ -411,3 +411,63 @@ def validate_image_status(image_status):
         raise ValidationError("INVALID_IMAGE_STATUS")
 
     return image_status
+
+class CouponValidationError(Exception):
+    def __init__(self, message, key, value):
+        self.message = self.message
+        self.key     = key
+        self.value   = value
+
+    def to_dict():
+        return {
+            "message": self.message,
+            "key"    : self.key,
+            "value"  : self.value
+        }
+
+def validate_coupon_int_required(data, key):
+    if data:
+        if isinstance(data, str) and data.isnumeric():
+            return int(data)
+
+        elif isinstance(data, int):
+            return data
+
+    raise CouponValidationError("WRONG_DATA", key, data)
+
+def validate_coupon_int_optional(data, key):
+    if data:
+        if (isinstance(data, str) and data.isnumeric()) or isinstance(data, int):
+            data = int(data)
+            if data <= 0:
+                raise CouponValidationError("WRONG_DATA", key, data)
+
+    return data
+
+def validate_coupon_str_optional(data, key):
+    if data:
+        if not isinstance(data, str):
+            raise CouponValidationError("WRONG_DATA", key, data)
+
+    return data
+
+def validate_coupon_date_optional(data, key):
+    if data:
+        if not isinstance(data, str):
+            raise CouponValidationError("WRONG_DATA", key, data)
+        try:
+            datetime.datetime.strptime(data, '%Y-%m-%d')
+        except ValueError:
+            raise CouponValidationError("WRONG_DATA", key, data)
+        
+    return data
+
+def validate_coupon_bool_optional(data, key):
+    if data:
+        if not isinstance(data, str):
+            raise CouponValidationError("WRONG_DATA", key, data)
+
+        if data != 'Y' and data != 'N':
+            raise CouponValidationError("WRONG_DATA", key, data)
+
+    return data

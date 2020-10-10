@@ -9,6 +9,14 @@ from varname     import Wrapper
 
 import config
 from connection import get_connection
+from utils.validation import (
+    CouponValidationError,
+    validate_coupon_int_required,
+    validate_coupon_int_optional,
+    validate_coupon_str_optional,
+    validate_coupon_date_optional,
+    validate_coupon_bool_optional
+)
 
 class VarnameException(Exception):
     def __init__(self, message, var):
@@ -96,6 +104,24 @@ class CouponsView(MethodView):
         
         if issue_id.value == ISSUE_TYPE_COUPON_CODE and not code.value:
             raise NonePointerException(f"COUPON_CODE_REQUIRED", code)
+
+    def check_has_condition(self, params):
+        if params['id'] or \
+        params['name'] or \
+        params['valid_started_from'] or \
+        params['valid_started_to'] or \
+        params['valid_ended_from'] or \
+        params['valid_ended_to'] or \
+        params['download_started_from'] or \
+        params['download_started_to'] or \
+        params['download_ended_from'] or \
+        params['download_ended_to'] or \
+        params['issue_type_id'] or \
+        params['is_limited'] == 'Y' or \
+        params['is_limited'] == 'N':
+            return True
+
+        return False
             
     def post(self):
         ISSUE_TYPE_SERIAL_NUMBER = 3
@@ -116,9 +142,7 @@ class CouponsView(MethodView):
             valid_started_at         = Wrapper(data['valid_started_at'])
             valid_ended_at           = Wrapper(data['valid_ended_at'])
             discount_price           = Wrapper(data['discount_price'])
-            is_limited_coupon        = Wrapper(data['is_limited_coupon'])
             limit_count              = Wrapper(data['limit_count'])
-            is_limited_minimum_price = Wrapper(data['is_limited_minimum_price'])
             minimum_price            = Wrapper(data['minimum_price'])
 
             self.check_null_or_empty(name)
@@ -128,21 +152,10 @@ class CouponsView(MethodView):
             self.check_null_or_empty(description)
             self.compare_two_datetimes(valid_started_at, valid_ended_at)
             self.validate_positive_number(discount_price)
-            self.validate_positive_number(is_limited_coupon)
-            self.validate_positive_number(is_limited_minimum_price)
-
             if download_started_at.value and download_ended_at.value:
                 self.compare_two_datetimes(download_started_at, download_ended_at)
-
-            if not is_limited_coupon.value:
-                data['limit_count'] = None
-            else:
-                self.validate_positive_number(limit_count)
-
-            if not is_limited_minimum_price.value:
-                data['minimum_price'] = None
-            else:
-                self.validate_positive_number(minimum_price)
+            self.validate_positive_number(limit_count)
+            self.validate_positive_number(minimum_price)
 
             self.service.make_coupon(conn, data)
 
@@ -154,6 +167,10 @@ class CouponsView(MethodView):
         except VarnameException as e:
             return jsonify(e.to_dict()), 400
 
+        except TypeError as e:
+            conn.rollback()
+            return jsonify({"message": e.args[0]}),
+
         except KeyError as e:
             return jsonify({"message": "KEY_ERROR", "key_name": e.args[0]}), 400
 
@@ -163,6 +180,98 @@ class CouponsView(MethodView):
         else:
             conn.commit()
             return jsonify({"message": "SUCCESS"}), 200
+
+        finally:
+            conn.close()
+
+    def get(self):
+        KEY_LIMIT                 = "limit"
+        KEY_PAGE                  = "page"
+        KEY_ID                    = 'id'
+        KEY_NAME                  = 'name'
+        KEY_VALID_STARTED_FROM    = 'valid_started_from'
+        KEY_VALID_STARTED_TO      = 'valid_started_to'
+        KEY_VALID_ENDED_FROM      = 'valid_ended_from'
+        KEY_VALID_ENDED_TO        = 'valid_ended_to'
+        KEY_DOWNLOAD_STARTED_FROM = 'download_started_from'
+        KEY_DOWNLOAD_STARTED_TO   = 'download_started_to'
+        KEY_DOWNLOAD_ENDED_FROM   = 'download_ended_from'
+        KEY_DOWNLOAD_ENDED_TO     = 'download_ended_to'
+        KEY_ISSUE_TYPE_ID         = 'issue_type_id'
+        KEY_IS_LIMITED            = 'is_limited'
+        KEY_OFFSET                = 'offset'
+        KEY_HAS_CONDITION         = 'has_condition'
+        TIME_DAY_BEGIN            = ' 00:00:00'
+        TIME_DAY_END              = ' 23:59:59'
+
+        try:
+            conn = get_connection(config.database)
+
+            limit                 = request.args.get(KEY_LIMIT, 10)
+            page                  = request.args.get(KEY_PAGE, 1)
+            coupon_id             = request.args.get(KEY_ID, None)
+            coupon_name           = request.args.get(KEY_NAME, None)
+            valid_started_from    = request.args.get(KEY_VALID_STARTED_FROM, None)
+            valid_started_to      = request.args.get(KEY_VALID_STARTED_TO, None)
+            valid_ended_from      = request.args.get(KEY_VALID_ENDED_FROM, None)
+            valid_ended_to        = request.args.get(KEY_VALID_ENDED_TO, None)
+            download_started_from = request.args.get(KEY_DOWNLOAD_STARTED_FROM, None)
+            download_started_to   = request.args.get(KEY_DOWNLOAD_STARTED_TO, None)
+            download_ended_from   = request.args.get(KEY_DOWNLOAD_ENDED_FROM, None)
+            download_ended_to     = request.args.get(KEY_DOWNLOAD_ENDED_TO, None)
+            issue_type_id         = request.args.get(KEY_ISSUE_TYPE_ID, None)
+            is_limited            = request.args.get(KEY_IS_LIMITED, None) # Y, N
+
+            # validation
+            limit = validate_coupon_int_required(limit, KEY_LIMIT)
+            if limit not in [10, 20, 50]:
+                limit = 10
+
+            page = validate_coupon_int_required(page, KEY_PAGE)
+            if page <= 0:
+                page = 1
+
+            coupon_id             = validate_coupon_int_optional(coupon_id, KEY_ID)
+            coupon_name           = validate_coupon_str_optional(coupon_name, KEY_NAME)
+            valid_started_from    = validate_coupon_date_optional(valid_started_from, KEY_VALID_STARTED_FROM)
+            valid_started_to      = validate_coupon_date_optional(valid_started_to, KEY_VALID_STARTED_TO)
+            valid_ended_from      = validate_coupon_date_optional(valid_ended_from, KEY_VALID_ENDED_FROM)
+            valid_ended_to        = validate_coupon_date_optional(valid_ended_to, KEY_VALID_ENDED_TO)
+            download_started_from = validate_coupon_date_optional(download_started_from, KEY_DOWNLOAD_STARTED_FROM)
+            download_started_to   = validate_coupon_date_optional(download_started_to, KEY_DOWNLOAD_STARTED_TO)
+            download_ended_from   = validate_coupon_date_optional(download_ended_from, KEY_DOWNLOAD_ENDED_FROM)
+            download_ended_to     = validate_coupon_date_optional(download_ended_to, KEY_DOWNLOAD_ENDED_TO)
+            issue_type_id         = validate_coupon_int_optional(issue_type_id, KEY_ISSUE_TYPE_ID)
+            is_limited            = validate_coupon_bool_optional(is_limited, KEY_IS_LIMITED)
+
+            # to params
+            params = {}
+            params[KEY_LIMIT]                 = limit
+            params[KEY_OFFSET]                = (page - 1) * limit
+            params[KEY_ID]                    = coupon_id
+            params[KEY_NAME]                  = '%%' + coupon_name + '%%' if coupon_name else coupon_name
+            params[KEY_VALID_STARTED_FROM]    = valid_started_from + TIME_DAY_BEGIN if valid_started_from else valid_started_from
+            params[KEY_VALID_STARTED_TO]      = valid_started_to + TIME_DAY_END if valid_started_to else valid_started_to
+            params[KEY_VALID_ENDED_FROM]      = valid_ended_from + TIME_DAY_BEGIN if valid_ended_from else valid_ended_from
+            params[KEY_VALID_ENDED_TO]        = valid_ended_to + TIME_DAY_END if valid_ended_to else valid_ended_to
+            params[KEY_DOWNLOAD_STARTED_FROM] = download_started_from + TIME_DAY_BEGIN if download_started_from else download_started_from
+            params[KEY_DOWNLOAD_STARTED_TO]   = download_started_to + TIME_DAY_END if download_started_to else download_started_to
+            params[KEY_DOWNLOAD_ENDED_FROM]   = download_ended_from + TIME_DAY_BEGIN if download_ended_from else download_ended_from
+            params[KEY_DOWNLOAD_ENDED_TO]     = download_ended_to + TIME_DAY_END if download_ended_to else download_ended_to
+            params[KEY_ISSUE_TYPE_ID]         = issue_type_id
+            params[KEY_IS_LIMITED]            = is_limited
+            params[KEY_HAS_CONDITION]         = self.check_has_condition(params)
+
+            results = self.service.get_coupons(conn, params)
+
+        except CouponValidationError as e:
+            return jsonify(e.to_dict()), 400
+        
+        except (err.OperationalError, err.InternalError) as e: 
+            return jsonify({ "errno": e.args[0], "errval": e.args[1] }), 500
+
+        else: 
+            return jsonify(results), 200
 
         finally:
             conn.close()

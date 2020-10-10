@@ -666,5 +666,6 @@ class ProductService:
         """
         results = self.product_dao.find_product_history(conn, product_id)
         for result in results:
+            # Decimal to Int
             result['discounted_price'] = int(result['discounted_price'])
         return results

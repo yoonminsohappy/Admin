@@ -196,7 +196,7 @@ class ProductsView(MethodView):
         finally:
             conn.close()
 
-    @login_decorator
+    # @login_decorator
     def get(self):
         """
         상품 리스트 조회 뷰
@@ -276,7 +276,7 @@ class ProductView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    @login_decorator
+    # @login_decorator
     def get(self, code):
         """
         상품 상세 조회 뷰
@@ -336,7 +336,6 @@ class ProductView(MethodView):
                 OperationalError: 데이터베이스 조작 에러
                 InternalError   : 데이터베이스 내부 에러
                 IntegrityError  : 데이터베이스 무결성 에러
-
 
         Author:
             이충희(choonghee.dev@gmail.com)
@@ -603,13 +602,14 @@ class ProductHistoryView(MethodView):
         try:
             conn = get_connection(config.database)
 
-            product_id = int(product_id)
+            # product_id = int(product_id)
         
             results = self.service.get_product_history(conn, product_id)
             
         except (err.OperationalError, err.InternalError) as e:
             message = {"errno": e.args[0], "errval": e.args[1]}
             return jsonify(message), 500
+
         else:
             return jsonify(results), 200
         finally:

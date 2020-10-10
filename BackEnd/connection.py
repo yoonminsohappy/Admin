@@ -9,4 +9,4 @@ def get_connection(db):
         db         = db['database'],
         charset    = 'utf8mb4',
         autocommit = False
-    )
+)

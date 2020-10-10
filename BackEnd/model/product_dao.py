@@ -768,8 +768,8 @@ class ProductDao:
                 description,
                 sale_price,
                 discount_rate,
-                DATE_FORMAT(CONVERT_TZ(discount_started_at, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_started_at,
-                DATE_FORMAT(CONVERT_TZ(discount_ended_at, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS discount_ended_at,
+                discount_started_at,
+                discount_ended_at,
                 minimum_sale_amount,
                 maximum_sale_amount,
                 modifier_id,
@@ -848,9 +848,10 @@ class ProductDao:
             cursor.execute(sql, (product_id, ordering,))
 
     def find_product_history(self, conn, product_id):
+        # Timezone?
         sql = """
             SELECT
-                pd.created_at,
+                DATE_FORMAT(CONVERT_TZ(pd.created_at, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS updated_at,
                 pd.is_sold,
                 pd.is_displayed,
                 pd.sale_price,
