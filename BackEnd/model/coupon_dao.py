@@ -212,3 +212,42 @@ class CouponDao:
             cursor.execute(sql, (coupon_id,))
             results = cursor.fetchall()
             return results
+
+    def delete_serials(self, conn, coupon_id):
+        sql = """
+            DELETE FROM coupon_serial_numbers
+            WHERE coupon_id = %s;
+        """
+
+        with conn.cursor() as cursor:
+            cursor.execute(sql, (coupon_id,))
+
+    def delete_coupon_details(self, conn, coupon_id):
+        sql = """
+            DELETE FROM coupon_details
+            WHERE coupon_id = %s;
+        """
+
+        with conn.cursor() as cursor:
+            cursor.execute(sql, (coupon_id,))
+
+    def delete_coupon(self, conn, coupon_id):
+        sql = """
+            DELETE FROM coupons
+            WHERE id = %s;
+        """
+
+        with conn.cursor() as cursor:
+            cursor.execute(sql, (coupon_id,))
+
+    def find_coupon_by_id(self, conn, coupon_id):
+        sql = """
+            SELECT id
+            FROM coupons
+            WHERE id = %s;
+        """
+
+        with conn.cursor() as cursor:
+            cursor.execute(sql, (coupon_id,))
+            results = cursor.fetchall()
+            return results

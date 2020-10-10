@@ -41,7 +41,6 @@ class CouponService:
 
         # limit 개수의 쿠폰만 가져오기
         coupons = self.coupon_dao.find_coupons(conn, params)
-
         return {"total_count": coupon_count, "coupons": coupons}
 
     def make_serials_csv(self, serials):
@@ -68,3 +67,12 @@ class CouponService:
         tmp_filename      = self.make_serials_csv(serials)
         download_filename = self.make_download_filename(coupon_id)
         return tmp_filename, download_filename
+
+    def remove_coupon(self, conn, coupon_id):
+        result = self.coupon_dao.find_coupon_by_id(conn, coupon_id)
+        if not result:
+            raise TypeError(f'NO_COUPON_FOR_COUPON_{coupon_id}')
+        
+        self.coupon_dao.delete_serials(conn, coupon_id)
+        self.coupon_dao.delete_coupon_details(conn, coupon_id)
+        self.coupon_dao.delete_coupon(conn, coupon_id)

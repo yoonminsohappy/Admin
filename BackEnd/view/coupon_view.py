@@ -296,9 +296,37 @@ class CouponSerialsView(MethodView):
             return jsonify({"message": e.args[0]})
 
         else: 
-            return send_file(tmp_filename, mimetype="text/csv",
+            
+            file_to_send = send_file(tmp_filename, mimetype="text/csv",
                 as_attachment=True, attachment_filename=download_filename, conditional=False)
+            os.remove(tmp_filename)
+            return file_to_send
             
         finally:
-            os.remove(tmp_filename)
+            conn.close()
+
+class CouponView(MethodView):
+    def __init__(self, service):
+        self.service = service
+
+    def delete(self, coupon_id):
+        try:
+            conn = get_connection(config.database)
+
+            coupon_id = validate_coupon_int_optional(coupon_id, 'coupon_id')
+
+            self.service.remove_coupon(conn, coupon_id)
+            
+        except (err.OperationalError, err.InternalError, err.IntegrityError) as e: 
+            conn.rollback()
+            return jsonify({ "errno": e.args[0], "errval": e.args[1] }), 500
+
+        except TypeError as e:
+            return jsonify({"message": e.args[0]})
+
+        else: 
+            conn.commit()
+            return jsonify({"message": "SUCCESS"}), 200
+
+        finally:
             conn.close()

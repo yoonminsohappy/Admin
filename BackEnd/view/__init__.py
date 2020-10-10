@@ -29,7 +29,8 @@ from .user_view import (
 
 from .coupon_view import (
     CouponsView,
-    CouponSerialsView
+    CouponView,
+    CouponSerialsView,
 )
 
 def create_endpoints(app, services):
@@ -94,4 +95,5 @@ def create_endpoints(app, services):
 
     # 쿠폰
     app.add_url_rule('/coupons',view_func=CouponsView.as_view('coupons_view', coupon_service))
+    app.add_url_rule('/coupons/<int:coupon_id>', view_func=CouponView.as_view('coupon_view', coupon_service))
     app.add_url_rule('/coupons/<int:coupon_id>/serials', view_func=CouponSerialsView.as_view('coupon_serials_view', coupon_service))
