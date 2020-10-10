@@ -1,8 +1,9 @@
+import os
 import datetime
 import traceback
 from json.decoder import JSONDecodeError
 
-from flask       import jsonify, request
+from flask       import jsonify, request, send_file
 from flask.views import MethodView
 from pymysql     import err
 from varname     import Wrapper
@@ -274,4 +275,30 @@ class CouponsView(MethodView):
             return jsonify(results), 200
 
         finally:
+            conn.close()
+
+class CouponSerialsView(MethodView):
+    def __init__(self, service):
+        self.service = service
+
+    def get(self, coupon_id):
+        try:
+            conn = get_connection(config.database)
+
+            coupon_id = validate_coupon_int_optional(coupon_id, 'coupon_id')
+
+            tmp_filename, download_filename = self.service.download_serials(conn, coupon_id)
+
+        except (err.OperationalError, err.InternalError) as e: 
+            return jsonify({ "errno": e.args[0], "errval": e.args[1] }), 500
+
+        except TypeError as e:
+            return jsonify({"message": e.args[0]})
+
+        else: 
+            return send_file(tmp_filename, mimetype="text/csv",
+                as_attachment=True, attachment_filename=download_filename, conditional=False)
+            
+        finally:
+            os.remove(tmp_filename)
             conn.close()

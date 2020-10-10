@@ -193,9 +193,22 @@ class CouponDao:
             sql = sql[:-3] # remove AND
 
         sql += ' LIMIT %(limit)s OFFSET %(offset)s;'
-        print(sql)
 
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
             cursor.execute(sql, params)
+            results = cursor.fetchall()
+            return results
+
+    def find_serials_by_coupon_id(self, conn, coupon_id):
+        sql = """
+            SELECT 
+                s.serial_number, 
+                s.used_date 
+            FROM coupon_serial_numbers AS s 
+            WHERE coupon_id = %s;
+        """
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, (coupon_id,))
             results = cursor.fetchall()
             return results

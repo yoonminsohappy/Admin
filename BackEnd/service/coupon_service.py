@@ -1,5 +1,8 @@
+import csv
+import datetime
 import string
 import random
+import uuid
 
 class CouponService:
     def __init__(self, coupon_dao, config):
@@ -40,3 +43,28 @@ class CouponService:
         coupons = self.coupon_dao.find_coupons(conn, params)
 
         return {"total_count": coupon_count, "coupons": coupons}
+
+    def make_serials_csv(self, serials):
+        tmp_filename = f'temp/{str(uuid.uuid4())}.csv'
+        with open(tmp_filename, 'w', encoding='utf-8') as f:
+            wr = csv.writer(f)
+            wr.writerow(['번호', '시리얼번호', '사용일시']) # 헤더
+
+            # 로우
+            for idx, row in enumerate(serials):
+                wr.writerow([idx+1, row['serial_number'], row['used_date'] if row['used_date'] else '-'])
+        
+        return tmp_filename
+
+    def make_download_filename(self, coupon_id):
+        now_date = datetime.datetime.now().strftime("%Y%m%d")
+        return f'temp/{now_date}_{coupon_id}_SERIAL_NUMBER.csv'
+        
+    def download_serials(self, conn, coupon_id):
+        serials = self.coupon_dao.find_serials_by_coupon_id(conn, coupon_id)
+        if not serials:
+            raise TypeError(f'NO_SERIALS_FOR_COUPON_{coupon_id}')
+
+        tmp_filename      = self.make_serials_csv(serials)
+        download_filename = self.make_download_filename(coupon_id)
+        return tmp_filename, download_filename
