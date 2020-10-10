@@ -161,7 +161,6 @@ class CouponsView(MethodView):
             self.service.make_coupon(conn, data)
 
         except (err.OperationalError, err.InternalError, err.IntegrityError) as e:
-            traceback.print_exc()
             conn.rollback()
             return jsonify({ "errno": e.args[0], "errval": e.args[1] }), 500
 
@@ -170,7 +169,7 @@ class CouponsView(MethodView):
 
         except TypeError as e:
             conn.rollback()
-            return jsonify({"message": e.args[0]}),
+            return jsonify({"message": e.args[0]}), 400
 
         except KeyError as e:
             return jsonify({"message": "KEY_ERROR", "key_name": e.args[0]}), 400
@@ -285,7 +284,7 @@ class CouponSerialsView(MethodView):
         try:
             conn = get_connection(config.database)
 
-            coupon_id = validate_coupon_int_optional(coupon_id, 'coupon_id')
+            coupon_id = validate_coupon_int_required(coupon_id, 'coupon_id')
 
             tmp_filename, download_filename = self.service.download_serials(conn, coupon_id)
 
@@ -293,7 +292,7 @@ class CouponSerialsView(MethodView):
             return jsonify({ "errno": e.args[0], "errval": e.args[1] }), 500
 
         except TypeError as e:
-            return jsonify({"message": e.args[0]})
+            return jsonify({"message": e.args[0]}), 400
 
         else: 
             
@@ -309,11 +308,31 @@ class CouponView(MethodView):
     def __init__(self, service):
         self.service = service
 
+    def get(self, coupon_id):
+        try:
+            conn = get_connection(config.database)
+
+            coupon_id = validate_coupon_int_required(coupon_id, 'coupon_id')
+
+            result = self.service.get_coupon_info(conn, coupon_id)
+            
+        except (err.OperationalError, err.InternalError) as e: 
+            return jsonify({ "errno": e.args[0], "errval": e.args[1] }), 500
+
+        except TypeError as e:
+            return jsonify({"message": e.args[0]}), 400
+
+        else: 
+            return jsonify(result), 200
+
+        finally:
+            conn.close()
+
     def delete(self, coupon_id):
         try:
             conn = get_connection(config.database)
 
-            coupon_id = validate_coupon_int_optional(coupon_id, 'coupon_id')
+            coupon_id = validate_coupon_int_required(coupon_id, 'coupon_id')
 
             self.service.remove_coupon(conn, coupon_id)
             
@@ -322,11 +341,35 @@ class CouponView(MethodView):
             return jsonify({ "errno": e.args[0], "errval": e.args[1] }), 500
 
         except TypeError as e:
-            return jsonify({"message": e.args[0]})
+            return jsonify({"message": e.args[0]}), 400
 
         else: 
             conn.commit()
             return jsonify({"message": "SUCCESS"}), 200
 
+        finally:
+            conn.close()
+
+class CouponCodeView(MethodView):
+    def __init__(self, service):
+        self.service = service
+
+    def get(self, coupon_id):
+        try:
+            conn = get_connection(config.database)
+
+            coupon_id = validate_coupon_int_required(coupon_id, 'coupon_id')
+ 
+            result = self.service.get_coupon_code(conn, coupon_id)
+
+        except (err.OperationalError, err.InternalError) as e: 
+            return jsonify({ "errno": e.args[0], "errval": e.args[1] }), 500
+
+        except TypeError as e:
+            return jsonify({"message": e.args[0]}), 400
+
+        else: 
+            return jsonify(result), 200
+            
         finally:
             conn.close()

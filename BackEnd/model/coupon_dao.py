@@ -240,7 +240,7 @@ class CouponDao:
         with conn.cursor() as cursor:
             cursor.execute(sql, (coupon_id,))
 
-    def find_coupon_by_id(self, conn, coupon_id):
+    def find_coupon_id_by_id(self, conn, coupon_id):
         sql = """
             SELECT id
             FROM coupons
@@ -249,5 +249,47 @@ class CouponDao:
 
         with conn.cursor() as cursor:
             cursor.execute(sql, (coupon_id,))
-            results = cursor.fetchall()
-            return results
+            result = cursor.fetchall()
+            return result
+
+    def find_coupon_code_by_id(self, conn, coupon_id):
+        sql = """
+            SELECT coupon_code
+            FROM coupon_details
+            WHERE coupon_id = %s;
+        """
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, (coupon_id,))
+            result = cursor.fetchone()
+            return result
+
+    def find_coupon_by_id(self, conn, coupon_id):
+        sql = """
+            SELECT 
+                c.id AS coupon_id,
+                cd.name AS coupon_name,
+                cd.coupon_type_id,
+                ct.name AS coupon_type_name,
+                cd.coupon_issue_id,
+                cs.name AS coupon_issue_name,
+                cd.is_downloadable,
+                cd.description,
+                cd.download_started_at,
+                cd.download_ended_at,
+                cd.valid_started_at,
+                cd.valid_ended_at,
+                cd.discount_price,
+                cd.limit_count,
+                cd.minimum_price
+            FROM coupons AS c
+            INNER JOIN coupon_details AS cd ON c.id = cd.coupon_id
+            INNER JOIN coupon_types AS ct ON cd.coupon_type_id = ct.id
+            INNER JOIN coupon_issues AS cs ON cd.coupon_issue_id = cs.id
+            WHERE c.id = %s;
+        """
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, (coupon_id,))
+            result = cursor.fetchone()
+            return result

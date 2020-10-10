@@ -20,18 +20,19 @@ class CouponService:
         return serial_number
 
     def make_coupon(self, conn, coupon_data):
-        ISSUE_TYPE_SERIAL_NUMBER = 3 # 발급 유형 시리얼 넘버 
-
-        if not (coupon_data['issue_id'] == ISSUE_TYPE_SERIAL_NUMBER and coupon_data['limit_count']):
-            raise TypeError("COUPON_DATE_CANNOT_BE_NULL")
+        ISSUE_TYPE_SERIAL_NUMBER = 3 # 발급 유형 시리얼 넘버     
 
         coupon_id = self.coupon_dao.create_coupon(conn)
         coupon_data['coupon_id'] = coupon_id
         self.coupon_dao.create_coupon_detail(conn, coupon_data)
         
-        for i in range(0, coupon_data['limit_count']):
-            serial_number = self.generate_serial_numbers()
-            self.coupon_dao.create_serial_number(conn, (coupon_id, serial_number,))
+        if coupon_data['issue_id'] == ISSUE_TYPE_SERIAL_NUMBER:
+            if not coupon_data['limit_count']:
+                raise TypeError("COUPON_LIMIT_COUNT_CANNOT_BE_NULL")
+            
+            for i in range(0, coupon_data['limit_count']):
+                serial_number = self.generate_serial_numbers()
+                self.coupon_dao.create_serial_number(conn, (coupon_id, serial_number,))
 
     def get_coupons(self, conn, params):
         # 조건에 해당하는 전체 쿠폰 카운트 가져오기
@@ -69,10 +70,22 @@ class CouponService:
         return tmp_filename, download_filename
 
     def remove_coupon(self, conn, coupon_id):
-        result = self.coupon_dao.find_coupon_by_id(conn, coupon_id)
+        result = self.coupon_dao.find_coupon_id_by_id(conn, coupon_id)
         if not result:
             raise TypeError(f'NO_COUPON_FOR_COUPON_{coupon_id}')
         
         self.coupon_dao.delete_serials(conn, coupon_id)
         self.coupon_dao.delete_coupon_details(conn, coupon_id)
         self.coupon_dao.delete_coupon(conn, coupon_id)
+
+    def get_coupon_code(self, conn, coupon_id):
+        result = self.coupon_dao.find_coupon_code_by_id(conn, coupon_id)
+        if not result:
+            raise TypeError(f'NO_COUPON_CODE_FOR_COUPON_{coupon_id}')
+        return result
+
+    def get_coupon_info(self, conn, coupon_id):
+        result = self.coupon_dao.find_coupon_by_id(conn, coupon_id)
+        if not result:
+            raise TypeError(f'NO_COUPON_INFO_FOR_COUPON_{coupon_id}')
+        return result
