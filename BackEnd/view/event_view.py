@@ -51,6 +51,9 @@ class PostEventView(MethodView):
             if 'youtube_vidoe_url' not in data:
                 data['youtube_video_url'] = None
 
+            if 'coupon_id' not in data:
+                data['coupon_id'] = None
+
             if 'button_product' not in data:
                 data['button_product'] = []
             else:
@@ -71,7 +74,8 @@ class PostEventView(MethodView):
                 'event_button_link_type'    : data['event_button_link_type'],
                 'event_button_link_content' : data['event_button_link_content'],
                 'youtube_video_url'         : data['youtube_video_url'],
-                'button_product'            : data['button_product']
+                'button_product'            : data['button_product'],
+                'coupon_id'                 : data['coupon_id']
             }
 
             self.service.post_event(db, arguments)

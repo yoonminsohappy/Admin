@@ -50,18 +50,13 @@ class EventService:
             {'event_type':arguments['event_type']}
         )['id']
 
-        arguments['coupon_id'] = None
-        if arguments['event_type_id'] == 2:
-            arguments['copon_id'] = arguments['event_kind']
-
-        else:
-            arguments['event_kind_id'] = self.event_dao.get_event_kind_id(
-                db,
-                {
-                    'event_kind'    : arguments['event_kind'],
-                    'event_type_id' : arguments['event_type_id']
-                }
-            )['id']
+        arguments['event_kind_id'] = self.event_dao.get_event_kind_id(
+            db,
+            {
+                'event_kind'    : arguments['event_kind'],
+                'event_type_id' : arguments['event_type_id']
+            }
+        )['id']
 
         arguments['event_id'] = self.event_dao.post_event(db)
 
