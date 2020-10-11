@@ -59,7 +59,7 @@ class EventDao:
             event_simple_description,
             event_detail_description,
             youtube_video_url,
-            event_kind_id
+            coupon_id
             )
         VALUES
             (
@@ -84,7 +84,7 @@ class EventDao:
             %(simple_description)s,
             %(detail_description)s,
             %(youtube_video_url)s,
-            %(event_kind_id)s
+            %(coupon_id)s
             );
         """
 
