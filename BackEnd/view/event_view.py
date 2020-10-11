@@ -51,15 +51,10 @@ class PostEventView(MethodView):
             if 'youtube_vidoe_url' not in data:
                 data['youtube_video_url'] = None
 
-            if 'button_name' not in data:
-                data['button_name'] = []
+            if 'button_product' not in data:
+                data['button_product'] = []
             else:
-                data['button_name'] = ast.literal_eval(data['button_name'])
-
-            if 'product_ids' not in data:
-                data['product_ids'] = []
-            else:
-                data['product_ids'] = ast.literal_eval(data['product_ids'])
+                data['button_product'] = list(data['button_product'])
 
             arguments = {
                 'banner_image'              : banner_image,
@@ -76,9 +71,7 @@ class PostEventView(MethodView):
                 'event_button_link_type'    : data['event_button_link_type'],
                 'event_button_link_content' : data['event_button_link_content'],
                 'youtube_video_url'         : data['youtube_video_url'],
-                'button_names'              : data['button_name'],
-                'product_ids'               : data['product_ids'],
-                'mapped_product_count'      : len(data['product_ids'])
+                'button_product'            : data['button_product']
             }
 
             self.service.post_event(db, arguments)

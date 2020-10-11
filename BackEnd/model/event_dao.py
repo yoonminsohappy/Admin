@@ -58,7 +58,8 @@ class EventDao:
             event_button_link_content,
             event_simple_description,
             event_detail_description,
-            youtube_video_url
+            youtube_video_url,
+            event_kind_id
             )
         VALUES
             (
@@ -82,9 +83,9 @@ class EventDao:
             %(event_button_link_content)s,
             %(simple_description)s,
             %(detail_description)s,
-            %(youtube_video_url)s
-            )
-
+            %(youtube_video_url)s,
+            %(event_kind_id)s
+            );
         """
 
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
@@ -213,5 +214,60 @@ class EventDao:
                 raise ValueError
 
             return event_button_link_type_id
+
+        raise err.OperationalError
+
+    def post_event_buttons(self, db, arguments):
+        sql = """
+        INSERT INTO event_buttons
+        (
+        `name`,
+        `order`,
+        `event_id`,
+        `is_exist`
+        )
+        VALUES
+        (
+        %(name)s,
+        %(order)s,
+        %(event_id)s,
+        %(is_exist)s
+        );
+        """
+
+        with db.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, arguments)
+            result = cursor.lastrowid
+
+            if not result:
+                raise err.OperationalError
+
+            return result
+
+        raise err.OperationalError
+
+    def post_product_events(self, db, arguments):
+        sql = """
+        INSERT INTO product_events
+        (
+        `product_id`,
+        `order`,
+        `button_id`
+        )
+        VALUES
+        (
+        %(product_id)s,
+        %(order)s,
+        %(button_id)s
+        );
+        """
+
+        with db.cursor(pymysql.cursors.DictCursor) as cursor:
+            result = cursor.execute(sql, arguments)
+
+            if not result:
+                raise err.OperationalError
+
+            return result
 
         raise err.OperationalError

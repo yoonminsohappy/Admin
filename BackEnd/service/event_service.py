@@ -49,13 +49,18 @@ class EventService:
             db,
             {'event_type':arguments['event_type']}
         )['id']
-        arguments['event_kind_id'] = self.event_dao.get_event_kind_id(
-            db,
-            {
-                'event_kind'    : arguments['event_kind'],
-                'event_type_id' : arguments['event_type_id']
-            }
-        )['id']
+
+        if arguments['event_type_id'] == 2:
+            arguments['event_kind_id'] = arguments['event_kind']
+
+        else:
+            arguments['event_kind_id'] = self.event_dao.get_event_kind_id(
+                db,
+                {
+                    'event_kind'    : arguments['event_kind'],
+                    'event_type_id' : arguments['event_type_id']
+                }
+            )['id']
 
         arguments['event_id'] = self.event_dao.post_event(db)
 
@@ -76,6 +81,37 @@ class EventService:
                 {'event_button_link_type':arguments['event_button_link_type']}
             )
 
+        if len(arguments['button_product']) > 1:
+            is_exist = 1
+        else:
+            is_exist = 0
+
+        count = 0
+
+        for button in arguments['button_product']:
+            button_id = self.event_dao.post_event_buttons(
+                db,
+                {
+                    'name':button['name'],
+                    'order':button['order'],
+                    'event_id':arguments['event_id'],
+                    'is_exist':is_exist
+                }
+            )
+
+            for index, product_id in enumerate(button['product_ids']):
+                self.event_dao.post_product_events(
+                    db,
+                    {
+                        'product_id':product_id,
+                        'order':index + 1,
+                        'button_id':button_id
+                    }
+                )
+                count += 1
+
+        arguments['mapped_product_count'] = count
+        del(arguments['button_product'])
         self.event_dao.post_event_detail(db, arguments)
 
         return ''
