@@ -14,6 +14,7 @@ from utils.validation import (
     CouponValidationError,
     validate_coupon_int_required,
     validate_coupon_int_optional,
+    validate_coupon_str_required,
     validate_coupon_str_optional,
     validate_coupon_date_optional,
     validate_coupon_bool_optional
@@ -327,6 +328,45 @@ class CouponView(MethodView):
 
         finally:
             conn.close()
+
+    def put(self, coupon_id):
+        try:
+            conn = get_connection(config.database)
+
+            data = request.get_json()
+            
+            coupon_name = data['coupon_name']
+            description = data['description']
+
+            coupon_id   = validate_coupon_int_required(coupon_id, 'coupon_id')
+            coupon_name = validate_coupon_str_required(coupon_name, 'coupon_name')
+            description = validate_coupon_str_required(description, 'description')
+
+            params = {}
+            params['coupon_id']   = coupon_id
+            params['coupon_name'] = coupon_name
+            params['description'] = description
+
+            self.service.update_coupon_info(conn, params)
+            
+        except (err.OperationalError, err.InternalError, err.IntegrityError) as e: 
+            conn.rollback()
+            return jsonify({ "errno": e.args[0], "errval": e.args[1] }), 500
+
+        except TypeError as e:
+            conn.rollback()
+            return jsonify({"message": e.args[0]}), 400
+
+        except KeyError as e:
+            return jsonify({"message": "KEY_ERROR", "key_name": e.args[0]}), 400
+
+        else: 
+            conn.commit()
+            return jsonify({"message": "SUCCESS"}), 200
+
+        finally:
+            conn.close()
+
 
     def delete(self, coupon_id):
         try:

@@ -444,6 +444,13 @@ def validate_coupon_int_optional(data, key):
 
     return data
 
+def validate_coupon_str_required(data, key):
+    if data:
+        if isinstance(data, str):
+            return data
+
+    raise CouponValidationError("WRONG_DATA", key, data)
+
 def validate_coupon_str_optional(data, key):
     if data:
         if not isinstance(data, str):

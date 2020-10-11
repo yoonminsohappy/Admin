@@ -89,3 +89,6 @@ class CouponService:
         if not result:
             raise TypeError(f'NO_COUPON_INFO_FOR_COUPON_{coupon_id}')
         return result
+
+    def update_coupon_info(self, conn, params):
+        self.coupon_dao.update_coupon_detail(conn, params)

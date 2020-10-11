@@ -293,3 +293,13 @@ class CouponDao:
             cursor.execute(sql, (coupon_id,))
             result = cursor.fetchone()
             return result
+
+    def update_coupon_detail(self, conn, params):
+        sql = """
+            UPDATE coupon_details
+            SET name=%(coupon_name)s, description=%(description)s
+            WHERE coupon_id=%(coupon_id)s;
+        """
+
+        with conn.cursor() as cursor:
+            cursor.execute(sql, params)
