@@ -1,6 +1,6 @@
 import boto3
 
-from datetime import date
+from datetime import datetime
 
 from werkzeug.utils import secure_filename
 
@@ -64,9 +64,9 @@ class EventService:
 
         arguments['event_id'] = self.event_dao.post_event(db)
 
-        if date.fromisoformat(arguments['started_at']) > date.today():
+        if datetime.fromisoformat(arguments['started_at']) > datetime.today():
             arguments['event_status'] = '대기'
-        elif date.fromisoformat(arguments['started_at']) <= date.today() and date.fromisoformat(arguments['ended_at']) >= date.today():
+        elif datetime.fromisoformat(arguments['started_at']) <= datetime.today() and datetime.fromisoformat(arguments['ended_at']) >= datetime.today():
             arguments['event_status'] = '진행중'
         else:
             arguments['event_status'] = '종료'
