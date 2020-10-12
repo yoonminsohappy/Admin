@@ -1,8 +1,10 @@
 import json, bcrypt, jwt, datetime
 import boto3
+import uuid
 from flask          import jsonify
 from flask_paginate import Pagination, get_page_args
 
+from pyexcel_xls    import save_data
 from werkzeug.utils import secure_filename
 
 class SellerService:
@@ -18,12 +20,10 @@ class SellerService:
     def search_sellers(self, conn, search_term, limit):
         """
         상품 등록을 위해 셀러를 검색한다.
-
         Args:
             conn       : 데이터베이스 커넥션 객체
             search_term: 검색어
             limit      : 몇 개의 row를 가져올지 정하는 수
-
         Returns:
             results: 셀러 정보를 담은 딕셔너리 리스트
                 [
@@ -35,10 +35,8 @@ class SellerService:
                     },
                     ...
                 ] 
-
         Author:
             이충희(choonghee.dev@gmail.com)
-
         History:
             2020-09-20(이충희): 초기 생성
         """
@@ -50,16 +48,12 @@ class SellerService:
 
         """
         새로운 셀러를 생성합니다.
-
             Args:
                 seller_info : view에서 7개의 파라미터들 딕셔너리 형태로 넣어준 변수
             Retruns:
                 200, {'message': 'SUCCESS'} : 회원가입 성공
-
                 400, {'message':str(e)} : 회원가입 실패, 유효성 검사 오류
-
                 400, {"errno": e.args[0], "errval": e.args[1]} : DB와 관련된 오류
-
                 (  
                     IntegrityError : 데이터베이스의 관계형 무결성에서 발생하는 예외 (외래키 검사 실패, 중복키, 기타)
                     DataError : 0으로 나누기, 범위를 벗어난 숫자 값,기타
@@ -67,7 +61,6 @@ class SellerService:
                     OperationalError : 데이터베이스와 관련된 오류에 대해 예외, 예기치 않은 연결 해제가 발생하면 데이터 소스 이름이 발견, 트랜잭션을 처리 할 수 ​​없음, 메모리 할당 처리 중 오류
                     InternalError : 데이터베이스가 내부 오류, 예를 들어 커서가 더 이상 유효하지 않습니다. 트랜잭션이 동기화되지 않음 등
                 )
-
             Authors:
                 wldus9503@gmail.com(이지연)
             
@@ -134,8 +127,8 @@ class SellerService:
         manager = {
             'manager_phone'     : seller_info['phone_number'],
             'seller_id'         : pk_seller_id,
-            'manager_name'      : '미등록', #이유:회원가입시 담당자 관련 정보는 전화번호만 받지만 
-            'manager_email'     : '미등록'  #컬럼을 null값으로 두고 검색기능쪽에서 like를 통해서 "%%"로 전체검색을 하더라도 null값이여서 인식이 안되기 때문 
+            'manager_name'      : 'NoData', #이유:회원가입시 담당자 관련 정보는 전화번호만 받지만 
+            'manager_email'     : 'NoData'  #컬럼을 null값으로 두고 검색기능쪽에서 like를 통해서 "%%"로 전체검색을 하더라도 null값이여서 인식이 안되기 때문 
         }                                   # select * from seller_informations where seller_account like "%%"; 
                                             # SQL문 LIKE 에서 _ 와 % :
 
@@ -170,7 +163,7 @@ class SellerService:
         results = {}
 
         # 과거 데이터 pk값들 추출하기
-        # past_sellers_pk = self.dao.find_past_sellers(conn)
+        #past_sellers_pk = self.dao.find_past_sellers(conn)
 
         if search_info is None:
             raise Exception("INVALID_PARAMETER")
@@ -207,10 +200,10 @@ class SellerService:
             raise Exception("UNAUTHORIZATION")
         
         # unique
-        if self.dao.unique_seller_account(conn, update_info['seller_account']): #0이 아니면 if문 조건 참, 0이면 거짓
+        if modifier_user['seller_account'] != update_info['seller_account'] and self.dao.unique_seller_account(conn, update_info['seller_account']): #0이 아니면 if문 조건 참, 0이면 거짓
             raise Exception("UNIQUE_SELLER_ACCOUNT") #참인경우는 즉, 동일한 아이디에 대한 데이터가 있다
 
-        if self.dao.unique_cs_phone(conn, update_info['cs_phone']):
+        if modifier_user['cs_phone'] != update_info['cs_phone'] and self.dao.unique_cs_phone(conn, update_info['cs_phone']):
             raise Exception("UNIQUE_SELLER_CS_PHONE")
 
         #현재 데이터
@@ -273,6 +266,7 @@ class SellerService:
         
         #셀러 상태 변경시 상태 변경 이력 추가
         if past_seller_info['seller_status_id'] != updated_info['seller_status_id']:
+            print("asd")
             seller_info = {
                 'seller_id'         : updated_info['seller_id'],                
                 'created_at'        : datetime.datetime.now(),                
@@ -285,10 +279,18 @@ class SellerService:
         # 매니저 처리
         self.dao.delete_managers(conn,updated_info['seller_id']) #현재 등록된 모든 manager를 삭제
         for manager in update_info['manager_infos']: #리스트형으로 받은 최대 3명의 매니저를 insert
+            
+            #담당자 핸드폰 유니크 검사
+            if self.dao.unique_manager_phone(conn, manager['manager_phone']):
+                raise Exception("UNIQUE_SELLER_MANAGER_PHONE")
+            #담당자 이메일 유니크 검사
+            if self.dao.unique_manager_email(conn, manager['manager_email']):
+                raise Exception("UNIQUE_SELLER_MANAGER_EMAIL")
+
             manager['seller_id'] = updated_info['seller_id']
             self.dao.insert_manager(manager,conn)
 
-        return results
+        return "수정 완료" if results > 0 else "수정 실패"
 
     # s3에 이미지 파일 업로드
     def save_seller_image(self, image, filename):
@@ -302,14 +304,13 @@ class SellerService:
 
         return image_url
 
+    #셀러 수정 페이지
     def detail_seller(self, conn, seller_id):
         """
         셀러 수정 페이지를 위해 셀러의 정보를 가져온다.
-
         Args:
             conn       : 데이터베이스 커넥션 객체
             seller_id  : 해당 셀러 id에 해당하는 정보를 갖고 오기 위함
-
         Returns:
             results: 셀러 정보를 담은 딕셔너리 리스트
                 "manager":[
@@ -356,35 +357,84 @@ class SellerService:
                     [1, "2020-10-03 22:25:26", "입점대기", "testa1234_1" ],
                      [1, "2020-10-03 22:25:26",…]
               }] 
-
         Author:
             이지연(wldus9503@@gmail.com)
-
         History:
             2020-10-04(이지연): 초기 생성
         """
 
         #딕셔너리로 결과를 담을 변수 생성
         results = {}
-
+        print('1')
         #seller테이블에 해당하는 컬럼값
         seller = self.dao.find_detail_seller(conn, seller_id) 
         if seller is None:
             raise Exception("INVALID_PARAMETER")
-        
+        print('2')
         #manager테이블에 해당하는 컬럼값
         manager = self.dao.find_detail_manager(conn, seller_id)
         if manager is None:
             raise Exception("INVALID_PARAMETER")
-        
+        print('3')
         #변경이력 테이블에 해당하는 컬럼값
         seller_modification = self.dao.find_detail_seller_modification(conn, seller_id)
         if seller_modification is None:
             raise Exception("INVALID_PARAMETER")
-        
+        print('4')
+
         #딕셔너리로 값을 넣어준다.
         results['seller'] = seller
         results['manager'] = manager
         results['seller_modification'] = seller_modification
         
         return results
+
+    #엑셀 다운로드
+    def make_excel_file(self, conn, search_info):
+        
+        results = {}
+
+        if search_info is None:
+            raise Exception("INVALID_PARAMETER")
+
+        seller_list = []
+        temp = []
+        #검색결과 리스트
+        result_list = self.dao.find_search_seller_list_excel(conn, search_info)
+
+        for result in result_list: #리스트 돌면서
+            if result['id'] not in temp: #temp리스트에 id값이 존재하지 않는 경우만 append 즉, 중복없이 하나씩만 넣기
+                temp.append(result['id']) #temp에 id값 넣기
+                seller_list.append(result) #반환용 seller_list에 검색결과 row하나씩 넣기
+
+        #엑셀 상단 컬럼명
+        data = [['번호','셀러아이디','영문이름','한글이름', '담당자이름','셀러상태','담당자연락처','담당자이메일','셀러속성','상품개수','등록일시']]
+
+        #중복 제거한 seller_list를 순선대로 data에 리스트 형으로 append
+        for i, item in enumerate(seller_list):
+            data.append([
+                item['id'],
+                item['seller_account'],
+                item['english_name'],
+                item['korean_name'],
+                item['manager_name'],
+                item['seller_status'],
+                item['manager_phone_number'],
+                item['manager_email'],
+                item['seller_property'],
+                item['registered_product_count'],
+                item['register_date']
+            ])
+        
+        #data라는 엑셀에 넣을 데이터를 만들어낸 후
+        #directory는 "temp/" 라는 폴더로 지정
+        directory = "temp/"
+        #uuid.uuid4()를 통해서 겹치지않게하는 문자열로 .xls파일을 만들어 냄
+        filename = f"{str(uuid.uuid4())}.xls"
+
+        #엑셀 생성시에는 pyexcel_xls의 save_data라는 함수를 이용하여 생성하고
+        #디렉토리, 파일명, "셀러리스트엑셀_브랜디.xls"(고정값)을 return
+        save_data(directory + filename, {"data": data})
+
+        return directory, filename, "셀러리스트엑셀_브랜디.xls"
+

@@ -1,4 +1,4 @@
-from flask          import jsonify, request
+from flask          import jsonify, request, send_file
 from flask.views    import MethodView
 
 from connection     import get_connection
@@ -35,8 +35,7 @@ from utils.validation import (
     Validation_model_top_size,
     Validation_model_bottom_size,
     Validation_model_feet_size,
-    Validation_shopping_feedtext,
-    # Validate_seller_from_to
+    Validation_shopping_feedtext
 )
 
 from utils.decorator import (
@@ -45,7 +44,7 @@ from utils.decorator import (
 )
 
 import config,connection
-import traceback
+import traceback, os, datetime
 
 class ProductSellerSearchView(MethodView):
     def __init__(self, service):
@@ -100,7 +99,7 @@ class SellerSignUpView(MethodView):
 
     def __init__(self, service):
         self.service = service #(app->init->view)
-
+    
     @catch_exception
     #validator에서 오류가 날 경우 500이 아닌 400에러를 반환
     @validate_params(
@@ -152,9 +151,8 @@ class SellerSignUpView(MethodView):
                 2020.10.02(이지연) : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
                 2020.10.07(이지연)  : 회원가입할 시 셀러 계정아이디, 셀러 cs_phone, manager_phone unique처리 추가
         """
-
         try:
-            conn          = connection.get_connection(config.database)   
+            conn          = connection.get_connection()   
             seller_info   = {
                 'seller_account'    :   args[0],
                 'password'          :   args[1],
@@ -232,7 +230,7 @@ class SellerSignInView(MethodView):
     def post(self, *args):
        
         try:
-            conn          = connection.get_connection(config.database)
+            conn          = connection.get_connection()
             seller_info   = {
                 'seller_account'    :   args[0],
                 'password'          :   args[1]
@@ -261,26 +259,26 @@ class  SellerSearchView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    @login_decorator
     @catch_exception
+    @login_decorator
     @validate_params(
         Param('id', GET, str, required=False, default=None),
-        Param('seller_account', GET, str, required=False, default=''),
-        Param('korean_name', GET, str, required=False, default=''),
-        Param('english_name', GET, str, required=False, default=''),
-        Param('seller_status', GET, str, required=False, default=''),
-        Param('seller_property',GET, str, required=False, default=''),
-        Param('manager_name', GET, str, required=False, default=''),
-        Param('manager_phone', GET, str, required=False, default=''),
-        Param('manager_email', GET, str, required=False,default=''),
-        Param('start_date', GET, str, required=False, default=''),
-        Param('end_date',GET, str, required=False, default=''),
+        Param('seller_account', GET, str, required=False, default=None),
+        Param('korean_name', GET, str, required=False, default=None),
+        Param('english_name', GET, str, required=False, default=None),
+        Param('seller_status', GET, str, required=False, default=None),
+        Param('seller_property',GET, str, required=False, default=None),
+        Param('manager_name', GET, str, required=False, default=None),
+        Param('manager_phone', GET, str, required=False, default=None),
+        Param('manager_email', GET, str, required=False,default=None),
+        Param('start_date', GET, str, required=False, default=None),
+        Param('end_date',GET, str, required=False, default=None),
         Param('page',GET, int, required=False, default=1), #현재 페이지
         Param('per_page',GET, int, required=False, default=10),
         Param('order',GET, str, required=False, default='DESC',rules=[Validation_order()]) # DAO에서 sql 정렬방식 
     )
-    
-    def get(self,*args):
+    #프론트에서 페이지 번호, 페이지 당 개수
+    def get(self, *args):
         """
         셀러 계정 관리 검색 API
 
@@ -319,8 +317,7 @@ class  SellerSearchView(MethodView):
         """
 
         try:
-            conn = connection.get_connection(config.database)
-
+            conn = connection.get_connection()
             search_info = {
                 'id'                        :   args[0],
                 'seller_account'            :   args[1],
@@ -337,9 +334,9 @@ class  SellerSearchView(MethodView):
                 'per_page'                  :   args[12],
                 'order'                     :   args[13]
             }
+           # print(request.seller_id)
 
-            results     = self.service.search_seller_list(conn, search_info)
-
+            results = self.service.search_seller_list(conn, search_info)
         except:
             traceback.print_exc()
             return jsonify({'message': 'UNSUCCESS'}), 400
@@ -388,7 +385,7 @@ class SellerUpdateView(MethodView):
 
     def put(self,*args):
         try:
-            conn = connection.get_connection(config.database)
+            conn = connection.get_connection()
 
             update_info   = {
                 'seller_id'                   : args[0],
@@ -429,7 +426,7 @@ class SellerUpdateView(MethodView):
 
             #데코레이터로 부터 저장한 요청자의 id값 = 수정자의 id
             modifier_user = request.user
-            
+            #print(modifier_user)
             #프로필 이미지 및 배경화면 이미지 값 받아오기
             profile_image = request.files.get('profile_image', None)
             background_image = request.files.get('background_image', None)
@@ -454,7 +451,7 @@ class SellerUpdateView(MethodView):
 
         try: 
             #db연결
-            conn            = get_connection(config.database)
+            conn            = get_connection()
             #seller_id를 인자로 갖 고온다.
             seller_id       = args[0]
             #service에서 넘겨준 값을 results변수에 담는다.
@@ -467,4 +464,65 @@ class SellerUpdateView(MethodView):
         else:
             return jsonify(results), 200
         finally:
+            conn.close()
+
+# 엑셀 다운로드 파일 엔드포인트
+class SellerExcelDownloadView(MethodView):
+    def __init__(self, service):
+        self.service = service
+
+    @login_decorator
+    @catch_exception
+    @validate_params(
+        Param('id', GET, str, required=False, default=None),
+        Param('seller_account', GET, str, required=False, default=None),
+        Param('korean_name', GET, str, required=False, default=None),
+        Param('english_name', GET, str, required=False, default=None),
+        Param('seller_status', GET, str, required=False, default=None),
+        Param('seller_property',GET, str, required=False, default=None),
+        Param('manager_name', GET, str, required=False, default=None),
+        Param('manager_phone', GET, str, required=False, default=None),
+        Param('manager_email', GET, str, required=False,default=None),
+        Param('start_date', GET, str, required=False, default=None),
+        Param('end_date',GET, str, required=False, default=None),
+        Param('order',GET, str, required=False, default='DESC',rules=[Validation_order()])
+    )
+    def get(self, *args):
+        try:
+            conn = connection.get_connection()
+
+            #데이터를 dict형으로 받아준다.
+            search_info = {
+                'id'                        :   args[0],
+                'seller_account'            :   args[1],
+                'english_name'              :   args[2],
+                'korean_name'               :   args[3],
+                'cs_phone'                  :   args[4],
+                'seller_status'             :   args[5],
+                'seller_property'           :   args[6],
+                'manager_name'              :   args[7],
+                'manager_phone'             :   args[8],
+                'manager_email'             :   args[9],
+                'start_date'                :   args[9],
+                'end_date'                  :   args[10],
+                'order'                     :   args[11]
+            }
+            
+            directory, filename, filename_for_user = self.service.make_excel_file(conn, search_info)
+            #print(directory,filename,filename_for_user)
+        except:
+            traceback.print_exc()
+            return jsonify({'message': 'UNSUCCESS'}), 400
+        else:
+            now_date = datetime.datetime.now().strftime("%Y%m%d")
+            #오늘 날짜 + '_' + "유저 다운로드 파일명"
+            filename_for_user = now_date + "_" + filename_for_user
+            #flask의 send_file 기능 -> 서버에 저장되어있는 엑셀파일을 응답에 담아서 보냄
+            return send_file(directory + filename,
+                mimetype="application/vnd.ms-excel",
+                as_attachment=True,
+                attachment_filename=filename_for_user,
+                conditional=False)
+        finally:
+            os.remove(os.path.join('temp/', filename))
             conn.close()

@@ -12,16 +12,14 @@ class UserService:
 
         if search_info is None:
             raise Exception("INVALID_PARAMETER")
-
         total_count = self.dao.find_search_total_user_list(conn, search_info)
 
         total_page  = int(total_count/10)+1
 
         user_list = []
-
         if search_info['page'] <= total_page:
             user_list = self.dao.find_search_user_list(conn, search_info)
-            
+
         results['user_list']    = user_list
         results['total_page']   = int(total_count/10)+1
         results['total_count']  = total_count

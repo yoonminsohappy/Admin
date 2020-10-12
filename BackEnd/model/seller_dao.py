@@ -68,7 +68,7 @@ class SellerDao:
         params['seller_properties'] = seller_properties
 
         """
-        회원가입시 sellr_property_id를 갖고 오기 위함, json데이터에서는 name으로만 준다.
+        회원가입시 sellr_property_id를 갖고 오기 위함 , json데이터에서는 name으로만 준다.
 
         Args:
             conn             : 데이터베이스 커넥션 객체
@@ -275,7 +275,15 @@ class SellerDao:
 
         params = dict()
 
-        params['name'] = past_seller_info['name']
+        params['seller_id'] = seller['seller_id']
+        params['seller_account'] = seller['seller_account']
+        params['password'] = seller['password']
+        params['seller_property_id'] = seller['seller_property_id']
+        params['korean_name'] = seller['korean_name']
+        params['english_name'] = seller['english_name']
+        params['cs_phone'] = seller['cs_phone']
+        params['modifier_id'] = seller['modifier_id']
+        
 
         sql = """
             INSERT INTO seller_informations(
@@ -316,10 +324,10 @@ class SellerDao:
         
         params = dict()
 
-        params['name'] = past_seller_info['name']
-        params['email'] = past_seller_info['email']
-        params['phone_number'] = past_seller_info['phone_number']
-        params['seller_id'] = past_seller_info['seller_id']
+        params['name'] = manager['manager_name']
+        params['email'] = manager['manager_email']
+        params['phone_number'] = manager['manager_phone']
+        params['seller_id'] = manager['seller_id']
     
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
             sql = """
@@ -378,7 +386,6 @@ class SellerDao:
 
         """
 
-        
         sql = """
                 SELECT
                     i.seller_id,
@@ -411,23 +418,10 @@ class SellerDao:
                 raise Exception('login error')
         return result
     
-    # 셀러 검색 전체 갯수
+    # 셀러 검색 전체 갯수 - 조건에 맞는 총 개수 구함
     def find_search_total_seller_list(self, conn, search_info):
-
-        params = dict()
-
-        params['id'] = "%" + search_info['id'] +"%"
-        params['seller_account'] = "%" + search_info['seller_account'] +"%"
-        params['korean_name'] = "%" + search_info['korean_name'] +"%"
-        params['english_name'] = "%" + search_info['english_name'] +"%"
-        params['seller_status'] = "%" + search_info['seller_status'] +"%"
-        params['seller_property'] = "%" + search_info['seller_property'] +"%"
-        params['manager_name'] = "%" + search_info['manager_name'] +"%"
-        params['manager_phone'] = "%" + search_info['manager_phone'] +"%"
-        params['manager_email'] = "%" + search_info['manager_email'] +"%"                
-
         """
-        셀러 전체 검색 리스트 
+        셀러 검색 전체 갯수
 
         Args:
             conn             : 데이터베이스 커넥션 객체
@@ -442,11 +436,104 @@ class SellerDao:
             2020.09.22(이지연) : 초기생성
             2020.10.05(이지연): 데이터베이스 커서 with 문법 사용으로 변경 
             2020.10.07(이지연) :쿼리문 수정 -> PARAM으로 먼저 값이 있는 지 확인 후 추가
-        """
-       
+        """ 
+               
+        params = dict()
+
+        params = {
+            'id':None, 
+            'seller_account':None, 
+            'korean_name':None,
+            'english_name':None,
+            'seller_status':None,
+            'seller_property':None,
+            'manager_name':None,
+            'manager_phone':None,
+            'manager_email':None,
+            'start_date':None,
+            'end_date':None
+        }
+
+        if search_info['id']:
+            params['id'] = search_info['id']
+
+        if search_info['seller_account']:
+            params['seller_account'] = "%" + search_info['seller_account'] +"%"
+
+        if search_info['korean_name']:
+            params['korean_name'] = "%" + search_info['korean_name'] +"%"
+
+        if search_info['english_name']:
+            params['english_name'] = "%" + search_info['english_name'] +"%"
+
+        if search_info['seller_status']:
+            params['seller_status'] = "%" + search_info['seller_status'] +"%"
+        
+        if search_info['seller_property']:
+            params['seller_property'] = "%" + search_info['seller_property'] +"%"
+        
+        if search_info['manager_name']:
+            params['manager_name'] = "%" + search_info['manager_name'] +"%"
+
+        if search_info['manager_phone']:
+            params['manager_phone'] = "%" + search_info['manager_phone'] +"%"
+
+        if search_info['manager_email']:
+            params['manager_email'] = "%" + search_info['manager_email'] +"%"   
+
+        if search_info['start_date']:
+            params['start_date'] = search_info['start_date']
+
+        if search_info['end_date']:
+            params['end_date'] = search_info['end_date']
+
+        where_sql = ""
+
+        if params['id']:
+            where_sql += """
+                AND
+                    i.seller_id = %(id)s
+            """
+
+        if params['seller_account']:
+            where_sql += """
+                AND
+                    i.seller_account like %(seller_account)s
+            """
+
+        if params['korean_name']:
+            where_sql += """
+                AND 
+                    i.korean_name like %(korean_name)s
+            """
+        
+        if params['english_name']:
+            where_sql += """
+                AND 
+                    i.english_name like %(english_name)s
+            """
+
+        if params['manager_phone']:
+            where_sql += """
+                AND 
+                    m.phone_number like %(manager_phone)s
+            """
+
+        if params['manager_email']:
+            where_sql += """
+                AND 
+                    m.email like %(manager_email)s
+            """
+
+        if params['start_date']  and params['end_date']:
+            where_sql += """
+                AND
+                    s.register_date BETWEEN %(start_date)s and %(end_date)s
+            """
+        
         sql = """
             SELECT
-            count(*) as count
+                count(*) as count
             
             FROM sellers s
 
@@ -455,17 +542,9 @@ class SellerDao:
             INNER JOIN seller_statuses t ON i.seller_status_id = t.id
             INNER JOIN seller_managers m ON i.seller_id = m.seller_id
 
-            WHERE s.id like %(id)s
-                AND i.seller_account like %(seller_account)s
-                AND i.korean_name like %(korean_name)s
-                AND i.english_name like %(english_name)s
-                AND t.name like %(seller_status)s
-                AND p.name like %(seller_property)s
-                AND m.name like %(manager_name)s
-                AND m.phone_number like %(manager_phone)s
-                AND m.email like %(manager_email)s 
-                AND s.is_deleted != 1
-                AND i.expired_at = '9999-12-31 23:59:59'
+            WHERE s.is_deleted != 1
+            AND i.expired_at = '9999-12-31 23:59:59'
+                """ + where_sql + """;
         """
             #검색할때 조건을 여러개 주면 그 여러개에 대해서 and
 
@@ -473,27 +552,41 @@ class SellerDao:
             # INNER JOIN seller_properties p ON i.seller_property_id = p.id => 그 다음 아래줄 3개부터는 i와 조인가능한 것들을 해준다.
             # INNER JOIN seller_statuses t ON i.seller_status_id = t.id
             # INNER JOIN seller_managers m ON i.seller_id = m.seller_id => 위에서 조인한 것을 i가 갖고있기 때문에 
-
+        #print(sql)
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+
             cursor.execute(sql, (
-                params
+                    params
                 ))
 
             # like 구문에서 %:전체 단어, _:한단어 
             # %['']% => 모든 문자열 반환, null은 조건에 맞지 않아 반환하지 않는다.
             
             results = cursor.fetchone()['count']
+            print(results)
             if not results:
                 raise pymysql.err.InternalError("not found search seller_list")
         return results 
-
 
     #셀러 전체 리스트
     def find_search_seller_list(self, conn, search_info):
 
         params = dict()
 
-        params['register_date'] = "%Y-%m-%d %H:%i:%s"
+        params = {
+            'id':None, 
+            'seller_account':None, 
+            'korean_name':None,
+            'english_name':None,
+            'seller_status':None,
+            'seller_property':None,
+            'manager_name':None,
+            'manager_phone':None,
+            'manager_email':None,
+            'start_date':None,
+            'end_date':None,
+            'register_date': "%Y-%m-%d %H:%i:%s"
+        }
 
         if search_info['id']:
             params['id'] = "%" + search_info['id'] +"%"
@@ -522,18 +615,17 @@ class SellerDao:
         if search_info['manager_email']:
             params['manager_email'] = "%" + search_info['manager_email'] +"%"
 
-        if search_info['registered_product_count']:
-            params['registered_product_count'] = "%" + search_info['registered_product_count'] +"%"
-
         if search_info['start_date']:
-            params['start_date'] = "%" + search_info['start_date'] +"%"
+            params['start_date'] = search_info['start_date']
 
         if search_info['end_date']:
-            params['end_date'] = "%" + search_info['end_date'] +"%"
+            params['end_date'] = search_info['end_date']
 
 
         params['page'] = (int(search_info['page'])-1)*10
         params['per_page'] = search_info['per_page']
+
+        order = search_info['order']
 
         """
         셀러 전체 리스트
@@ -556,14 +648,13 @@ class SellerDao:
         """
 
         # sql실행시킬 시 예약어로 인식을 하지 못하는 에러 때문에 미리 변수에 넣어서 sql문자열에 합쳐준다.
-        order = search_info['order']
 
         where_sql = ""
 
         if params['id']:
             where_sql += """
                 AND
-                    s.id like %(id)s
+                    s.id = %(id)s
                 """
 
         if params['seller_account']:
@@ -583,40 +674,34 @@ class SellerDao:
                     i.korean_name like %(korean_name)s
             """
 
-        if params['name']:
+        if params['manager_name']:
             where_sql +=  """
                 AND
-                    m.name like %(name)s
+                    m.name like %(manager_name)s
             """
         
-        if params['name']:
+        if params['seller_status']:
             where_sql += """
                 AND 
-                    t.name like %(name)s
+                    t.name like %(seller_status)s
             """
 
-        if params['phone_number']:
+        if params['manager_phone']:
             where_sql += """
                 AND 
-                    phone_number like %(phone_number)s
+                    phone_number like %(manager_phone)s
                 """
 
-        if params['email']:
+        if params['manager_email']:
             where_sql += """
                 AND 
-                    t.name like %(name)s
+                    t.name like %(manager_email)s
                 """
 
-        if params['name']:
+        if params['seller_property']:
             where_sql += """
                 AND
-                    p.name like %(name)s
-                """
-        
-        if params['registered_product_count']:
-            where_sql += """
-                AND 
-                    i.registered_product_count = %(registered_product_count)s
+                    p.name like %(seller_property)s
                 """
 
         if params['start_date']  and params['end_date']:
@@ -646,9 +731,8 @@ class SellerDao:
             INNER JOIN seller_statuses t ON i.seller_status_id = t.id
             INNER JOIN seller_managers m ON s.id = m.seller_id
 
-            WHERE 
-                i.expired_at = '9999-12-31 23:59:59'
-                AND s.is_deleted != 1
+            WHERE s.is_deleted != 1
+            AND i.expired_at = '9999-12-31 23:59:59'
                 """ + where_sql + """
 
             ORDER BY id """ + order + """
@@ -688,7 +772,6 @@ class SellerDao:
             2020.10.07(이지연)  : 쿼리 excute params 값 변경 
 
         """
-
         params = dict()
 
         params['id'] = id
@@ -697,7 +780,8 @@ class SellerDao:
             SELECT *
             FROM seller_informations
             WHERE id = %(id)s
-             """
+            
+            """
 
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
             cursor.execute(sql, (
@@ -732,10 +816,10 @@ class SellerDao:
         """
         params = dict()
 
-        params['seller_id'] = past_seller_info['seller_id']
-        params['updated_at'] = past_seller_info['updated_at']
-        params['seller_status_id'] = past_seller_info['seller_status_id']
-        params['modifier_id'] = past_seller_info['modifier_id']
+        params['seller_id'] = seller_info['seller_id']
+        params['updated_at'] = seller_info['created_at']
+        params['seller_status_id'] = seller_info['seller_status_id']
+        params['modifier_id'] = seller_info['modifier_id']
 
         sql = """
             INSERT INTO seller_status_modification_histories
@@ -1036,7 +1120,7 @@ class SellerDao:
                 ))
 
             result = cursor.rowcount
-            if rows <= 0 or not result:
+            if result <= 0 or not result:
                 raise Exception('not found rowcount')
         return result
 
@@ -1070,15 +1154,15 @@ class SellerDao:
             FROM seller_managers
             WHERE seller_id = %(seller_id)s;
         """
-        
-        cursor = conn.cursor(pymysql.cursors.DictCursor)
-        cursor.execute(sql, (
-            params
-            ))
 
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+
+            cursor.execute(sql, (
+                params
+                ))
+
             result = cursor.rowcount
-            if rows <= 0 or not result:
+            if result <= 0 or not result:
                 raise pymysql.err.InternalError('not found delete')
         return result
 
@@ -1153,7 +1237,7 @@ class SellerDao:
         """
             
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
-            cursor = conn.cursor(pymysql.cursors.DictCursor)
+
             cursor.execute(sql, (
                 params
             ))
@@ -1212,12 +1296,13 @@ class SellerDao:
             ))
 
             results = cursor.fetchall()
-    
+
             if not results:
                 raise Exception("잘못된 요청입니다, 디비 쿼리 실패 바부야")
 
         return results
 
+    # 이부부 에러 수정 하기
     #셀러 수정 페이지->셀러 정보 갖고오기
     def find_detail_seller_modification(self, conn, seller_id):
         
@@ -1262,7 +1347,8 @@ class SellerDao:
             INNER JOIN seller_statuses t ON sm.seller_status_id = t.id
             INNER JOIN seller_informations si ON sm.seller_id = si.seller_id
             
-            WHERE sm.id = %(seller_id)s
+            WHERE sm.seller_id = %(seller_id)s
+            AND si.expired_at = '9999-12-31 23:59:59'
             
             ORDER BY updated_time DESC
         """
@@ -1276,6 +1362,7 @@ class SellerDao:
                 raise Exception("잘못된 요청입니다, 디비 쿼리 실패 바부야")
             return results
 
+    #데코레이터 seller_id 
     def decorator_find_seller(self, conn, seller_id):
         params = dict()
 
@@ -1285,8 +1372,8 @@ class SellerDao:
             SELECT 
                 i.seller_id,
                 i.seller_account,
-                i.password,
-                i.is_master
+                i.is_master,
+                i.cs_phone
                 
             FROM seller_informations i
 
@@ -1304,7 +1391,6 @@ class SellerDao:
                 params
             ))
             results = cursor.fetchone()
-
             if not results:
                 raise Exception("잘못된 요청입니다, 디비 쿼리 실패")
             return results
@@ -1393,5 +1479,205 @@ class SellerDao:
                 raise Exception("잘못된 요청입니다, 디비 쿼리 실패")
             return results['count']
 
+    def unique_manager_email(self, conn, email):
 
+        params = dict()
+
+        params['email'] = email
+
+        sql = """
+            SELECT 
+                count(*) as count
+            
+            FROM seller_managers
+            
+            WHERE email = %(email)s
+        """
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:          
+            cursor.execute(sql, (
+                params
+            ))
+            results = cursor.fetchone()
+
+            if not results:
+                raise Exception("잘못된 요청입니다, 디비 쿼리 실패")
+            return results['count']
+
+    #수정하기
+    #셀러 엑셀 전체 리스트
+    def find_search_seller_list_excel(self, conn, search_info):
+
+        params = dict()
+
+        params = {
+            'id':None, 
+            'seller_account':None, 
+            'korean_name':None,
+            'english_name':None,
+            'seller_status':None,
+            'seller_property':None,
+            'manager_name':None,
+            'manager_phone':None,
+            'manager_email':None,
+            'start_date':None,
+            'end_date':None,
+            'register_date': "%Y-%m-%d %H:%i:%s"
+        }
+
+        if search_info['id']:
+            params['id'] = "%" + search_info['id'] +"%"
+
+        if search_info['seller_account']:
+            params['seller_account'] = "%" + search_info['seller_account'] +"%"
+
+        if search_info['korean_name']:
+            params['korean_name'] = "%" + search_info['korean_name'] +"%"
+
+        if search_info['english_name']:
+            params['english_name'] = "%" + search_info['english_name'] +"%"
+
+        if search_info['seller_status']:
+            params['seller_status'] = "%" + search_info['seller_status'] +"%"
+        
+        if search_info['seller_property']:
+            params['seller_property'] = "%" + search_info['seller_property'] +"%"
+        
+        if search_info['manager_name']:
+            params['manager_name'] = "%" + search_info['manager_name'] +"%"
+
+        if search_info['manager_phone']:
+            params['manager_phone'] = "%" + search_info['manager_phone'] +"%"
+
+        if search_info['manager_email']:
+            params['manager_email'] = "%" + search_info['manager_email'] +"%"
+
+        if search_info['start_date']:
+            params['start_date'] = search_info['start_date']
+
+        if search_info['end_date']:
+            params['end_date'] = search_info['end_date']
+
+        order = search_info['order']
+
+        """
+        셀러 전체 리스트
+
+        Args:
+            conn             : 데이터베이스 커넥션 객체
+            search_info      : 셀러 계정 아이디, 셀러 비밀번호를 담은 딕셔너리
+
+        Returns:
+            results: 셀러 상태 정보를 담은 row 하나
     
+        Author:
+            이지연(wldus9503@gmail.com)
+
+        History:
+            2020-10-9(이지연)  : 데이터베이스 커서 with 문법 사용으로 변경 
+            2020.10.11(이지연) : 쿼리 excute params 값 변경 
+
+        """
+
+        # sql실행시킬 시 예약어로 인식을 하지 못하는 에러 때문에 미리 변수에 넣어서 sql문자열에 합쳐준다.
+
+        where_sql = ""
+
+        if params['id']:
+            where_sql += """
+                AND
+                    s.id = %(id)s
+                """
+
+        if params['seller_account']:
+            where_sql += """
+                AND
+                    i.seller_account like %(seller_account)s
+                """
+        
+        if params['english_name']:
+            where_sql += """
+                AND i.english_name like %(english_name)s
+            """
+
+        if params['korean_name']:
+            where_sql += """
+                AND 
+                    i.korean_name like %(korean_name)s
+            """
+
+        if params['manager_name']:
+            where_sql +=  """
+                AND
+                    m.name like %(manager_name)s
+            """
+        
+        if params['seller_status']:
+            where_sql += """
+                AND 
+                    t.name like %(seller_status)s
+            """
+
+        if params['manager_phone']:
+            where_sql += """
+                AND 
+                    phone_number like %(manager_phone)s
+                """
+
+        if params['manager_email']:
+            where_sql += """
+                AND 
+                    t.name like %(manager_email)s
+                """
+
+        if params['seller_property']:
+            where_sql += """
+                AND
+                    p.name like %(seller_property)s
+                """
+
+        if params['start_date']  and params['end_date']:
+            where_sql += """
+                AND
+                    s.register_date BETWEEN %(start_date)s and %(end_date)s
+                """
+
+        sql = """
+            SELECT
+                s.id as id, 
+                i.seller_account as seller_account,
+                i.cs_phone as cs_phone,
+                i.english_name as english_name,
+                i.korean_name as korean_name,
+                m.name as manager_name,
+                t.name as seller_status,
+                m.phone_number as manager_phone_number,
+                m.email as manager_email,
+                p.name as seller_property,
+                i.registered_product_count as registered_product_count,
+                DATE_FORMAT(s.register_date,%(register_date)s) as register_date
+
+            FROM sellers s
+
+            INNER JOIN seller_informations i ON s.id = i.seller_id
+            INNER JOIN seller_properties p ON i.seller_property_id = p.id
+            INNER JOIN seller_statuses t ON i.seller_status_id = t.id
+            INNER JOIN seller_managers m ON s.id = m.seller_id
+
+            WHERE s.is_deleted != 1
+            AND i.expired_at = '9999-12-31 23:59:59'
+                """ + where_sql + """
+
+            ORDER BY id """ + order + """;
+        """
+            #LIMIT 시작점, 뽑을 갯수
+            #쿼리에 검색 내용을 인자로 넣어서 실행
+        
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, (
+                params
+                ))
+            results = cursor.fetchall()
+            if not results:
+                raise pymysql.err.InternalError('not found seller list')
+
+        return results

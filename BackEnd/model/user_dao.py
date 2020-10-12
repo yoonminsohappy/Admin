@@ -55,7 +55,7 @@ class UserDao:
         cursor = conn.cursor(pymysql.cursors.DictCursor)
         
         cursor.execute(sql, (
-            "%" +   ['id'] +"%",
+            "%" + search_info['id'] +"%",
             "%" + search_info['account_id'] + "%",
             "%" + search_info['user_email'] +"%",
             "%" + search_info['user_phone'] + "%",

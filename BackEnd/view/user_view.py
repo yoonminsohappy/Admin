@@ -46,7 +46,7 @@ class  UserSerachView(MethodView):
     )
     def get(self,*args):
         try:
-            conn = connection.get_connection(config.database)
+            conn = connection.get_connection()
 
             search_info = {
                 'id'            : args[0],

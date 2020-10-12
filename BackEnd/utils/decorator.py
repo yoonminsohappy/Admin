@@ -35,7 +35,7 @@ def login_decorator(f):
     """
 
     @wraps(f)
-    def wrapper(*args, **kwargs):
+    def wrapper(self, *args, **kwargs):
 
         try:
             #Authorization Header에 담긴 Access Token, csrf 등 보안공격에 대해서 안전
@@ -45,18 +45,23 @@ def login_decorator(f):
                 payload         = jwt.decode(access_token, config.SECRET_KEY, algorithm = config.ALGORITHM)
                 
                 #seller_id 즉 sellers테이블의 pk를 payload로 불러오기
-                seller_id  = payload['seller_id'] 
-                conn            = connection.get_connection(config.database)
-               
-                # seller_account의 value값과 db에 연결에서 실제 있는지 확인하기 위한 용도
+                print("payload",payload)
+                seller_id  = payload['seller_id']
+                conn       = connection.get_connection()
+
+                # seller_id의 value값과 db에 연결에서 실제 있는지 확인하기 위한 용도
                 result = SellerDao().decorator_find_seller(conn, seller_id)
 
                 conn.close() #db 연결 종료
 
                 if result:
-                    traceback.print_exc() # 오류가 없으면 NoneType : None
+                    #request의 seller_id 라는 속성에는 seller_id값을 넣어주도록합니다
+                    request.seller_id = seller_id
+                    # result를 request(http요청)의 user라는 속성에 넣어주도록합니다.
                     request.user = result
-                    return f(seller_id,*args, **kwargs)
+                    
+                    #이후 로그인한 유저에 대한 정보가 추가된 request를 포함시켜서 return
+                    return f(self, *args)
                 return jsonify({'message':'INVALID_USER'}), 400
         except jwt.exceptions.DecodeError:
             traceback.print_exc()

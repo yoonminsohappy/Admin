@@ -6,10 +6,9 @@ insertion3.sql
 script.sql
 admin.py
 config.py
-insertion4.sql
-insertion5.sql
 insertion10.sql
 images
+/temp
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,python,pycharm,flask,vim

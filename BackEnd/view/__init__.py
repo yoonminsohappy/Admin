@@ -20,7 +20,8 @@ from .seller_view  import (
     SellerSignUpView,
     SellerSignInView,
     SellerSearchView,
-    SellerUpdateView
+    SellerUpdateView,
+    SellerExcelDownloadView
 )
 
 from .user_view import (
@@ -90,16 +91,13 @@ def create_endpoints(app, services):
     app.add_url_rule('/order-address',
         view_func = PutAddress.as_view('order_address_view', order_service)
     )
-    # 작성자: 이지연
-    # 작성일: 2020.09.22.화  
+    # seller
     app.add_url_rule('/sellers/signup', view_func=SellerSignUpView.as_view('seller_signup_view',seller_service))
     app.add_url_rule('/sellers/signin', view_func=SellerSignInView.as_view('seller_signin_view',seller_service))
-    # 작성일: 2020.09.29.화
     app.add_url_rule('/sellers', view_func=SellerSearchView.as_view('seller_search_view',seller_service))  
     app.add_url_rule('/sellers/<int:seller_id>', view_func=SellerUpdateView.as_view('seller_update_view',seller_service))
-    # 작성일: 2020.10.01.목
+    app.add_url_rule('/sellers/download', view_func=SellerExcelDownloadView.as_view('seller_excel_download_view', seller_service))
     app.add_url_rule('/users',view_func=UserSerachView.as_view('user_search_view',user_service)) 
-
     # 쿠폰
     app.add_url_rule('/coupons',view_func=CouponsView.as_view('coupons_view', coupon_service))
     app.add_url_rule('/coupons/<int:coupon_id>', view_func=CouponView.as_view('coupon_view', coupon_service))
