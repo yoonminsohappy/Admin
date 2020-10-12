@@ -4,6 +4,71 @@ from pymysql    import err
 from connection import get_connection
 
 class OrderDao:
+    def get_order_data_count(self, db, arguments):
+        sql_1 = """
+        SELECT
+            COUNT(DISTINCT d.id) AS count
+        FROM
+            order_details d
+
+            LEFT JOIN orders o
+                ON d.order_id = o.id
+            LEFT JOIN options i
+                ON d.option_id = i.id
+            LEFT JOIN colors c
+                ON i.color_id = c.id
+            LEFT JOIN sizes z
+                ON i.size_id = z.id
+            LEFT JOIN products p
+                ON i.product_id = p.id
+            LEFT JOIN product_details pd
+                ON pd.id = i.product_id
+            LEFT JOIN seller_informations sl
+                ON sl.id = p.seller_id
+            LEFT JOIN order_status_modification_histories osmh
+                ON osmh.order_detail_id = d.id
+            LEFT JOIN order_cancel_reasons ocr
+                ON d.order_cancel_reason_id = ocr.id
+            LEFT JOIN order_refund_reasons orr
+                ON d.order_refund_reason_id = orr.id
+        WHERE
+            osmh.updated_at >= %(start_date)s
+            AND osmh.updated_at <= %(end_date)s
+            AND d.order_detail_statuses_id = %(status_id)s
+            AND sl.seller_property_id IN %(seller_properties)s
+            AND osmh.order_status_id = %(status_id)s
+        """
+        sql_2 = """
+        ORDER BY osmh.updated_at DESC;
+        """
+
+        if arguments['order_number'] != "%\%":
+            sql_1 += " AND o.order_number LIKE %(order_number)s"
+        elif arguments['detail_number'] != "%\%":
+            sql_1 += " AND d.order_detail_number LIKE %(detail_number)s"
+        elif arguments['user_name'] != "%\%":
+            sql_1 += " AND d.orderer_name LIKE %(user_name)s"
+        elif arguments['phone_number'] != "%\%":
+            sql_1 += " AND d.phone_number LIKE %(phone_number)s"
+        elif arguments['seller_name'] != "%\%":
+            sql_1 += " AND sl.korean_name LIKE %(seller_name)s"
+        elif arguments['product_name'] != "%\%":
+            sql_1 += " AND pd.name LIKE %(product_name)s"
+
+        if arguments['order_cancel_reason']:
+            sql_1 += " AND ocr.name = %(order_cancel_reason)s"
+        elif arguments['order_refund_reason']:
+            sql_1 += " AND orr.name = %(order_refund_reason)s"
+
+        sql = sql_1 + sql_2
+
+        with db.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, arguments)
+            order_data_count = cursor.fetchone()
+
+            return order_data_count
+
+        raise err.OperationalError
     def get_order_data(self, db, arguments):
         """
         주문정보 - Persistence Layer(model) function
@@ -95,7 +160,8 @@ class OrderDao:
         """
         sql_2 = """
         GROUP BY d.id
-        ORDER BY osmh.updated_at DESC;
+        ORDER BY osmh.updated_at DESC
+        LIMIT %(limit)s OFFSET %(offset)s;
         """
 
         if arguments['order_number'] != "%\%":

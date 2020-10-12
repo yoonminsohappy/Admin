@@ -5,7 +5,7 @@ from flask_cors     import CORS
 
 from model          import ProductDao, SellerDao, OrderDao, UserDao, CouponDao, EventDao
 from service        import ProductService, SellerService, OrderService, UserService, CouponService, EventService
-from view           import create_endpoints
+from view           import create_endpoints, EventView
 
 class Services:
     pass
@@ -42,3 +42,4 @@ def create_app(test_config = None):
     create_endpoints(app, services)
 
     return app
+

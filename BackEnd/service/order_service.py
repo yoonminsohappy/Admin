@@ -48,6 +48,7 @@ class OrderService:
         """
 
         order_data  = self.order_dao.get_order_data(db, arguments)
+        count = self.order_dao.get_order_data_count(db, arguments)['count']
 
         for order_datum in order_data:
             if arguments['status_id'] == 7:
@@ -63,7 +64,12 @@ class OrderService:
 
             order_datum['current_updated_at'] = order_datum['current_updated_at'].strftime('%Y-%m-%d %H:%M:%S')
 
-        return order_data
+        result = {
+            'count'      : count,
+            'order_data' : order_data
+        }
+
+        return result
 
     def update_order_status(self, db, arguments):
         """

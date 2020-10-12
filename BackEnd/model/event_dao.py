@@ -304,6 +304,7 @@ class EventDao:
             ON ek.id = ed.event_kind_id
         WHERE
             e.is_deleted = 0
+            AND ed.expired_at = '9999-12-31'
         """
 
         sql_2 = """
@@ -354,3 +355,60 @@ class EventDao:
 
         raise err.OperationalError
 
+    def get_event_status(self, db):
+        sql = """
+        SELECT
+            e.id AS event_id,
+            es.id AS event_status_id,
+            ed.started_at AS started_at,
+            ed.ended_at AS ended_at
+        FROM
+            events e
+        LEFT JOIN
+            event_details ed
+            ON e.id = ed.event_id
+        LEFT JOIN
+            event_statuses es
+            ON ed.event_status_id = es.id
+        LEFT JOIN
+            event_types et
+            ON et.id = ed.event_type_id
+        LEFT JOIN
+            event_kinds ek
+            ON ek.id = ed.event_kind_id
+        WHERE
+            e.is_deleted = 0
+            AND es.id IN (1, 3)
+            AND ed.expired_at = '9999-12-31'
+        ORDER BY
+            e.id DESC;
+        """
+
+        with db.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql)
+            result = cursor.fetchall()
+
+            return result
+
+        raise err.OperationalError
+
+    def put_event_status(self, db):
+        sql = """
+        UPDATE
+            event_details
+        SET
+            event_status_id = %(event_status_id)s
+        WHERE
+            id = %(event_id)s
+            AND expired_at = '9999-12-31';
+        """
+
+        with db.cursor(pymysql.cursors.DictCursor) as cursor:
+            result = cursor.execute(sql)
+
+            if not result:
+                raise err.OperationalError
+
+            return ''
+
+        raise err.OperationalError

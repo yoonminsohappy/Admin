@@ -75,23 +75,31 @@ class GetOrderDataView(MethodView):
             seller_name         = "%" + request.args.get('seller_name', "") + "%"
             product_name        = "%" + request.args.get('product_name', "") + "%"
 
+            # seller_properties가 여러 개의 값이 아닌 하나로 들어올 경우
+            # int형으로 오는 것을 tuple로 변환
             if isinstance(seller_properties, int):
                 seller_properties = [seller_properties]
 
+            # 필수로 들어와야할 Key가 들어오지 않았을 경우 KEY_ERROR 반환
             if (not status_id) or (offset == -1) or (limit == -1):
                 return jsonify({'message':'KEY_ERROR'}), 400
 
+            # start_date가 들어오지 않았을 경우 가장 앞선 날짜로 설정
             if not start_date:
                 start_date = str(date.min)
 
+            # end_date가 들어오지 않았을 경우 오늘 날짜로 설정
             if not end_date:
                 end_date = str(date.today())
 
+            # 날짜만 들어와서 00시를 기준으로 비교하게 되기에
+            # 하루를 더해서 마지막 날짜로 들어온 값도 포함되도록 설정
             day      = timedelta(days = 1)
             end_date = str(date.fromisoformat(end_date) + day)
 
+            # start_date가 end_date보다 뒤의 날짜일 경우 INVALID_DATE 반환
             if start_date > end_date:
-                return jsonify({'message':'INVALID DATE'}), 400
+                return jsonify({'message':'INVALID_DATE'}), 400
 
             arguments = {
                 'start_date'          : start_date,
@@ -112,24 +120,19 @@ class GetOrderDataView(MethodView):
 
             order_data = self.service.get_order_data(db, arguments)
 
-            result = {
-                "count"      : len(order_data),
-                "order_data" : order_data[offset : limit]
-            }
-
         except ValueError:
             traceback.print_exc()
             return jsonify({'message':'VALUE_ERROR'}), 400
 
         except err.OperationalError:
-            return jsonify({'message':'DB_DISCONNECTED'}), 400
+            return jsonify({'message':'DB_DISCONNECTED'}), 500
 
         except:
             traceback.print_exc()
             return jsonify({'message':'UNSUCCESS'}), 400
 
         else:
-            return jsonify(result), 200
+            return jsonify(order_data), 200
 
         finally:
             db.close()
@@ -188,7 +191,7 @@ class PutOrderStatusView(MethodView):
             return jsonify({'message':'VALUE_ERROR'}), 400
 
         except err.OperationalError:
-            return jsonify({'message':'DB_DISCONNECTED'}), 400
+            return jsonify({'message':'DB_DISCONNECTED'}), 500
 
         except:
             traceback.print_exc()
@@ -267,7 +270,7 @@ class GetOrderDetailDataView(MethodView):
             return jsonify({'message':'VALUE_ERROR'}), 400
 
         except err.OperationalError:
-            return jsonify({'message':'DB_DISCONNECTED'}), 400
+            return jsonify({'message':'DB_DISCONNECTED'}), 500
 
         except:
             traceback.print_exc()
@@ -326,7 +329,7 @@ class PutAddress(MethodView):
             return jsonify({'message':'VALUE_ERROR'}), 400
 
         except err.OperationalError:
-            return jsonify({'message':'DB_DISCONNECTED'}), 400
+            return jsonify({'message':'DB_DISCONNECTED'}), 500
 
         except:
             traceback.print_exc()

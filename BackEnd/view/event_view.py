@@ -1,7 +1,8 @@
 import json
 
-from flask import jsonify, request
-from flask.views import MethodView
+from flask         import jsonify, request
+from flask.views   import MethodView
+from flask_crontab import Crontab
 
 from werkzeug.utils import secure_filename
 
@@ -144,6 +145,24 @@ class EventView(MethodView):
         else:
             db.commit()
             return jsonify({'message':'SUCCESS'}), 200
+
+        finally:
+            db.close()
+
+    def put(self):
+        try:
+            db = connection.get_connection()
+
+            result = str(self.service.put_event_status(db))
+
+        except:
+            db.rollback()
+            traceback.print_exc()
+            return jsonify({'message':'UNSUCCESS'}), 400
+
+        else:
+            db.commit()
+            return jsonify({'message':f'{result}_EVENT_WAS_CHANGED'}), 200
 
         finally:
             db.close()

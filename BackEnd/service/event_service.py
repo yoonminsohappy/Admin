@@ -37,12 +37,14 @@ class EventService:
         return f"{self.config['S3_BUCKET_URL_EVENT']}{filename}"
 
     def post_event(self, db, arguments):
+        arguments['event_id'] = self.event_dao.post_event(db)
+
         if arguments['banner_image'] is not None:
-            banner_image_filename     = 'banner_' + secure_filename(arguments['banner_image'].filename)
+            banner_image_filename     = 'banner_' + str(arguments['event_id']) + secure_filename(arguments['banner_image'].filename)
             arguments['banner_image'] = self.save_event_picture(arguments['banner_image'], banner_image_filename)
 
         if arguments['detail_image'] is not None:
-            detail_image_filename     = 'detail_' + secure_filename(arguments['detail_image'].filename)
+            detail_image_filename     = 'detail_' + str(arguments['event_id']) + secure_filename(arguments['detail_image'].filename)
             arguments['detail_image'] = self.save_event_picture(arguments['detail_image'], detail_image_filename)
 
         arguments['event_type_id'] = self.event_dao.get_event_type_id(
@@ -54,8 +56,6 @@ class EventService:
             {'event_kind'    : arguments['event_kind'],
              'event_type_id' : arguments['event_type_id']})['id']
 
-        arguments['event_id'] = self.event_dao.post_event(db)
-
         if datetime.fromisoformat(arguments['started_at']) > datetime.today():
             arguments['event_status'] = '대기'
         elif datetime.fromisoformat(arguments['started_at']) <= datetime.today() and datetime.fromisoformat(arguments['ended_at']) >= datetime.today():
@@ -63,7 +63,9 @@ class EventService:
         else:
             arguments['event_status'] = '종료'
 
-        arguments['event_status_id'] = self.event_dao.get_event_status_id(db, {'event_status':arguments['event_status']})['id']
+        arguments['event_status_id'] = self.event_dao.get_event_status_id(
+            db,
+            {'event_status':arguments['event_status']})['id']
 
         arguments['event_button_link_type_id'] = None
         if arguments['event_button_link_type']:
@@ -104,9 +106,9 @@ class EventService:
         event_list = self.event_dao.get_event_list(db, arguments)
 
         for event in event_list:
-            event['started_at']    = event['started_at'].isoformat()
-            event['ended_at']      = event['ended_at'].isoformat()
-            event['register_date'] = event['register_date'].isoformat()
+            event['started_at']    = event['started_at'].isoformat(' ')
+            event['ended_at']      = event['ended_at'].isoformat(' ')
+            event['register_date'] = event['register_date'].isoformat(' ')
 
         return event_list
 
@@ -114,3 +116,26 @@ class EventService:
         self.event_dao.delete_event(db, arguments)
 
         return ''
+
+    def put_event_status(self, db):
+        event_statuses = self.event_dao.get_event_status(db)
+
+        count = 0
+
+        for event_status in event_statuses:
+            if datetime.fromisoformat(str(event_status['started_at'])) > datetime.today():
+                if event_status['event_status_id'] != 3:
+                    self.event_dao.put_event_status(db, {'event_status_id':3, 'event_id':event_status['event_id']})
+                    count += 1
+
+            elif datetime.fromisoformat(str(event_status['started_at'])) <= datetime.today() and datetime.fromisoformat(str(event_status['ended_at'])) >= datetime.today():
+                if event_status['event_status_id'] != 1:
+                    self.event_dao.put_event_status(db, {'event_status_id':1, 'event_id':event_status['event_id']})
+                    count += 1
+
+            else:
+                if event_status['event_status_id'] != 2:
+                    self.event_dao.put_event_status(db, {'event_status_id':2, 'event_id':event_status['event_id']})
+                    count += 1
+
+        return count
