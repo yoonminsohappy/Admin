@@ -1085,7 +1085,7 @@ class ProductDao:
             cursor.execute(sql, (product_id, ordering,))
 
     def find_product_history(self, conn, product_id):
-         """
+        """
         상품 아이디로 상품 이력 조회
 
         Args:

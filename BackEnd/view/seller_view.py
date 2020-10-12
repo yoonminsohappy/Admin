@@ -73,7 +73,7 @@ class ProductSellerSearchView(MethodView):
             2020-09-20(이충희): 초기 생성
         """
         try: 
-            conn        = get_connection(config.database)
+            conn        = get_connection()
         
             search_term = request.args.get('q')
             limit       = request.args.get('limit', '10')

@@ -61,7 +61,7 @@ class FirstCategoriesBySellerPropertyIdView(MethodView):
             2020-09-22(이충희): 초기 생성
         """
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
 
             seller_property_id = request.args.get('seller-property-id', None)
             if not seller_property_id or not seller_property_id.isnumeric():
@@ -105,7 +105,7 @@ class SecondCategoriesByFirstCategoryIdView(MethodView):
             2020-09-22(이충희): 초기 생성
         """
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
 
             first_category_id = request.args.get('first-category-id', None)
             if not first_category_id or not first_category_id.isnumeric():
@@ -157,7 +157,7 @@ class ProductsView(MethodView):
             2020-09-29(이충희): 커스텀 에러 처리 추가
         """
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
             
             images = []
             for i in range(1, 6):
@@ -219,7 +219,7 @@ class ProductsView(MethodView):
             2020-09-30(이충희): 초기 생성
         """
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
 
             # 필터 조건을 쿼리스트링으로 받아온다.
             limit               = request.args.get('limit', '10')
@@ -300,7 +300,7 @@ class ProductView(MethodView):
             2020-09-30(이충희): 초기 생성
         """
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
             validate_product_code(code)
 
             result = self.service.get_product_by_code(conn, code)
@@ -345,7 +345,7 @@ class ProductView(MethodView):
         """
 
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
             
             # 이미지 업데이트 상태
             # 이미지 파일
@@ -418,7 +418,7 @@ class ProductCountriesView(MethodView):
             2020-10-02(이충희): 초기 생성
         """
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
 
             results = self.service.get_countries(conn)
         except (err.OperationalError, err.InternalError) as e:
@@ -454,7 +454,7 @@ class ProductColorsView(MethodView):
         """
 
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
 
             results = self.service.get_colors(conn)
         except (err.OperationalError, err.InternalError) as e:
@@ -490,7 +490,7 @@ class ProductSizesView(MethodView):
         """
 
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
 
             results = self.service.get_sizes(conn)
         except (err.OperationalError, err.InternalError) as e:
@@ -530,7 +530,7 @@ class ProductsDownloadView(MethodView):
             2020-10-03(이충희): 초기 생성
         """
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
 
             # 다운로드 타입 all(날짜 조건의 모든 상품) / select (선택상품)
             download_type = request.args.get('type', '')
@@ -600,7 +600,7 @@ class ProductHistoryView(MethodView):
             2020-10-03(이충희): 초기 생성
         """
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
 
             # product_id = int(product_id)
         

@@ -2,7 +2,7 @@ import pymysql
 
 class CouponDao:
     def create_coupon(self, conn):
-         """
+        """
         쿠폰 만들기
 
         Args:

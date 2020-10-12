@@ -145,7 +145,7 @@ class CouponsView(MethodView):
         ISSUE_TYPE_SERIAL_NUMBER = 3
 
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
 
             data = request.get_json()
             
@@ -238,7 +238,7 @@ class CouponsView(MethodView):
         TIME_DAY_END              = ' 23:59:59'
 
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
 
             limit                 = request.args.get(KEY_LIMIT, 10)
             page                  = request.args.get(KEY_PAGE, 1)
@@ -332,7 +332,7 @@ class CouponSerialsView(MethodView):
             2020-10-11(이충희): 초기 생성
         """
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
 
             coupon_id = validate_coupon_int_required(coupon_id, 'coupon_id')
 
@@ -375,7 +375,7 @@ class CouponView(MethodView):
             2020-10-10(이충희): 초기 생성
         """
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
 
             coupon_id = validate_coupon_int_required(coupon_id, 'coupon_id')
 
@@ -412,7 +412,7 @@ class CouponView(MethodView):
             2020-10-11(이충희): 초기 생성
         """
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
 
             data = request.get_json()
             
@@ -468,7 +468,7 @@ class CouponView(MethodView):
             2020-10-11(이충희): 초기 생성
         """
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
 
             coupon_id = validate_coupon_int_required(coupon_id, 'coupon_id')
 
@@ -511,7 +511,7 @@ class CouponCodeView(MethodView):
             2020-10-11(이충희): 초기 생성
         """
         try:
-            conn = get_connection(config.database)
+            conn = get_connection()
 
             coupon_id = validate_coupon_int_required(coupon_id, 'coupon_id')
  
