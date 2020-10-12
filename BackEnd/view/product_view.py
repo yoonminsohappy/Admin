@@ -129,8 +129,8 @@ class ProductsView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    @login_decorator2
-    def post(self, seller_id):
+    # @login_decorator2x
+    def post(self):
         """
         상품 등록 뷰 레이어
         데이터베이스 커넥션과 종료를 담당한다. 서비스 & DAO 레이어에서 발생한
@@ -168,7 +168,6 @@ class ProductsView(MethodView):
                 images.append(image)
 
             body  = json.loads(request.form.get('body', None))
-            body['modifier_id'] = seller_id
             
             conn.begin()
             self.service.add_product(conn, images, body)
@@ -190,7 +189,7 @@ class ProductsView(MethodView):
             message = { "message": "FORM_DATA_KEY_ERROR" }
             return jsonify(message), 400
         except json.decoder.JSONDecodeError as e:
-            db_connection.rollback()
+            conn.rollback()
             message = { "message": "INVALID_JSON_FORMAT" }
             return jsonify(message), 400
         else:
