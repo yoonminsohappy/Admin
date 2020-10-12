@@ -324,6 +324,22 @@ class ProductDao:
                 raise pymysql.err.InternalError(10004, "DAO_COULD_NOT_INSERT_PRODUCT_OPTION")
 
     def find_products(self, conn, params):
+        """
+        상품 리스트 조회
+
+        Args:
+            conn  : 데이터베이스 커넥션 객체
+            params: 상품 정보
+
+        Returns:
+            results: 상품 리스트
+
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-01(이충희): 초기 생성
+        """
         sql = """
             SELECT
                 p.id,
@@ -448,6 +464,22 @@ class ProductDao:
         return results
 
     def find_product_by_code(self, conn, code):
+        """
+        상품 상세를 상품 코드를 조건으로 조회
+
+        Args:
+            conn: 데이터베이스 커넥션 객체
+            code: 상품 코드
+
+        Returns:
+            result: 상품 상세 정보
+
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-02(이충희): 초기 생성
+        """
         sql = """
             SELECT 
                 p.id AS product_id,
@@ -498,6 +530,22 @@ class ProductDao:
         return result
 
     def find_product_images(self, conn, product_id):
+        """
+        상품 이미지 조회
+
+        Args:
+            conn      : 데이터베이스 커넥션 객체
+            product_id: 상품 번호
+
+        Returns:
+            result: 상품 이미지 정보
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-03(이충희): 초기 생성
+        """
         sql = """
             SELECT
                 pi.id, pi.image_path, pi.ordering
@@ -515,6 +563,22 @@ class ProductDao:
         return result
 
     def find_product_options(self, conn, product_id):
+        """
+        상품 옵션 조회
+
+        Args:
+            conn      : 데이터베이스 커넥션 객체
+            product_id: 상품 번호
+
+        Returns:
+            result: 상품이 가진 옵션 정보
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-04(이충희): 초기 생성
+        """
         sql = """
             SELECT 
                 *
@@ -536,6 +600,22 @@ class ProductDao:
         return results
     
     def find_all_countries(self, conn):
+        """
+        상품 제조국 리스트 조회
+
+        Args:
+            conn: 데이터베이스 커넥션 객체
+
+
+        Returns:
+            result: 상품 제조국 리스트
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-05(이충희): 초기 생성
+        """
         sql = """
             SELECT 
                 *
@@ -551,6 +631,21 @@ class ProductDao:
         return results
 
     def find_all_colors(self, conn):
+        """
+        색상 정보 조회
+
+        Args:
+            conn: 데이터베이스 커넥션 객체
+
+        Returns:
+            result: 색상 정보 리스트
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-06(이충희): 초기 생성
+        """
         sql = """
             SELECT 
                 *
@@ -566,6 +661,21 @@ class ProductDao:
         return results
 
     def find_all_sizes(self, conn):
+        """
+        사이즈 정보 조회
+
+        Args:
+            conn: 데이터베이스 커넥션 객체
+
+        Returns:
+            result: 사이즈 정보 리스트
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-06(이충희): 초기 생성
+        """
         sql = """
             SELECT 
                 *
@@ -581,6 +691,23 @@ class ProductDao:
         return results
 
     def find_products_by_dates(self, conn, start_date, end_date):
+        """
+        날짜 조건으로 상품 리스트 조회
+
+        Args:
+            conn      : 데이터베이스 커넥션 객체
+            start_date: 조건 시작 날짜
+            end_date  : 조건 끝 날쩌ㅏ
+
+        Returns:
+            result: 상품 리스트
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-06(이충희): 초기 생성
+        """
         sql = """
             SELECT 
                 DATE_FORMAT(CONVERT_TZ(p.register_date, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS register_date,
@@ -632,6 +759,22 @@ class ProductDao:
         return results
 
     def find_products_by_ids(self, conn, product_ids):
+        """
+        복수의 상품 아이디를 조건으로 상품 리스트 조회
+
+        Args:
+            conn       : 데이터베이스 커넥션 객체
+            product_ids: 상품 아이디들 
+
+        Returns:
+            result: 상품 리스트
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-06(이충희): 초기 생성
+        """
         sql = """
             SELECT 
                 DATE_FORMAT(CONVERT_TZ(p.register_date, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS register_date,
@@ -695,6 +838,21 @@ class ProductDao:
         return results
 
     def update_product(self, conn, product):
+        """
+        상품 업데이트
+
+        Args:
+            conn   : 데이터베이스 커넥션 객체
+            product: 상품 관련 파라미터 딕셔너리
+
+        Returns:
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-07(이충희): 초기 생성
+        """
         sql = """
             UPDATE 
                 products
@@ -710,6 +868,22 @@ class ProductDao:
             cursor.execute(sql, product)
 
     def find_product_detail_by_id(self, conn, product_id):
+        """
+        상품 아이디로 상품 상세 조회
+
+        Args:
+            conn      : 데이터베이스 커넥션 객체
+            product_id: 상품 아이디
+
+        Returns:
+            result: 상품 상세 정보
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-07(이충희): 초기 생성
+        """
         sql = """
             SELECT  
                 is_sold,
@@ -741,6 +915,21 @@ class ProductDao:
         return result
 
     def update_product_detail(self, conn, product_detail):
+        """
+        상품 상세 업데이트
+
+        Args:
+            conn          : 데이터베이스 커넥션 객체
+            product_detail: 상품 상세 정보 딕셔너리
+
+        Returns:
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-08(이충희): 초기 생성
+        """
         sql = """
             UPDATE
                 product_details
@@ -801,6 +990,21 @@ class ProductDao:
                 raise pymysql.err.InternalError(10002, "DAO_COULD_NOT_INSERT_PRODUCT_DETAIL")
 
     def update_option(self, conn, option):
+        """
+        옵션 업데이트
+
+        Args:
+            conn  : 데이터베이스 커넥션 객체
+            option: 수정할 옵션 정보
+
+        Returns:
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-08(이충희): 초기 생성
+        """
         sql = """
             UPDATE
                 options
@@ -818,6 +1022,23 @@ class ProductDao:
                 raise pymysql.err.InternalError(10016, "DAO_COULD_NOT_UPDATE_OPTION")
 
     def find_product_image(self, conn, product_id, ordering):
+        """
+        상품 아이디와 순서 번호로 하나의 상품 이미지 조회
+
+        Args:
+            conn      : 데이터베이스 커넥션 객체
+            product_id: 상품 아이디
+            ordering  : 이미지 순서
+
+        Returns:
+            result: 상품 이미지
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-08(이충희): 초기 생성
+        """
         sql = """
             SELECT
                 *
@@ -835,6 +1056,22 @@ class ProductDao:
             return result if result else None
 
     def delete_product_image(self, conn, product_id, ordering):
+        """
+        상품 아이디와 순서 번호로 하나의 상품 이미지 삭제
+
+        Args:
+            conn      : 데이터베이스 커넥션 객체
+            product_id: 상품 아이디
+            ordering  : 이미지 순서
+
+        Returns:
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-08(이충희): 초기 생성
+        """
         sql = """
             DELETE FROM
                 product_images
@@ -848,7 +1085,22 @@ class ProductDao:
             cursor.execute(sql, (product_id, ordering,))
 
     def find_product_history(self, conn, product_id):
-        # Timezone?
+         """
+        상품 아이디로 상품 이력 조회
+
+        Args:
+            conn      : 데이터베이스 커넥션 객체
+            product_id: 상품 아이디
+
+        Returns:
+            result: 하나의 상품에 대한 이력 리스트
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
         sql = """
             SELECT
                 DATE_FORMAT(CONVERT_TZ(pd.created_at, '+00:00', '+09:00'), '%%Y-%%m-%%d %%H:%%i:%%S') AS updated_at,

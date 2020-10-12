@@ -468,7 +468,7 @@ class ProductService:
 
     def update_product(self, conn, product_id, images, body):
         """
-        상품 이력 조회 서비스
+        상품 업데이트
 
         Args:
             conn      : 데이터베이스 커넥션 객체

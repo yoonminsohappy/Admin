@@ -126,6 +126,22 @@ class CouponsView(MethodView):
         return False
             
     def post(self):
+        """
+        쿠폰 등록
+
+        Args:
+
+        Returns:
+            200: 상품 등록 성공
+            400: 유효성 검사 에러, 타입 에러 (널), 딕셔너리 키 에러, JSON 형식 에러
+            500: 데이터베이스 조작 에러, 내부 에러, 무결성 에러
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
         ISSUE_TYPE_SERIAL_NUMBER = 3
 
         try:
@@ -186,6 +202,22 @@ class CouponsView(MethodView):
             conn.close()
 
     def get(self):
+        """
+        쿠폰 조회
+
+        Args:
+
+        Returns:
+            200: 상품 JSON 리턴
+            400: 쿼리 스트링 유효성 검사 에러
+            500: 데이터베이스 조작 에러, 내부 에러
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-10(이충희): 초기 생성
+        """
         KEY_LIMIT                 = "limit"
         KEY_PAGE                  = "page"
         KEY_ID                    = 'id'
@@ -282,6 +314,23 @@ class CouponSerialsView(MethodView):
         self.service = service
 
     def get(self, coupon_id):
+        """
+        쿠폰 시리얼 넘버 CSV 다운로드
+
+        Args:
+            coupon_id: 쿠폰 아이디
+
+        Returns:
+            200: 시리얼 넘버를 담은 CSV 파일 리턴
+            400: 존재하지 않는 쿠폰 아이디로 쿠폰 조회
+            500: 데이터베이스 조작 에러, 내부 에러
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-11(이충희): 초기 생성
+        """
         try:
             conn = get_connection(config.database)
 
@@ -296,7 +345,6 @@ class CouponSerialsView(MethodView):
             return jsonify({"message": e.args[0]}), 400
 
         else: 
-            
             file_to_send = send_file(tmp_filename, mimetype="text/csv",
                 as_attachment=True, attachment_filename=download_filename, conditional=False)
             os.remove(tmp_filename)
@@ -310,6 +358,22 @@ class CouponView(MethodView):
         self.service = service
 
     def get(self, coupon_id):
+        """
+        쿠폰 조회
+
+        Args:
+
+        Returns:
+            200: 상품 JSON 리턴
+            400: 쿼리 스트링 유효성 검사 에러
+            500: 데이터베이스 조작 에러, 내부 에러
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-10(이충희): 초기 생성
+        """
         try:
             conn = get_connection(config.database)
 
@@ -330,6 +394,23 @@ class CouponView(MethodView):
             conn.close()
 
     def put(self, coupon_id):
+        """
+        쿠폰 수정
+
+        Args:
+            coupon_id: 수정할 쿠폰 아이디
+
+        Returns:
+            200: 시리얼 넘버를 담은 CSV 파일 리턴
+            400: 존재하지 않는 쿠폰 아이디로 쿠폰 조회, 딕셔너리 키에러
+            500: 데이터베이스 조작 에러, 내부 에러, 무결성 에러
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-11(이충희): 초기 생성
+        """
         try:
             conn = get_connection(config.database)
 
@@ -369,6 +450,23 @@ class CouponView(MethodView):
 
 
     def delete(self, coupon_id):
+        """
+        쿠폰 삭제
+
+        Args:
+            coupon_id: 삭제할 쿠폰 아이디
+
+        Returns:
+            200: 삭제 성공 메시지
+            400: 존재하지 않는 쿠폰 아이디로 쿠폰 조회
+            500: 데이터베이스 조작 에러, 내부 에러, 무결성 에러
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-11(이충희): 초기 생성
+        """
         try:
             conn = get_connection(config.database)
 
@@ -395,6 +493,23 @@ class CouponCodeView(MethodView):
         self.service = service
 
     def get(self, coupon_id):
+        """
+        쿠폰 코드 조회
+
+        Args:
+            coupon_id: 조회할 쿠폰 아이디
+
+        Returns:
+            200: 쿠폰 코드 리턴
+            400: 존재하지 않는 쿠폰 아이디로 쿠폰 조회
+            500: 데이터베이스 조작 에러, 내부 에러
+            
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-11(이충희): 초기 생성
+        """
         try:
             conn = get_connection(config.database)
 

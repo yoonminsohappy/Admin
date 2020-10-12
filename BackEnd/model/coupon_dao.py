@@ -2,6 +2,20 @@ import pymysql
 
 class CouponDao:
     def create_coupon(self, conn):
+         """
+        쿠폰 만들기
+
+        Args:
+            conn  : 데이터베이스 커넥션 객체
+
+        Returns:
+        
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
         sql = """
             INSERT INTO coupons
             VALUES();
@@ -14,6 +28,21 @@ class CouponDao:
         return cursor.lastrowid
 
     def create_coupon_detail(self, conn, params):
+        """
+        쿠폰 상세 만들기
+
+        Args:
+            conn  : 데이터베이스 커넥션 객체
+            params: 입력 파라미터 딕셔너리
+
+        Returns:
+        
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
         sql = """
             INSERT INTO coupon_details (
                 coupon_id,
@@ -56,6 +85,21 @@ class CouponDao:
                 raise pymysql.err.InternalError(10101, "DAO_COULD_NOT_CREATE_COUPON_DETAIL")
 
     def create_serial_number(self, conn, params):
+        """
+        시리얼 넘버 생성
+
+        Args:
+            conn  : 데이터베이스 커넥션 객체
+            params: 입력 파라미터 딕셔너리
+
+        Returns:
+        
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
         sql = """
             INSERT INTO coupon_serial_numbers (
                 coupon_id,
@@ -71,6 +115,22 @@ class CouponDao:
                 raise pymysql.err.InternalError(10101, "DAO_COULD_NOT_CREATE_COUPON_SERIAL_NUMBER")
 
     def find_coupon_counts(self, conn, params):
+        """
+        조건에 맞는 쿠폰의 카운트 찾기
+
+        Args:
+            conn  : 데이터베이스 커넥션 객체
+            params: 조건 딕셔너리
+
+        Returns:
+            조건에 맞는 전체 쿠폰 카운트
+        
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
         sql = """
             SELECT count(*)
             FROM coupon_details AS cd
@@ -130,6 +190,22 @@ class CouponDao:
             return result
 
     def find_coupons(self, conn, params):
+        """
+        쿠폰 리스트 조회
+
+        Args:
+            conn  : 데이터베이스 커넥션 객체
+            params: 조회 조건 파라미터 딕셔너리
+
+        Returns:
+            쿠폰 리스트
+        
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
         sql = """
             SELECT
                 cd.coupon_id,
@@ -200,6 +276,22 @@ class CouponDao:
             return results
 
     def find_serials_by_coupon_id(self, conn, coupon_id):
+        """
+        쿠폰 아이디로 시리얼 넘버 찾기
+
+        Args:
+            conn     : 데이터베이스 커넥션 객체
+            coupon_id: 조회할 쿠폰 아이디
+
+        Returns:
+            쿠폰 시리얼 넘버 리스트
+        
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
         sql = """
             SELECT 
                 s.serial_number, 
@@ -214,6 +306,21 @@ class CouponDao:
             return results
 
     def delete_serials(self, conn, coupon_id):
+        """
+        쿠폰 시리얼 넘버 삭제
+
+        Args:
+            conn     : 데이터베이스 커넥션 객체
+            coupon_id: 삭제할 쿠폰 아이디
+
+        Returns:
+        
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
         sql = """
             DELETE FROM coupon_serial_numbers
             WHERE coupon_id = %s;
@@ -223,6 +330,21 @@ class CouponDao:
             cursor.execute(sql, (coupon_id,))
 
     def delete_coupon_details(self, conn, coupon_id):
+        """
+        쿠폰 상세 정보 삭제
+
+        Args:
+            conn     : 데이터베이스 커넥션 객체
+            coupon_id: 삭제할 쿠폰 아이디
+
+        Returns:
+        
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
         sql = """
             DELETE FROM coupon_details
             WHERE coupon_id = %s;
@@ -232,6 +354,21 @@ class CouponDao:
             cursor.execute(sql, (coupon_id,))
 
     def delete_coupon(self, conn, coupon_id):
+        """
+        쿠폰 삭제
+
+        Args:
+            conn     : 데이터베이스 커넥션 객체
+            coupon_id: 삭제할 쿠폰 아이디
+
+        Returns:
+        
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
         sql = """
             DELETE FROM coupons
             WHERE id = %s;
@@ -241,6 +378,22 @@ class CouponDao:
             cursor.execute(sql, (coupon_id,))
 
     def find_coupon_id_by_id(self, conn, coupon_id):
+        """
+        쿠폰 아이디로 쿠폰 조회 (쿠폰이 있는지 없는지 확인용)
+
+        Args:
+            conn     : 데이터베이스 커넥션 객체
+            coupon_id: 조회할 쿠폰 아이디
+
+        Returns:
+            쿠폰 아이디
+        
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
         sql = """
             SELECT id
             FROM coupons
@@ -253,6 +406,22 @@ class CouponDao:
             return result
 
     def find_coupon_code_by_id(self, conn, coupon_id):
+        """
+        쿠폰 아이디로 쿠폰 코드 조회
+
+        Args:
+            conn     : 데이터베이스 커넥션 객체
+            coupon_id: 조회할 쿠폰 아이디
+
+        Returns:
+            쿠폰 코드
+        
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
         sql = """
             SELECT coupon_code
             FROM coupon_details
@@ -265,6 +434,22 @@ class CouponDao:
             return result
 
     def find_coupon_by_id(self, conn, coupon_id):
+        """
+        쿠폰 아이디로 쿠폰 정보 조회
+
+        Args:
+            conn     : 데이터베이스 커넥션 객체
+            coupon_id: 조회할 쿠폰 아이디
+
+        Returns:
+            쿠폰 정보
+        
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
         sql = """
             SELECT 
                 c.id AS coupon_id,
@@ -295,6 +480,22 @@ class CouponDao:
             return result
 
     def update_coupon_detail(self, conn, params):
+        """
+        쿠폰 수정
+
+        Args:
+            conn  : 데이터베이스 커넥션 객체
+            params: 수정할 쿠폰 정보
+
+        Returns:
+            쿠폰 상세
+
+        Author:
+            이충희(choonghee.dev@gmail.com)
+
+        History:
+            2020-10-09(이충희): 초기 생성
+        """
         sql = """
             UPDATE coupon_details
             SET name=%(coupon_name)s, description=%(description)s
