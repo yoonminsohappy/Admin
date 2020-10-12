@@ -275,11 +275,61 @@ class EventDao:
         raise err.OperationalError
 
     def get_event_list(self, db, arguments):
-        sql = """
+        sql_1 = """
         SELECT
-            id,
-            name,
-            name,
-            name,
-            name,
+            e.id AS event_number,
+            ed.name AS event_name,
+            es.name AS event_status_name,
+            et.name AS event_type_name,
+            ek.name AS event_kind_name,
+            ed.started_at AS started_at,
+            ed.ended_at AS ended_at,
+            ed.is_event_exposed AS is_exposed,
+            ed.register_date AS register_date,
+            ed.mapped_product_count AS mapped_product_count,
+            ed.view_count AS view_count
+        FROM
+            events e
+        LEFT JOIN
+            event_details ed
+            ON e.id = ed.event_id
+        LEFT JOIN
+            event_statuses es
+            ON ed.event_status_id = es.id
+        LEFT JOIN
+            event_types et
+            ON et.id = ed.event_type_id
+        LEFT JOIN
+            event_kinds ek
+            ON ek.id = ed.event_kind_id
+        WHERE
+            e.is_deleted = 0
         """
+
+        sql_2 = """
+        ORDER BY
+            e.id DESC;
+        """
+
+        if arguments['event_name'] != "%\%":
+            sql_1 += " AND ed.name LIKE %(event_name)s"
+        if arguments['event_number']:
+            sql_1 += " AND e.id = %(event_number)s"
+        if arguments['event_status']:
+            sql_1 += " AND ed.event_status_id = %(event_status)s"
+        if arguments['start_date'] and arguments['end_date']:
+            sql_1 += " AND ed.register_date >= %(start_date)s AND ed.register_date <= %(end_date)s"
+        if arguments['is_exposed']:
+            sql_1 += " AND ed.is_event_exposed = %(is_exposed)s"
+        if arguments['event_type']:
+            sql_1 += " AND ed.event_type_id IN %(event_type)s"
+
+        sql = sql_1 + sql_2
+
+        with db.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql, arguments)
+            event_list = cursor.fetchall()
+
+            return event_list
+
+        raise err.OperationalError

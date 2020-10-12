@@ -9,7 +9,7 @@ import config, connection, ast
 
 import traceback
 
-class PostEventView(MethodView):
+class EventView(MethodView):
     def __init__(self, service):
         self.service = service
 
@@ -93,6 +93,32 @@ class PostEventView(MethodView):
         else:
             db.commit()
             return jsonify({'message':'SUCCESS'}), 200
+
+        finally:
+            db.close()
+
+    def get(self):
+        try:
+            db = connection.get_connection()
+
+            arguments = {
+                'event_name'   : '%' + request.args.get('event_name', '') + '%',
+                'event_number' : request.args.get('event_number', None),
+                'event_status' : request.args.get('event_status', None),
+                'start_date'   : request.args.get('start_date', None),
+                'end_date'     : request.args.get('end_date', None),
+                'is_exposed'   : request.args.get('is_exposed', None),
+                'event_type'   : ast.literal_eval(request.args.get('event_type', None))
+            }
+
+            event_list = self.service.get_event_list(db, arguments)
+
+        except Exception as e:
+            traceback.print_exc()
+            return jsonify({'message':e.message}), 400
+
+        else:
+            return jsonify(event_list), 200
 
         finally:
             db.close()

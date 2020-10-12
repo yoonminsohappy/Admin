@@ -34,7 +34,7 @@ from .coupon_view import (
     CouponCodeView
 )
 from .event_view import(
-    PostEventView
+    EventView
 )
 
 def create_endpoints(app, services):
@@ -107,4 +107,4 @@ def create_endpoints(app, services):
     app.add_url_rule('/coupons/<int:coupon_id>/serials', view_func=CouponSerialsView.as_view('coupon_serials_view', coupon_service))
 
     # 기획전
-    app.add_url_rule('/events', view_func=PostEventView.as_view('event_view', event_service))
+    app.add_url_rule('/events', view_func=EventView.as_view('event_view', event_service))
