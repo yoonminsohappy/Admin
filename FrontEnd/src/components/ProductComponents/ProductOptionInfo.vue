@@ -2,14 +2,18 @@
   <section class="product-option-info">
     <header>
       <span class="header-text">
-        <font-awesome-icon class="pencil-icon" icon="pencil-alt" />
-        옵션 정보
+        <font-awesome-icon class="pencil-icon" icon="pencil-alt" />옵션 정보
       </span>
     </header>
     <article>
-      <div class="sub-title">옵션 설정<em>*</em></div>
+      <div class="sub-title">
+        옵션 설정
+        <em>*</em>
+      </div>
       <div class="sub-main">
-        <label><input type="radio" checked />기본옵션</label>
+        <label>
+          <input type="radio" checked />기본옵션
+        </label>
       </div>
     </article>
     <article>
@@ -34,11 +38,7 @@
               </div>
             </td>
             <td>
-              <button
-                class="add"
-                v-if="select_color.length > 1"
-                v-on:click="delete_color(idx)"
-              >
+              <button class="add" v-if="select_color.length > 1" v-on:click="delete_color(idx)">
                 <font-awesome-icon icon="minus" />
               </button>
               <button class="add" v-on:click="add_color_list">
@@ -61,11 +61,7 @@
               </div>
             </td>
             <td>
-              <button
-                class="add"
-                v-if="select_size.length > 1"
-                v-on:click="delete_size(idx)"
-              >
+              <button class="add" v-if="select_size.length > 1" v-on:click="delete_size(idx)">
                 <font-awesome-icon icon="minus" />
               </button>
               <button class="add" v-on:click="add_size_list">
@@ -90,7 +86,7 @@
         </table>
 
         <button class="option-submit" v-on:click="option_submit">
-          <font-awesome-icon icon="check" /> 적용
+          <font-awesome-icon icon="check" />적용
         </button>
 
         <table>
@@ -103,10 +99,7 @@
             <th class="option-th">색상</th>
             <th class="option-th">사이즈</th>
           </tr>
-          <tr
-            v-for="(list, idx) in result.body.option"
-            v-bind:key="idx + `result`"
-          >
+          <tr v-for="(list, idx) in result.body.option" v-bind:key="idx + `result`">
             <td>
               <div class="option-select-container">
                 <div class="option-select-floater">
@@ -168,11 +161,7 @@
         </table>
 
         <p class="explain">
-          <font-awesome-icon
-            class="exclamation-icon"
-            icon="exclamation-triangle"
-          />
-          도매처옵션명 조합은 최대 100자까지 표시됩니다.
+          <font-awesome-icon class="exclamation-icon" icon="exclamation-triangle" />도매처옵션명 조합은 최대 100자까지 표시됩니다.
         </p>
       </div>
     </article>
@@ -200,7 +189,7 @@ export default {
     },
   }),
   methods: {
-    option_submit: function() {
+    option_submit: function () {
       let Arr = [];
       for (let i in this.select_color) {
         if (!this.select_color[i].id) {
@@ -229,10 +218,10 @@ export default {
 
       this.$emit("option", Arr);
     },
-    delete_color: function(idx) {
+    delete_color: function (idx) {
       this.select_color.splice(idx, 1);
     },
-    add_color: function(obj) {
+    add_color: function (obj) {
       for (let i in this.select_color) {
         if (this.select_color[i].name === obj.name) {
           return alert("이미 선택된 옵션입니다.");
@@ -240,16 +229,16 @@ export default {
       }
       this.$set(this.select_color, obj.idx, { id: obj.id, name: obj.name });
     },
-    add_color_list: function() {
+    add_color_list: function () {
       this.select_color.push({
         id: "",
         name: "색상 옵션을 선택해 주세요.",
       });
     },
-    delete_size: function(idx) {
+    delete_size: function (idx) {
       this.select_size.splice(idx, 1);
     },
-    add_size: function(obj) {
+    add_size: function (obj) {
       for (let i in this.select_size) {
         if (this.select_size[i].name === obj.name) {
           return alert("이미 선택된 옵션입니다.");
@@ -257,46 +246,46 @@ export default {
       }
       this.$set(this.select_size, obj.idx, { id: obj.id, name: obj.name });
     },
-    add_size_list: function() {
+    add_size_list: function () {
       this.select_size.push({
         id: "",
         name: "사이즈 옵션을 선택해 주세요.",
       });
     },
-    stock_manage_yes: function() {
+    stock_manage_yes: function () {
       this.stock_manage = true;
     },
-    stock_manage_no: function() {
+    stock_manage_no: function () {
       this.stock_manage = false;
     },
-    delete_result: function(idx) {
+    delete_result: function (idx) {
       this.result.body.option.splice(idx, 1);
       this.$emit("delete", idx);
     },
 
-    add_color_result: function(obj) {
+    add_color_result: function (obj) {
       this.$set(this.result.body.option[obj.idx], "color_id", obj.id);
       this.$emit("modify_color_result", obj);
     },
-    add_size_result: function(obj) {
+    add_size_result: function (obj) {
       this.$set(this.result.body.option[obj.idx], "size_id", obj.id);
       this.$emit("modify_size_result", obj);
     },
-    stock_inputer_change: function(e) {
+    stock_inputer_change: function (e) {
       this.typing_stock = e.target.value;
     },
-    stock_inputer: function(idx) {
+    stock_inputer: function (idx) {
       this.result.body.option[idx].stock = this.typing_stock;
       this.$emit("stock", this.result.body.option);
     },
-    selected_color_name: function(num) {
+    selected_color_name: function (num) {
       for (let i in this.datas.product_color_list) {
         if (this.datas.product_color_list[i].id === num) {
           return this.datas.product_color_list[i].name;
         }
       }
     },
-    selected_size_name: function(num) {
+    selected_size_name: function (num) {
       for (let i in this.datas.product_size_list) {
         if (this.datas.product_size_list[i].id === num) {
           return this.datas.product_size_list[i].name;
@@ -304,19 +293,29 @@ export default {
       }
     },
   },
-  created: function() {
-    // axios
-    //   .get(`http://10.251.1.99:5000/products/colors`)
-    //   .then((res) => (this.datas.product_color_list = res.data.data));
-    // axios
-    //   .get(`http://10.251.1.99:5000/products/sizes`)
-    //   .then((res) => (this.datas.product_size_list = res.data.data));
+  created: function () {
     axios
-      .get(`public/mockdata/product_color.json`)
+      .get(`http://10.251.1.99:5000/products/colors`, {
+        headers: {
+          Authorization:
+            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",
+        },
+      })
       .then((res) => (this.datas.product_color_list = res.data));
     axios
-      .get(`public/mockdata/product_size.json`)
+      .get(`http://10.251.1.99:5000/products/sizes`, {
+        headers: {
+          Authorization:
+            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",
+        },
+      })
       .then((res) => (this.datas.product_size_list = res.data));
+    // axios
+    //   .get(`public/mockdata/product_color.json`)
+    //   .then((res) => (this.datas.product_color_list = res.data));
+    // axios
+    //   .get(`public/mockdata/product_size.json`)
+    //   .then((res) => (this.datas.product_size_list = res.data));
   },
 };
 </script>

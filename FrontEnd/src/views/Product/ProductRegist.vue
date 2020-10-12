@@ -1,11 +1,22 @@
 <template>
   <div class="product-regist">
     <header>
-      <h1>상품 등록<span>상품 정보 등록</span></h1>
+      <h1>
+        상품 등록
+        <span>상품 정보 등록</span>
+      </h1>
       <ul class="sub-nav">
-        <li><font-awesome-icon class="home-icon" icon="home" /></li>
-        <li>상품관리<span>></span></li>
-        <li>상품 관리<span>></span></li>
+        <li>
+          <font-awesome-icon class="home-icon" icon="home" />
+        </li>
+        <li>
+          상품관리
+          <span>></span>
+        </li>
+        <li>
+          상품 관리
+          <span>></span>
+        </li>
         <li>상품 등록</li>
       </ul>
     </header>
@@ -69,16 +80,19 @@ export default {
       image_4: "",
       image_5: "",
       body: {
-        product: { first_category: "", second_category: "" },
-        detail: {
+        product: {
+          first_category_id: "",
+          second_category_id: "",
           seller_id: "",
+        },
+        detail: {
           is_sold: 1,
           is_displayed: 1,
-          origin_company: "",
-          origin_date: "",
-          country_of_origin_id: "",
+          origin_company: null,
+          origin_date: null,
+          country_of_origin_id: null,
           name: "",
-          simple_description: "",
+          simple_description: null,
           description: "",
           sale_price: "",
           discount_rate: "",
@@ -87,109 +101,114 @@ export default {
           minimum_sale_amount: 1,
           maximum_sale_amount: 20,
         },
-        option: [{ stock: "", color_id: "", size_id: "" }],
+        options: [{ stock: "", color_id: "", size_id: "" }],
       },
     },
   }),
   computed: {},
+
   methods: {
-    input_sale_price: function(num) {
+    input_sale_price: function (num) {
       this.result.body.detail.sale_price = num;
     },
-    seller_id_changer: function(num) {
-      this.result.body.detail.seller_id = num;
+    seller_id_changer: function (num) {
+      this.result.body.product.seller_id = num;
     },
-    input_discount_rate: function(num) {
+    input_discount_rate: function (num) {
       this.result.body.detail.discount_rate = num;
     },
-    input_minimum_sale_amount: function(num) {
+    input_minimum_sale_amount: function (num) {
       this.result.body.detail.minimum_sale_amount = Number(num);
     },
-    input_maximum_sale_amount: function(num) {
+    input_maximum_sale_amount: function (num) {
       this.result.body.detail.maximum_sale_amount = Number(num);
     },
-    input_discount_started_at: function(str) {
+    input_discount_started_at: function (str) {
       this.result.body.detail.discount_started_at =
         str.slice(0, 10) + ` ` + str.slice(11, 19);
     },
-    input_discount_ended_at: function(str) {
+    input_discount_ended_at: function (str) {
       this.result.body.detail.discount_ended_at =
         str.slice(0, 10) + ` ` + str.slice(11, 19);
     },
-    input_option: function(arr) {
-      this.result.body.option = arr;
+    input_option: function (arr) {
+      this.result.body.options = arr;
     },
-    modify_color_result_list: function(obj) {
-      this.$set(this.result.body.option[obj.idx], "color_id", obj.id);
+    modify_color_result_list: function (obj) {
+      this.$set(this.result.body.options[obj.idx], "color_id", obj.id);
     },
-    modify_size_result_list: function(obj) {
-      this.$set(this.result.body.option[obj.idx], "size_id", obj.id);
+    modify_size_result_list: function (obj) {
+      this.$set(this.result.body.options[obj.idx], "size_id", obj.id);
     },
-    sold_selecter: function(num) {
+    sold_selecter: function (num) {
       this.result.body.detail.is_sold = num;
     },
-    display_selecter: function(num) {
+    display_selecter: function (num) {
       this.result.body.detail.is_displayed = num;
     },
-    first_category_number_changer: function(num) {
-      this.result.body.product.first_category = num;
+    first_category_number_changer: function (num) {
+      this.result.body.product.first_category_id = num;
     },
-    second_category_number_changer: function(num) {
-      this.result.body.product.second_category = num;
+    second_category_number_changer: function (num) {
+      this.result.body.product.second_category_id = Number(num);
     },
-    reference_close: function() {
+    reference_close: function () {
       this.result.body.detail.origin_company = null;
       this.result.body.detail.origin_date = null;
       this.result.body.detail.country_of_origin_id = null;
     },
-    origin_company_changer: function(str) {
+    origin_company_changer: function (str) {
       this.result.body.detail.origin_company = str;
     },
-    origin_date_changer: function(str) {
+    origin_date_changer: function (str) {
       this.result.body.detail.origin_date = str.slice(0, 10);
     },
-    origin_contry_code_changer: function(str) {
+    origin_contry_code_changer: function (str) {
       this.result.body.detail.country_of_origin_id = str;
     },
-    product_name_changer: function(str) {
+    product_name_changer: function (str) {
       this.result.body.detail.name = str;
     },
-    simple_description_changer: function(str) {
+    simple_description_changer: function (str) {
       this.result.body.detail.simple_description = str;
     },
-    input_image_1: function(obj) {
+    input_image_1: function (obj) {
       this.result.image_1 = obj;
     },
-    input_image_2: function(obj) {
+    input_image_2: function (obj) {
       this.result.image_2 = obj;
     },
-    input_image_3: function(obj) {
+    input_image_3: function (obj) {
       this.result.image_3 = obj;
     },
-    input_image_4: function(obj) {
+    input_image_4: function (obj) {
       this.result.image_4 = obj;
     },
-    input_image_5: function(obj) {
+    input_image_5: function (obj) {
       this.result.image_5 = obj;
     },
-    input_html: function(str) {
+    input_html: function (str) {
       this.result.body.detail.description = str;
     },
-    modify_stock: function(arr) {
-      this.result.body.option = arr;
+    modify_stock: function (arr) {
+      this.result.body.options = arr;
     },
-    submit: function() {
+    submit: function () {
       const form_data = new FormData();
       form_data.append("image_1", this.result.image_1);
       form_data.append("image_2", this.result.image_2);
       form_data.append("image_3", this.result.image_3);
       form_data.append("image_4", this.result.image_4);
       form_data.append("image_5", this.result.image_5);
-      form_data.append("body", this.result.body);
+      form_data.append("body", JSON.stringify(this.result.body));
 
       axios
-        .post(`주소`, form_data, {
-          header: { "content-Type": "mutipart/from-data" },
+        .post(`http://10.251.1.99:5000/products`, form_data, {
+          header: {
+            "content-Type": "mutipart/from-data",
+            Authorization:
+              "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",
+          },
         })
         .then((res) => console.log(res))
         .catch((err) => console.log(err));

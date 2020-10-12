@@ -2,9 +2,7 @@
   <div class="opion-frame">
     <div class="opion-floater" v-bind:class="{ super_top: opion_list_open }">
       <div class="close-button-container">
-        <div class="list-content-card" v-on:click="opion_list_opener">
-          {{ selected_name }}
-        </div>
+        <div class="list-content-card" v-on:click="opion_list_opener">{{ selected_name }}</div>
       </div>
       <div v-if="opion_list_open">
         <div class="opion-input">
@@ -16,9 +14,7 @@
             v-for="list in props_list"
             v-bind:key="list.id"
             v-on:click="select_contents(list)"
-          >
-            {{ list.name }}
-          </div>
+          >{{ list.name }}</div>
         </div>
       </div>
     </div>
@@ -40,10 +36,10 @@ export default {
   }),
   computed: {},
   methods: {
-    opion_list_opener: function() {
+    opion_list_opener: function () {
       this.opion_list_open = !this.opion_list_open;
     },
-    select_contents: function(obj) {
+    select_contents: function (obj) {
       this.selected_id = obj.id;
       this.$emit("selected_content", {
         id: obj.id,
@@ -52,23 +48,6 @@ export default {
       });
       this.opion_list_open = false;
     },
-    // opion_text_inputer: function(e) {
-    //   // let str = e.target.value;
-    //   // let searchArr = [];
-    //   // this.test = str;
-    //   // console.log(str);
-    //   // console.log(this.props_list[0].name.indexOf(str));
-    //   // for (let i in this.props_list.length) {
-    //   //   console.log(this.props_list[i].name.indexOf(str));
-    //   //   if (this.props_list[i].name.indexOf(str) !== -1) {
-    //   //     searchArr.push({
-    //   //       name: this.props_list[i].name,
-    //   //       id: this.props_list[i].id,
-    //   //     });
-    //   //   }
-    //   // }
-    //   // this.datas.now_option_list = searchArr;
-    // },
   },
 };
 </script>

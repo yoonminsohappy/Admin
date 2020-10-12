@@ -363,17 +363,23 @@ export default {
       }, 300);
     },
     final_seller_select: function () {
-      // axios
-      //   .get(
-      //     `http://10.251.1.99:5000/products/first-categories?seller-property-id=${this.seller_id_selecter}`
-      //   )
-      //   .then((res) => (this.datas.first_category = res.data));
-
       axios
         .get(
-          `public/mockdata/seller-property-id=${this.seller_id_selecter}.json`
+          `http://10.251.1.99:5000/products/first-categories?seller-property-id=${this.seller_id_selecter}`,
+          {
+            headers: {
+              Authorization:
+                "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",
+            },
+          }
         )
         .then((res) => (this.datas.first_category = res.data));
+
+      // axios
+      //   .get(
+      //     `public/mockdata/seller-property-id=${this.seller_id_selecter}.json`
+      //   )
+      //   .then((res) => (this.datas.first_category = res.data));
 
       this.open_seller_search = !this.open_seller_search;
     },
@@ -396,14 +402,16 @@ export default {
     select_first_category: function (e) {
       this.result.body.product.first_category = Number(e.target.value);
 
-      // axios
-      //   .get(
-      //     `http://10.251.1.99:5000/second-categories?first-category-id=${e.target.value}`
-      //   )
-      //   .then((res) => (this.datas.second_category = res.data));
-
       axios
-        .get(`public/mockdata/first-category-id=${e.target.value}.json`)
+        .get(
+          `http://10.251.1.99:5000/products/second-categories?first-category-id=${e.target.value}`,
+          {
+            headers: {
+              Authorization:
+                "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",
+            },
+          }
+        )
         .then((res) => (this.datas.second_category = res.data))
         .then(
           () =>
@@ -503,13 +511,18 @@ export default {
   },
   watch: { "result.body.detail.origin_date": "origin_date_inputer" },
   created: function () {
-    // axios
-    //   .get(`http://10.251.1.99:5000/products/countries`)
-    //   .then((res) => (this.datas.contry_list = res.data));
-
     axios
-      .get(`public/mockdata/contry.json`)
+      .get(`http://10.251.1.99:5000/products/countries`, {
+        headers: {
+          Authorization:
+            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",
+        },
+      })
       .then((res) => (this.datas.contry_list = res.data));
+
+    // axios
+    //   .get(`public/mockdata/contry.json`)
+    //   .then((res) => (this.datas.contry_list = res.data));
   },
 };
 </script>
