@@ -85,7 +85,12 @@ class CouponService:
             coupon_count = coupon_count[0]
 
         # limit 개수의 쿠폰만 가져오기
-        coupons = self.coupon_dao.find_coupons(conn, params)
+        if coupon_count != None and coupon_count > 0:
+            coupons = self.coupon_dao.find_coupons(conn, params)
+        else:
+            coupon_count = 0
+            coupons = []
+
         return {"total_count": coupon_count, "coupons": coupons}
 
     def make_serials_csv(self, serials):
@@ -131,7 +136,7 @@ class CouponService:
             2020-10-09(이충희): 초기 생성
         """
         now_date = datetime.datetime.now().strftime("%Y%m%d")
-        return f'temp/{now_date}_{coupon_id}_SERIAL_NUMBER.csv'
+        return f'{now_date}_{coupon_id}_SERIAL_NUMBER.csv'
         
     def download_serials(self, conn, coupon_id):
         """
@@ -175,11 +180,14 @@ class CouponService:
         History:
             2020-10-09(이충희): 초기 생성
         """
+        ISSUE_TYPE_SERIAL_NUMBER = 3
+
         result = self.coupon_dao.find_coupon_id_by_id(conn, coupon_id)
         if not result:
             raise TypeError(f'NO_COUPON_FOR_COUPON_{coupon_id}')
         
-        self.coupon_dao.delete_serials(conn, coupon_id)
+        if result['coupon_issue_id'] == ISSUE_TYPE_SERIAL_NUMBER:
+            self.coupon_dao.delete_serials(conn, coupon_id)
         self.coupon_dao.delete_coupon_details(conn, coupon_id)
         self.coupon_dao.delete_coupon(conn, coupon_id)
 

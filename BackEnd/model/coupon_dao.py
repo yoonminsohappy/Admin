@@ -395,14 +395,16 @@ class CouponDao:
             2020-10-09(이충희): 초기 생성
         """
         sql = """
-            SELECT id
-            FROM coupons
-            WHERE id = %s;
+            SELECT cd.coupon_issue_id
+            FROM coupons AS c
+            JOIN coupon_details AS cd
+            ON cd.coupon_id = c.id
+            WHERE c.id = %s;
         """
 
-        with conn.cursor() as cursor:
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
             cursor.execute(sql, (coupon_id,))
-            result = cursor.fetchall()
+            result = cursor.fetchone()
             return result
 
     def find_coupon_code_by_id(self, conn, coupon_id):
