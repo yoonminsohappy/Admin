@@ -153,7 +153,10 @@ class ProductService:
         options            = body['options']
         first_category_id  = product['first_category_id']
         second_category_id = product['second_category_id']
+        product_detail['modifier_id'] = product['seller_id']
+        
         # 상품 코드는 유니크 해야하기 때문에 uuid 식별자 사용
+
         code = str(uuid.uuid4())
 
         filenames = []
