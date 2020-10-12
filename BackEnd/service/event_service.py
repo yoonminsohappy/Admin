@@ -109,3 +109,8 @@ class EventService:
             event['register_date'] = event['register_date'].isoformat()
 
         return event_list
+
+    def delete_event(self, db, arguments):
+        self.event_dao.delete_event(db, arguments)
+
+        return ''

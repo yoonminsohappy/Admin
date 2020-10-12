@@ -333,3 +333,24 @@ class EventDao:
             return event_list
 
         raise err.OperationalError
+
+    def delete_event(self, db, arguments):
+        sql = """
+        UPDATE
+            events
+        SET
+            is_deleted = '1'
+        WHERE
+            id = %(event_id)s;
+        """
+
+        with db.cursor(pymysql.cursors.DictCursor) as cursor:
+            result = cursor.execute(sql, arguments)
+
+            if not result:
+                raise err.OperationalError
+
+            return ''
+
+        raise err.OperationalError
+

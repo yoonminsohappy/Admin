@@ -122,3 +122,28 @@ class EventView(MethodView):
 
         finally:
             db.close()
+
+    def delete(self):
+        try:
+            db = connection.get_connection()
+
+            arguments = {
+                'event_id' : request.args.get('event_id', None)
+            }
+
+            if not arguments['event_id']:
+                return jsonify({'message':'KEY_ERROR'}), 400
+
+            self.service.delete_event(db, arguments)
+
+        except Exception as e:
+            traceback.print_exc()
+            db.rollback()
+            return jsonify({'message':e.message}), 400
+
+        else:
+            db.commit()
+            return jsonify({'message':'SUCCESS'}), 200
+
+        finally:
+            db.close()
