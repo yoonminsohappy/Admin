@@ -161,7 +161,11 @@ export default {
       this.result.body.detail.origin_company = str;
     },
     origin_date_changer: function (str) {
-      this.result.body.detail.origin_date = str.slice(0, 10);
+      if (str === null) {
+        this.result.body.detail.origin_date = str;
+      } else {
+        this.result.body.detail.origin_date = str.slice(0, 10);
+      }
     },
     origin_contry_code_changer: function (str) {
       this.result.body.detail.country_of_origin_id = str;
@@ -193,6 +197,7 @@ export default {
     modify_stock: function (arr) {
       this.result.body.options = arr;
     },
+
     submit: function () {
       const form_data = new FormData();
       form_data.append("image_1", this.result.image_1);
