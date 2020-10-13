@@ -85,16 +85,24 @@ class SellerDao:
             이지연(wldus9503@gmail.com)
 
         History:
-            2020.09.22.화(이지연) : 초기생성
-            2020-10-04(이지연): 데이터베이스 커서 with 문법 사용으로 변경 
+            2020.09.22(이지연) : 초기 생성
+            2020.09.23(이지연) : 수정
+                                -> view에서 db commit하도록 변경, 에러 처리 추가    
+            2020.09.28(이지연)  : validation(유효성) 검사 삭제 -> ui쪽에서 처리하기로 결정
+            2020.10.02(이지연)  : 모델링 변경 
+                                -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+            2020.10.04(이지연)  : 데이터베이스 커서 with 문법 사용으로 변경
+            2020.10.08(이지연)  : 피드백 반영 팀원들과 형식 맞춰 수정
+            2020.10.09(이지연)  :  모델링 param을 적용해 sql로직 수정
+
         """
 
         sql = """
-            SELECT
-                id,
-                name
-            FROM seller_properties
-            WHERE name = %(seller_properties)s;
+                SELECT
+                    id,
+                    name
+                FROM seller_properties
+                WHERE name = %(seller_properties)s;
             """
 
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
@@ -102,10 +110,9 @@ class SellerDao:
                 params
             ))
             result = cursor.fetchone() #row 가져옴
-            #print(result)  -> {'id': 3, 'name': '로드샵'}
 
             if not result:
-                raise Exception("ValueError")
+                raise Exception("DATABASE IS NOT FOUND SELECT_PROPERTY_ID")
 
         return result
 
@@ -120,7 +127,7 @@ class SellerDao:
 
         Args:
             conn             : 데이터베이스 커넥션 객체
-            seller_status: 셀러 상태 변수
+            seller_status    : 셀러 상태 변수
 
         Returns:
             results: 셀러 상태 정보를 담은 row 하나
@@ -133,9 +140,18 @@ class SellerDao:
             이지연(wldus9503@gmail.com)
 
         History:
-            2020.09.22.화(이지연) : 초기생성
-            2020-10-04(이지연): 데이터베이스 커서 with 문법 사용으로 변경 
+            2020.09.22(이지연) : 초기 생성
+            2020.09.23(이지연) : 수정
+                                -> view에서 db commit하도록 변경, 에러 처리 추가
+            2020.09.25(이지연)  : 유효성 검사 추가
+            2020.09.28(이지연)  : validation(유효성) 검사 삭제 -> ui쪽에서 처리하기로 결정
+            2020.10.02(이지연)  : 모델링 변경 
+                                -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+            2020.10.04(이지연)  : 데이터베이스 커서 with 문법 사용으로 변경
+            2020.10.07(이지연)  : 회원가입할 시 셀러 계정아이디, 셀러 cs_phone, manager_phone unique처리 추가
+            2020.10.08(이지연)  : 피드백 반영 팀원들과 형식 맞춰 수정 
         """
+        
         sql ="""
             SELECT
                 id,
@@ -150,7 +166,7 @@ class SellerDao:
             ))
             result = cursor.fetchone() #row 가져옴
             if not result:
-                raise pymysql.err.InternalError("not found sellr_status")
+                raise pymysql.err.InternalError("DATABASE IS NOT STATUS_ID")
 
         return result
 
@@ -173,8 +189,10 @@ class SellerDao:
                 이지연(wldus9503@gmail.com)
 
             History:
-                2020.09.22.화(이지연) : 초기생성
-                2020-10-04(이지연): 데이터베이스 커서 with 문법 사용으로 변경 
+                2020.09.22(이지연) : 초기생성
+                2020.10.04(이지연) : 데이터베이스 커서 with 문법 사용으로 변경 
+                2020.10.08(이지연)  : 피드백 반영 팀원들과 형식 맞춰 수정 
+
             """
 
             sql ="""
@@ -192,7 +210,7 @@ class SellerDao:
                 cursor.close()
 
                 if not result:
-                    raise pymysql.err.InternalError('not found sellr_bank_id')
+                    raise pymysql.err.InternalError('DATABASE IS NOT FOUND SELLER_BACNK_ID')
             return result
 
     # seller테이블 insert하기
@@ -218,6 +236,8 @@ class SellerDao:
             2020.09.22(이지연) : 초기생성
             2020.10.02(이지연) : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
             2020.10.04(이지연) : 데이터베이스 커서 with 문법 사용으로 변경 
+            2020.10.08(이지연)  : 피드백 반영 팀원들과 형식 맞춰 수정 
+
         """
 
         sql = """
@@ -237,13 +257,13 @@ class SellerDao:
             # 그 id값을 fk로 sellers_informations과 같은 해당 sellers에 id값을 갖다 쓰기 위함)
             result = cursor.lastrowid
             if not result:
-                raise pymysql.err.InternalError("not found insert error")
+                raise pymysql.err.InternalError(" DATABASE IS NOT FOUND INSERT SELLER")
         return result if result else None
 
     def insert_seller_infomation(self, seller, conn):
 
         """
-        회원가입시 sellers_information테이블에 넣어줄 데이터
+        회원가입시 seller_information테이블에 넣어줄 데이터
 
         Args: 
             conn             : 데이터베이스 커넥션 객체
@@ -266,10 +286,12 @@ class SellerDao:
             이지연(wldus9503@gmail.com)
 
         History:
-            2020.09.22(이지연) : 초기생성
-            2020.10.02(이지연) : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
-            2020-10-04(이지연): 데이터베이스 커서 with 문법 사용으로 변경
-            2020.10.07(이지연)  : 쿼리 excute params 값 변경 
+            2020.09.22(이지연)  : 초기생성
+            2020.10.02(이지연)  : 모델링 변경 
+                                -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+            2020.10-04(이지연)  : 데이터베이스 커서 with 문법 사용으로 변경
+            2020.10.07(이지연)  : 쿼리 excute params 값 변경
+            2020.10.08(이지연)  : 피드백 반영 팀원들과 형식 맞춰 수정 
 
         """
 
@@ -316,11 +338,44 @@ class SellerDao:
             result = cursor.lastrowid 
 
             if not result:
-                return pymysql.err.InternalError('not found seller_information value')
+                return pymysql.err.InternalError('DATABASE IS NOT FOUND INSERT SELLER_INFORMATION')
         return result
 
     # seller_managers 삽입하기
     def insert_manager(self, manager, conn):
+
+        """
+        회원가입시 seller_managers테이블에 넣어줄 데이터
+
+        Args: 
+            conn             : 데이터베이스 커넥션 객체
+            seller           : 회원가입시에 넣어줄 데이터 변수
+
+        Returns:
+            results: 
+                {
+                    'seller_id'             : 셀러 고유 아이디,
+                    'seller_account'        : 셀러 계정 아이디,
+                    'password'              : 비밀번호,
+                    'seller_property_id'    : 셀러 속성 아이디,
+                    'korean_name'           : 셀러 한글 이름,
+                    'english_name'          : 셀러 영어 이름,
+                    'cs_phone'              : 고객센터 전화번호,
+                    'modifier_id'           : 수정자 아이디
+                }
+
+        Author:
+            이지연(wldus9503@gmail.com)
+
+        History:
+            2020.09.22(이지연)  : 초기생성
+            2020.10.02(이지연)  : 모델링 변경 
+                                -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+            2020.10-04(이지연)  : 데이터베이스 커서 with 문법 사용으로 변경
+            2020.10.07(이지연)  : 쿼리 excute params 값 변경
+            2020.10.08(이지연)  : 피드백 반영 팀원들과 형식 맞춰 수정
+
+        """
         
         params = dict()
 
@@ -352,7 +407,7 @@ class SellerDao:
             result = cursor.lastrowid #지금 인서트 된 아이다값을 가져옴
 
             if not result:
-                raise pymysql.err.InternalError('not insert managers')
+                raise pymysql.err.InternalError('DATABASE IS NOT FOUND INSERT MANAGER')
         return result
 
     # 로그인
@@ -380,10 +435,11 @@ class SellerDao:
             이지연(wldus9503@gmail.com)
 
         History:
-            2020.09.22.화(이지연) : 초기생성
-            2020-10-5(이지연): 데이터베이스 커서 with 문법 사용으로 변경 
-            2020.10.07(이지연)  : 쿼리 excute params 값 변경 
-
+            2020.09.22(이지연) : 초기생성
+            2020.10.05(이지연) : 데이터베이스 커서 with 문법 사용으로 변경 
+            2020.10.07(이지연) : 쿼리 excute params 값 변경
+            2020.10.08(이지연) : 피드백 반영 ,팀원들과 형식 맞춰 수정
+            2020.10.12(이지연) : 피드백 반영 ,sql delete != 1 → delete = 0로 변경
         """
 
         sql = """
@@ -399,7 +455,7 @@ class SellerDao:
 
                 WHERE i.seller_account=%(seller_account)s
 
-                AND s.is_deleted != 1 
+                AND s.is_deleted = 0 
 
                 AND i.expired_at = '9999-12-31 23:59:59';
         """  
@@ -415,7 +471,7 @@ class SellerDao:
             result = cursor.fetchone()
 
             if not result:
-                raise Exception('login error')
+                raise Exception('DATABASE IS NOT SELECT SELLER')
         return result
     
     # 셀러 검색 전체 갯수 - 조건에 맞는 총 개수 구함
@@ -434,8 +490,10 @@ class SellerDao:
 
         History:
             2020.09.22(이지연) : 초기생성
-            2020.10.05(이지연): 데이터베이스 커서 with 문법 사용으로 변경 
-            2020.10.07(이지연) :쿼리문 수정 -> PARAM으로 먼저 값이 있는 지 확인 후 추가
+            2020.10.05(이지연) : 데이터베이스 커서 with 문법 사용으로 변경 
+            2020.10.07(이지연) : 쿼리문 수정 -> PARAM으로 먼저 값이 있는 지 확인 후 추가, sql 컬럼 별칭 달기
+            2020.10.08(이지연) : 피드백 반영 ,팀원들과 형식 맞춰 수정
+            2020.10.12(이지연) : 피드백 반영 ,sql delete != 1 → delete = 0로 변경
         """ 
                
         params = dict()
@@ -525,7 +583,7 @@ class SellerDao:
                     m.email like %(manager_email)s
             """
 
-        if params['start_date']  and params['end_date']:
+        if params['start_date'] and params['end_date']:
             where_sql += """
                 AND
                     s.register_date BETWEEN %(start_date)s and %(end_date)s
@@ -542,7 +600,7 @@ class SellerDao:
             INNER JOIN seller_statuses t ON i.seller_status_id = t.id
             INNER JOIN seller_managers m ON i.seller_id = m.seller_id
 
-            WHERE s.is_deleted != 1
+            WHERE s.is_deleted = 0
             AND i.expired_at = '9999-12-31 23:59:59'
                 """ + where_sql + """;
         """
@@ -563,13 +621,35 @@ class SellerDao:
             # %['']% => 모든 문자열 반환, null은 조건에 맞지 않아 반환하지 않는다.
             
             results = cursor.fetchone()['count']
-            print(results)
+
             if not results:
-                raise pymysql.err.InternalError("not found search seller_list")
+                raise pymysql.err.InternalError("DATABASE IS NOT FIND_SEARCH TOTAL SELLER LIST")
         return results 
 
     #셀러 전체 리스트
     def find_search_seller_list(self, conn, search_info):
+
+        """
+        셀러 전체 리스트
+
+        Args:
+            conn             : 데이터베이스 커넥션 객체
+            search_info      : 셀러 데이터를 담은 리스트
+
+        Returns:
+            results: fetchall()을 이용하여 셀러 상태 정보를 모두 리턴
+    
+        Author:
+            이지연(wldus9503@gmail.com)
+
+        History:
+            2020.10.04(이지연)  : 초기 생성
+            2020.10.05(이지연)  : 데이터베이스 커서 with 문법 사용으로 변경 
+            2020.10.07(이지연)  : 쿼리 excute params 값 변경 
+            2020.10.08(이지연)  : 피드백 반영 ,팀원들과 형식 맞춰 수정
+            2020.10.12(이지연)  : 피드백 반영 ,sql delete != 1 → delete = 0로 변경
+
+        """
 
         params = dict()
 
@@ -621,33 +701,12 @@ class SellerDao:
         if search_info['end_date']:
             params['end_date'] = search_info['end_date']
 
-
         params['page'] = (int(search_info['page'])-1)*10
         params['per_page'] = search_info['per_page']
 
         order = search_info['order']
 
-        """
-        셀러 전체 리스트
-
-        Args:
-            conn             : 데이터베이스 커넥션 객체
-            search_info      : 셀러 계정 아이디, 셀러 비밀번호를 담은 딕셔너리
-
-        Returns:
-            results: 셀러 상태 정보를 담은 row 하나
-    
-        Author:
-            이지연(wldus9503@gmail.com)
-
-        History:
-            2020.09.22.화(이지연) : 초기생성
-            2020-10-5(이지연): 데이터베이스 커서 with 문법 사용으로 변경 
-            2020.10.07(이지연)  : 쿼리 excute params 값 변경 
-
-        """
-
-        # sql실행시킬 시 예약어로 인식을 하지 못하는 에러 때문에 미리 변수에 넣어서 sql문자열에 합쳐준다.
+        # order의 경우 sql실행시킬 시 예약어로 인식을 하지 못하는 에러 때문에 미리 변수에 넣어서 sql문자열에 합쳐준다.
 
         where_sql = ""
 
@@ -731,7 +790,7 @@ class SellerDao:
             INNER JOIN seller_statuses t ON i.seller_status_id = t.id
             INNER JOIN seller_managers m ON s.id = m.seller_id
 
-            WHERE s.is_deleted != 1
+            WHERE s.is_deleted = 0
             AND i.expired_at = '9999-12-31 23:59:59'
                 """ + where_sql + """
 
@@ -747,15 +806,16 @@ class SellerDao:
                 params
                 ))
             results = cursor.fetchall()
+            
             if not results:
-                raise pymysql.err.InternalError('not found seller list')
+                raise pymysql.err.InternalError('DATABASE IS NOT SELECT FIND SEARCH SELLER LIST')
 
         return results
 
     #셀러 상세 정보 찾기(셀러 information pk값으로 찾는다.)
     def find_seller_infomation(self, conn, id):
         """
-        셀러 검색 결과 리스트 
+        셀러 상세 데이터 리스트 
 
         Args:
             conn             : 데이터베이스 커넥션 객체
@@ -767,9 +827,9 @@ class SellerDao:
             이지연(wldus9503@gmail.com)
 
         History:
-            2020.09.22(이지연) : 초기생성
-            2020.10.05(이지연): 데이터베이스 커서 with 문법 사용으로 변경 
-            2020.10.07(이지연)  : 쿼리 excute params 값 변경 
+            2020.10.04(이지연) : 초기생성
+            2020.10.05(이지연) : 데이터베이스 커서 with 문법 사용으로 변경 
+            2020.10.07(이지연) : 쿼리 excute params 값 변경 
 
         """
         params = dict()
@@ -789,7 +849,7 @@ class SellerDao:
                 ))
             results = cursor.fetchone()
             if not results:
-                raise pymysql.err.InternalError('not found seller')
+                raise pymysql.err.InternalError('NOT FOUND SELECT SELLER INFORMATION')
 
         return results if results else None
 
@@ -800,7 +860,7 @@ class SellerDao:
 
         Args:
             conn               : 데이터베이스 커넥션 객체
-            result_seller      : 셀러 검색 결과 리스트 -> id
+            seller_info        : 셀러 데이터 리스트
 
         Returns:
             results: 마지막 인서트 row 
@@ -809,9 +869,9 @@ class SellerDao:
             이지연(wldus9503@gmail.com)
 
         History:
-            2020.10.04(이지연)  : 초기생성
-            2020-10-5(이지연)     : 데이터베이스 커서 with 문법 사용으로 변경 
-            2020.10.07(이지연)  : 쿼리 excute params 값 변경 
+            2020.10.04(이지연)     : 초기생성
+            2020-10-5(이지연)      : 데이터베이스 커서 with 문법 사용으로 변경 
+            2020.10.07(이지연)     : 쿼리 excute params 값 변경 
 
         """
         params = dict()
@@ -845,7 +905,7 @@ class SellerDao:
 
             results = cursor.lastrowid
             if not results:
-                raise Exception('not found lastrowid')
+                raise Exception('DATABASE IS NOT FOUND LASTROWID')
         return results if results else None
 
     #셀러 현재 기록 
@@ -866,7 +926,7 @@ class SellerDao:
 
         History:
             2020.10.04(이지연)  : 초기생성
-            2020-10-5(이지연): 데이터베이스 커서 with 문법 사용으로 변경
+            2020.10.05(이지연)  : 데이터베이스 커서 with 문법 사용으로 변경
             2020.10.07(이지연)  : 쿼리 excute params 값 변경 
 
         """
@@ -920,7 +980,7 @@ class SellerDao:
 
             WHERE s.id = %(seller_id)s
 
-            AND s.is_deleted != 1
+            AND s.is_deleted = 0
             AND si.expired_at = '9999-12-31 23:59:59';
         """
         # 셀러가 삭제되지 않고, 선분이력종료일자가 '9999-12-31 23:59:59"로 최신의 데이터만 갖고오도록 함
@@ -932,7 +992,7 @@ class SellerDao:
                 ))
             result = cursor.fetchone() #row만
             if not result:
-                raise Exception('not select')
+                raise Exception('DATABASE IS NOT SELECT FIND SELLER')
         return result
 
     #셀러 과거 정보를 삽입 
@@ -1067,7 +1127,7 @@ class SellerDao:
 
             result = cursor.lastrowid
             if not result:
-                raise Exception('not select')
+                raise Exception('DATABASE IS NOT FOUND LASTROWID')
         return result
     
     #수정할 데이터로 update
@@ -1100,7 +1160,7 @@ class SellerDao:
             set_sql.append(key + "='" + str(value)+"'")
         
         set_sql = ", ".join(set_sql)
-            # print(set_sql)
+
             # created_at=now(), seller_id='15', seller_status_id='3', seller_property_id='3', 
             # seller_account='star_0327', cs_phone='02-1342-2222', password='$2b$12$NM/tciULRV4vJuY8MnY0V.B87sUjjQ5Eqmu/SOtZ9LeHsqhkZRtvm',
             # profile_image='http://wecode11-brandi.s3.amazonaws.com/15_profile_image_cat1.jpg'
@@ -1121,7 +1181,7 @@ class SellerDao:
 
             result = cursor.rowcount
             if result <= 0 or not result:
-                raise Exception('not found rowcount')
+                raise Exception('DATABASE IS NOT FOUND ROWCOUNT')
         return result
 
     #등록된 매니저를 삭제
@@ -1163,7 +1223,7 @@ class SellerDao:
 
             result = cursor.rowcount
             if result <= 0 or not result:
-                raise pymysql.err.InternalError('not found delete')
+                raise pymysql.err.InternalError('SQL DELETE FAILED')
         return result
 
     #셀러 수정 페이지 seller에 관한 정보
@@ -1244,7 +1304,7 @@ class SellerDao:
 
             results = cursor.fetchone()
             if not results:
-                raise Exception("db error발생, seller정보를 찾을 수 없음")
+                raise Exception("DB ERROR OCCURS AND NOT FOUND SELLER_INFORMATION")
 
         return results
 
@@ -1267,7 +1327,7 @@ class SellerDao:
                 "manager":[
                             {
                                 "email": "담당자 이메일",
-                                "name":  "담당자 이름",0
+                                "name":  "담당자 이름",
                                 "phone_number": "담당자 전화번호"
                             },
                         ...(최대3까지)
@@ -1298,11 +1358,10 @@ class SellerDao:
             results = cursor.fetchall()
 
             if not results:
-                raise Exception("잘못된 요청입니다, 디비 쿼리 실패 바부야")
+                raise Exception("DATABASE IS NOT FOUND DETAIL_MANAGER")
 
         return results
 
-    # 이부부 에러 수정 하기
     #셀러 수정 페이지->셀러 정보 갖고오기
     def find_detail_seller_modification(self, conn, seller_id):
         
@@ -1329,9 +1388,9 @@ class SellerDao:
             이지연(wldus9503@gmail.com)
 
         History:
-            2020-10-04(이지연): 초기 생성
-            2020-10-06(이지연): error발생시 raise처리
-            2020.10.07(이지연)  : 회원가입할 시 셀러 계정아이디, 셀러 cs_phone, manager_phone unique처리 추가
+            2020.10.04(이지연) : 초기 생성
+            2020.10.06(이지연) : error발생시 raise처리
+            2020.10.07(이지연) : 회원가입할 시 셀러 계정아이디, 셀러 cs_phone, manager_phone unique처리 추가
         
         """
         
@@ -1352,6 +1411,7 @@ class SellerDao:
             
             ORDER BY updated_time DESC
         """
+
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:          
             cursor.execute(sql, (
                 params
@@ -1359,11 +1419,30 @@ class SellerDao:
             results = cursor.fetchall()
 
             if not results:
-                raise Exception("잘못된 요청입니다, 디비 쿼리 실패 바부야")
+                raise Exception("DATABASE IS NOT FOUND DETAIL_MODIFICATION_DATA")
             return results
 
     #데코레이터 seller_id 
     def decorator_find_seller(self, conn, seller_id):
+        """
+        셀러 id를 이용한 데코레이터 함수 
+
+        Args:
+            conn       : 데이터베이스 커넥션 객체
+            seller_id  : 해당 셀러 id에 해당하는 정보를 갖고 오기 위함
+
+        Returns:
+            results: 
+
+        Author:
+            이지연(wldus9503@gmail.com)
+
+        History:
+            2020.10.08(이지연) : 초기 생성
+            2020.10.08(이지연)  : 피드백 반영 ,팀원들과 형식 맞춰 수정
+            2020.10.12(이지연)  : 피드백 반영 ,sql delete != 1 → delete = 0로 변경
+        
+        """
         params = dict()
 
         params['seller_id'] = seller_id
@@ -1381,7 +1460,7 @@ class SellerDao:
             
             WHERE seller_id = %(seller_id)s
             
-            AND s.is_deleted != 1 
+            AND s.is_deleted = 0 
 
             AND i.expired_at = '9999-12-31 23:59:59'
         """
@@ -1392,10 +1471,29 @@ class SellerDao:
             ))
             results = cursor.fetchone()
             if not results:
-                raise Exception("잘못된 요청입니다, 디비 쿼리 실패")
+                raise Exception("DATABASE IS NOT FOUND USER")
             return results
 
     def unique_seller_account(self, conn, seller_account):
+        """
+        셀러 계정아이디 unique처리를 하여 회원가입시 중복되지 않도록 한다.
+
+        Args:
+            conn            : 데이터베이스 커넥션 객체
+            seller_account  : 셀러 계정 아이디
+
+        Returns:
+            results: 
+
+        Author:
+            이지연(wldus9503@gmail.com)
+
+        History:
+            2020.10.07(이지연)  : 초기생성
+            2020.10.08(이지연)  : 피드백 반영 ,팀원들과 형식 맞춰 수정
+            2020.10.12(이지연)  : 피드백 반영 ,sql delete != 1 → delete = 0로 변경
+        
+        """
 
         params = dict()
 
@@ -1411,7 +1509,7 @@ class SellerDao:
             
             WHERE i.seller_account = %(seller_account)s
 
-            AND s.is_deleted != 1 
+            AND s.is_deleted = 0 
 
             AND i.expired_at = '9999-12-31 23:59:59'
         """
@@ -1422,10 +1520,29 @@ class SellerDao:
             results = cursor.fetchone()
 
             if not results:
-                raise Exception("잘못된 요청입니다, 디비 쿼리 실패")
+                raise Exception("DATABASE IS NOT FOUND SELECT SELLER ACOOUNT")
             return results['count']
 
     def unique_cs_phone(self, conn, cs_phone):
+        """
+        셀러 cs 전화번호를 unique처리를 하여 회원가입시 중복되지 않도록 한다.
+
+        Args:
+            conn            : 데이터베이스 커넥션 객체
+            cs_phone        : cs전화번호
+
+        Returns:
+            results: 
+
+        Author:
+            이지연(wldus9503@gmail.com)
+
+        History:
+            2020.10.07(이지연)  : 초기생성
+            2020.10.08(이지연)  : 피드백 반영 ,팀원들과 형식 맞춰 수정
+            2020.10.12(이지연)  : 피드백 반영 ,sql delete != 1 → delete = 0로 변경
+        
+        """
 
         params = dict()
 
@@ -1441,7 +1558,7 @@ class SellerDao:
             
             WHERE cs_phone = %(cs_phone)s
 
-            AND s.is_deleted != 1 
+            AND s.is_deleted = 0
 
             AND i.expired_at = '9999-12-31 23:59:59'
         """
@@ -1452,10 +1569,29 @@ class SellerDao:
             results = cursor.fetchone()
 
             if not results:
-                raise Exception("잘못된 요청입니다, 디비 쿼리 실패")
+                raise Exception("DATABASE IS NOT FOUND SELECT_CSPHONE")
             return results['count']
 
     def unique_manager_phone(self, conn, phone_number):
+        """
+        셀러 담당자 전화번호를 unique처리를 하여 회원가입시 중복되지 않도록 한다.
+
+        Args:
+            conn                : 데이터베이스 커넥션 객체
+            phone_number        : 담당자 전화번호
+
+        Returns:
+            results: 
+
+        Author:
+            이지연(wldus9503@gmail.com)
+
+        History:
+            2020.10.07(이지연)  : 초기생성
+            2020.10.08(이지연)  : 피드백 반영 ,팀원들과 형식 맞춰 수정
+            2020.10.12(이지연)  : 피드백 반영 ,sql delete != 1 → delete = 0로 변경
+        
+        """
 
         params = dict()
 
@@ -1476,10 +1612,29 @@ class SellerDao:
             results = cursor.fetchone()
 
             if not results:
-                raise Exception("잘못된 요청입니다, 디비 쿼리 실패")
+                raise Exception("DATABASE IS NOT FOUND SELECT MAANGER_PHONE")
             return results['count']
 
     def unique_manager_email(self, conn, email):
+        """
+        셀러 담당자 이메일을 unique처리를 하여 회원가입시 중복되지 않도록 한다.
+
+        Args:
+            conn                 : 데이터베이스 커넥션 객체
+            manager_email        : 담당자 이메일
+
+        Returns:
+            results: 
+
+        Author:
+            이지연(wldus9503@gmail.com)
+
+        History:
+            2020.10.07(이지연)  : 초기생성
+            2020.10.08(이지연)  : 피드백 반영 ,팀원들과 형식 맞춰 수정
+            2020.10.12(이지연)  : 피드백 반영 ,sql delete != 1 → delete = 0로 변경
+        
+        """
 
         params = dict()
 
@@ -1500,13 +1655,29 @@ class SellerDao:
             results = cursor.fetchone()
 
             if not results:
-                raise Exception("잘못된 요청입니다, 디비 쿼리 실패")
+                raise Exception("DATABASE IS NOT FOUND SELECT MANAGER_EMAIL")
             return results['count']
 
-    #수정하기
     #셀러 엑셀 전체 리스트
     def find_search_seller_list_excel(self, conn, search_info):
+        """
+        엑셀 다운로드 파일 엔드포인트
 
+        Args: 
+            conn        : 데이터베이스 커넥션 객체
+            search_info : 검색 결과 정보를 담을 리스트
+
+        Retruns:
+            400, {'message': 'UNSUCCESS'} 
+
+        Authors:
+            wldus9503@gmail.com(이지연)
+        
+        History:(
+            2020.10.09(이지연) : 초기 설정
+            2020.10.11(이지연) : user_id 중복 발생으로 인한 에러 수정
+            
+    """
         params = dict()
 
         params = {
@@ -1558,26 +1729,6 @@ class SellerDao:
             params['end_date'] = search_info['end_date']
 
         order = search_info['order']
-
-        """
-        셀러 전체 리스트
-
-        Args:
-            conn             : 데이터베이스 커넥션 객체
-            search_info      : 셀러 계정 아이디, 셀러 비밀번호를 담은 딕셔너리
-
-        Returns:
-            results: 셀러 상태 정보를 담은 row 하나
-    
-        Author:
-            이지연(wldus9503@gmail.com)
-
-        History:
-            2020-10-9(이지연)  : 데이터베이스 커서 with 문법 사용으로 변경 
-            2020.10.11(이지연) : 쿼리 excute params 값 변경 
-
-        """
-
         # sql실행시킬 시 예약어로 인식을 하지 못하는 에러 때문에 미리 변수에 넣어서 sql문자열에 합쳐준다.
 
         where_sql = ""
@@ -1663,21 +1814,18 @@ class SellerDao:
             INNER JOIN seller_statuses t ON i.seller_status_id = t.id
             INNER JOIN seller_managers m ON s.id = m.seller_id
 
-            WHERE s.is_deleted != 1
+            WHERE s.is_deleted = 0
             AND i.expired_at = '9999-12-31 23:59:59'
                 """ + where_sql + """
-
-            ORDER BY id """ + order + """;
+            ORDER BY s.id """ + order + """;
         """
-            #LIMIT 시작점, 뽑을 갯수
-            #쿼리에 검색 내용을 인자로 넣어서 실행
-        
+
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
             cursor.execute(sql, (
                 params
                 ))
             results = cursor.fetchall()
             if not results:
-                raise pymysql.err.InternalError('not found seller list')
+                raise pymysql.err.InternalError('DATABASE IS NOT FOUND SELLER LIST')
 
         return results
