@@ -9,7 +9,7 @@ config.py
 insertion10.sql
 images
 /temp
-
+nohup.out
 
 # Created by https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,python,pycharm,flask,vim
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,visualstudiocode,python,pycharm,flask,vim

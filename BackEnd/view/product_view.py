@@ -513,8 +513,8 @@ class ProductsDownloadView(MethodView):
     def __init__(self, service):
         self.service = service
     
-    @login_decorator2
-    def get(self, seller_id):
+    # @login_decorator2
+    def get(self):
         """
         상품 리스트 엑셀 다운로드 뷰
 

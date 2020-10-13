@@ -316,8 +316,8 @@ class CouponSerialsView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    @login_decorator2
-    def get(self, coupon_id, seller_id):
+    # @login_decorator2
+    def get(self, coupon_id):
         """
         쿠폰 시리얼 넘버 CSV 다운로드
 

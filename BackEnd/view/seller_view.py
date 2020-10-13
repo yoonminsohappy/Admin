@@ -506,7 +506,7 @@ class SellerExcelDownloadView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    @login_decorator
+    # @login_decorator
     @catch_exception
     @validate_params(
         Param('id', GET, str, required=False, default=None),
@@ -568,11 +568,12 @@ class SellerExcelDownloadView(MethodView):
             #오늘 날짜 + '_' + "유저 다운로드 파일명"
             filename_for_user = now_date + "_" + filename_for_user
             #flask의 send_file 기능 -> 서버에 저장되어있는 엑셀파일을 응답에 담아서 보냄
-            return send_file(directory + filename,
+            send_to_file = send_file(directory + filename,
                 mimetype="application/vnd.ms-excel",
                 as_attachment=True,
                 attachment_filename=filename_for_user,
                 conditional=False)
-        finally:
             os.remove(os.path.join('temp/', filename))
+            return send_to_file
+        finally:
             conn.close()
