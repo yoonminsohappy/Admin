@@ -125,6 +125,7 @@
 
 <script>
 import axios from "axios";
+import { config } from "../../api/index";
 
 export default {
   data: () => ({
@@ -144,15 +145,15 @@ export default {
       },
       {
         id: 4,
-        name: "디자이너 브랜드",
+        name: "디자이너브랜드",
       },
       {
         id: 5,
-        name: "제너럴 브랜드",
+        name: "제너럴브랜드",
       },
       {
         id: 6,
-        name: "내셔널 브랜드",
+        name: "내셔널브랜드",
       },
       {
         id: 7,
@@ -289,32 +290,25 @@ export default {
     isActive(index) {
       this.isActiveBtn = index;
       this.seller_properties = this.eachRadioBtn[index].name;
-      console.log(
-        "isActiveBtn>>>>>",
-        this.isActiveBtn,
-        "sellerProperties>>>>>>>",
-        this.seller_properties
-      );
     },
     showSellerProperties() {
       this.seller_properties = "";
-      console.log(this.seller_properties);
     },
-
     handleSubmitBtn() {
       axios
-        .post("http://10.251.1.176:5000/sellers/signup", {
+        .post(`${config}sellers/signup`, {
           seller_account: this.seller_account,
           password: this.password,
-          seller_properties: this.seller_properties,
+          seller_property: this.seller_properties,
           phone_number: this.phone_number,
           korean_name: this.korean_name,
           english_name: this.english_name,
           cs_phone: this.cs_phone,
         })
         .then((response) => {
-          console.log(response);
-          // this.$router.push("/signup");
+          // 회원가입 후 로그인 창으로 이동
+          this.$router.push("/");
+          console.log("signup>>>>>>>SUCCESS");
         });
     },
   },

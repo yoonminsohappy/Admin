@@ -13,8 +13,15 @@
         </span>
       </div>
       <div class="sub-main">
-        <input type="text" class="seller-search" v-bind:value="seller_name_selecter" disabled />
-        <button class="seller-search-button" v-on:click="seller_search_opener">셀러검색</button>
+        <input
+          type="text"
+          class="seller-search"
+          v-bind:value="seller_name_selecter"
+          disabled
+        />
+        <button class="seller-search-button" v-on:click="seller_search_opener">
+          셀러검색
+        </button>
       </div>
       <div class="search-list">
         <div class="seller-modal-container" v-if="open_seller_search">
@@ -29,16 +36,27 @@
             </li>
             <li>
               <p class="explain">
-                <font-awesome-icon icon="info-circle" />상품을 등록할 셀러를 선택해주세요. (검색 10건)
+                <font-awesome-icon icon="info-circle" />상품을 등록할 셀러를
+                선택해주세요. (검색 10건)
               </p>
               <div class="seller-search-container">
                 <div class="serch-title">셀러검색</div>
-                <search-list @selected_id="input_select_id" @selected_name="input_select_name" />
+                <search-list
+                  @selected_id="input_select_id"
+                  @selected_name="input_select_name"
+                />
               </div>
             </li>
             <li>
-              <button class="close-button" v-on:click="close_modal">닫기</button>
-              <button class="select-seller-button" v-on:click="final_seller_select">셀러 선택하기</button>
+              <button class="close-button" v-on:click="close_modal">
+                닫기
+              </button>
+              <button
+                class="select-seller-button"
+                v-on:click="final_seller_select"
+              >
+                셀러 선택하기
+              </button>
             </li>
           </ul>
         </div>
@@ -51,7 +69,12 @@
       <div class="sub-main-col">
         <div class="radio">
           <label>
-            <input type="radio" name="is sold" v-on:click="select_sold" checked />
+            <input
+              type="radio"
+              name="is sold"
+              v-on:click="select_sold"
+              checked
+            />
             <span>판매</span>
           </label>
           <label>
@@ -60,7 +83,10 @@
           </label>
         </div>
         <p class="explain">
-          <font-awesome-icon class="exclamation-icon" icon="exclamation-triangle" />미판매 선택시 앱에서 Sold Out으로 표시됩니다.
+          <font-awesome-icon
+            class="exclamation-icon"
+            icon="exclamation-triangle"
+          />미판매 선택시 앱에서 Sold Out으로 표시됩니다.
         </p>
       </div>
     </article>
@@ -71,16 +97,28 @@
       <div class="sub-main-col">
         <div class="radio">
           <label>
-            <input type="radio" name="is displayed" v-on:click="select_displayed" checked />
+            <input
+              type="radio"
+              name="is displayed"
+              v-on:click="select_displayed"
+              checked
+            />
             <span>진열</span>
           </label>
           <label>
-            <input type="radio" name="is displayed" v-on:click="select_no_displayed" />
+            <input
+              type="radio"
+              name="is displayed"
+              v-on:click="select_no_displayed"
+            />
             <span>미진열</span>
           </label>
         </div>
         <p class="explain">
-          <font-awesome-icon class="exclamation-icon" icon="exclamation-triangle" />미진열 선택시 앱에서 노출되지 않습니다.
+          <font-awesome-icon
+            class="exclamation-icon"
+            icon="exclamation-triangle"
+          />미진열 선택시 앱에서 노출되지 않습니다.
         </p>
       </div>
     </article>
@@ -95,7 +133,9 @@
             <span>1차 카테고리</span>
           </div>
           <div class="category-selecter-container">
-            <div class="no-seller" v-if="!datas.first_category">셀러를 먼저 선택해주세요.</div>
+            <div class="no-seller" v-if="!datas.first_category">
+              셀러를 먼저 선택해주세요.
+            </div>
             <div class="yes-seller" v-if="datas.first_category">
               <select v-on:change="select_first_category">
                 <option>일차 카테고리를 선택해 주세요.</option>
@@ -103,7 +143,8 @@
                   v-for="list in datas.first_category"
                   v-bind:key="list.id"
                   v-bind:value="list.id"
-                >{{ list.name }}</option>
+                  >{{ list.name }}</option
+                >
               </select>
             </div>
           </div>
@@ -113,14 +154,17 @@
             <span>2차 카테고리</span>
           </div>
           <div class="category-selecter-container">
-            <div class="no-seller" v-if="!datas.first_category">셀러를 먼저 선택해주세요.</div>
+            <div class="no-seller" v-if="!datas.first_category">
+              셀러를 먼저 선택해주세요.
+            </div>
             <div class="yes-seller" v-if="datas.first_category">
               <select v-on:change="select_second_category">
                 <option
                   v-for="list in datas.second_category"
                   v-bind:key="list.id"
                   v-bind:value="list.id"
-                >{{ list.name }}</option>
+                  >{{ list.name }}</option
+                >
               </select>
             </div>
           </div>
@@ -173,7 +217,8 @@
                   v-for="list in datas.contry_list"
                   v-bind:value="list.id"
                   v-bind:key="list.id"
-                >{{ list.name }}</option>
+                  >{{ list.name }}</option
+                >
               </select>
             </div>
           </li>
@@ -188,12 +233,22 @@
         </span>
       </div>
       <div class="sub-main-col">
-        <input class="full-size-input" v-on:change="product_name_inputer" type="text" />
+        <input
+          class="full-size-input"
+          v-on:change="product_name_inputer"
+          type="text"
+        />
         <p class="explain">
-          <font-awesome-icon class="exclamation-icon" icon="exclamation-triangle" />상품명에는 쌍따옴표(") 또는 홑따옴표(')를 포함할 수 없습니다.
+          <font-awesome-icon
+            class="exclamation-icon"
+            icon="exclamation-triangle"
+          />상품명에는 쌍따옴표(") 또는 홑따옴표(')를 포함할 수 없습니다.
         </p>
         <p class="explain">
-          <font-awesome-icon class="exclamation-icon" icon="exclamation-triangle" />상품명에는 4byte 이모지를 포함할 수 없습니다.
+          <font-awesome-icon
+            class="exclamation-icon"
+            icon="exclamation-triangle"
+          />상품명에는 4byte 이모지를 포함할 수 없습니다.
         </p>
       </div>
     </article>
@@ -202,7 +257,11 @@
         <span>한줄 상품 설명</span>
       </div>
       <div class="sub-main">
-        <input class="full-size-input" v-on:change="simple_description_inputer" type="text" />
+        <input
+          class="full-size-input"
+          v-on:change="simple_description_inputer"
+          type="text"
+        />
       </div>
     </article>
     <article>
@@ -219,11 +278,14 @@
               <img alt="uploading photo" v-bind:src="image1_Url" />
             </div>
             <label>
-              <input type="file" v-on:change="file_select_image_1" ref="image_1" accept=".jpg" />
+              <input
+                type="file"
+                v-on:change="file_select_image_1"
+                ref="image_1"
+                accept=".jpg"
+              />
               <div class="photo-button">
-                <span>
-                  <em>*</em>대표 이미지
-                </span> 선택
+                <span> <em>*</em>대표 이미지 </span> 선택
               </div>
             </label>
           </div>
@@ -232,7 +294,12 @@
               <img alt="uploading photo" v-bind:src="image2_Url" />
             </div>
             <label>
-              <input type="file" v-on:change="file_select_image_2" ref="image_2" accept=".jpg" />
+              <input
+                type="file"
+                v-on:change="file_select_image_2"
+                ref="image_2"
+                accept=".jpg"
+              />
               <div class="photo-button">이미지 선택</div>
             </label>
           </div>
@@ -241,7 +308,12 @@
               <img alt="uploading photo" v-bind:src="image3_Url" />
             </div>
             <label>
-              <input type="file" v-on:change="file_select_image_3" ref="image_3" accept=".jpg" />
+              <input
+                type="file"
+                v-on:change="file_select_image_3"
+                ref="image_3"
+                accept=".jpg"
+              />
               <div class="photo-button">이미지 선택</div>
             </label>
           </div>
@@ -250,7 +322,12 @@
               <img alt="uploading photo" v-bind:src="image4_Url" />
             </div>
             <label>
-              <input type="file" v-on:change="file_select_image_4" ref="image_4" accept=".jpg" />
+              <input
+                type="file"
+                v-on:change="file_select_image_4"
+                ref="image_4"
+                accept=".jpg"
+              />
               <div class="photo-button">이미지 선택</div>
             </label>
           </div>
@@ -259,14 +336,21 @@
               <img alt="uploading photo" v-bind:src="image5_Url" />
             </div>
             <label>
-              <input type="file" v-on:change="file_select_image_5" ref="image_5" accept=".jpg" />
+              <input
+                type="file"
+                v-on:change="file_select_image_5"
+                ref="image_5"
+                accept=".jpg"
+              />
               <div class="photo-button">이미지 선택</div>
             </label>
           </div>
         </form>
         <p class="explain">
-          <font-awesome-icon class="exclamation-icon" icon="exclamation-triangle" />640*720사이즈 이상 등록 가능하며
-          <strong>확장자는 jpg</strong>만
+          <font-awesome-icon
+            class="exclamation-icon"
+            icon="exclamation-triangle"
+          />640*720사이즈 이상 등록 가능하며 <strong>확장자는 jpg</strong>만
           등록 가능합니다.
         </p>
       </div>
@@ -280,11 +364,12 @@
       </div>
       <div class="sub-main-col">
         <div class="how-to-upload">
-          <label>
-            <input type="radio" checked />간편업로드
-          </label>
+          <label> <input type="radio" checked />간편업로드 </label>
           <p class="explain">
-            <font-awesome-icon class="exclamation-icon" icon="exclamation-triangle" />상품 상세이미지의 권장 사이즈는
+            <font-awesome-icon
+              class="exclamation-icon"
+              icon="exclamation-triangle"
+            />상품 상세이미지의 권장 사이즈는
             <strong>가로사이즈 1000px</strong> 이상입니다.
           </p>
         </div>
@@ -345,18 +430,18 @@ export default {
   }),
   computed: {},
   methods: {
-    seller_search_opener: function () {
+    seller_search_opener: function() {
       this.open_seller_search = !this.open_seller_search;
       this.modal_drop = !this.modal_drop;
     },
-    input_select_id: function (num) {
+    input_select_id: function(num) {
       this.seller_id_selecter = num;
       this.$emit("seller_id", num);
     },
-    input_select_name: function (str) {
+    input_select_name: function(str) {
       this.seller_name_selecter = str;
     },
-    close_modal: function () {
+    close_modal: function() {
       this.modal_drop = !this.modal_drop;
       setTimeout(() => {
         this.open_seller_search = !this.open_seller_search;
@@ -383,23 +468,23 @@ export default {
 
       this.open_seller_search = !this.open_seller_search;
     },
-    select_sold: function () {
+    select_sold: function() {
       this.result.body.detail.is_sold = 1;
       this.$emit("is_sold", this.result.body.detail.is_sold);
     },
-    select_no_sold: function () {
+    select_no_sold: function() {
       this.result.body.detail.is_sold = 0;
       this.$emit("is_sold", this.result.body.detail.is_sold);
     },
-    select_displayed: function () {
+    select_displayed: function() {
       this.result.body.detail.is_displayed = 1;
       this.$emit("is_display", this.result.body.detail.is_displayed);
     },
-    select_no_displayed: function () {
+    select_no_displayed: function() {
       this.result.body.detail.is_displayed = 0;
       this.$emit("is_display", this.result.body.detail.is_displayed);
     },
-    select_first_category: function (e) {
+    select_first_category: function(e) {
       this.result.body.product.first_category = Number(e.target.value);
 
       axios
@@ -429,21 +514,21 @@ export default {
         this.result.body.product.first_category
       );
     },
-    select_second_category: function (e) {
+    select_second_category: function(e) {
       this.result.body.product.second_category = e.target.value;
       this.$emit(
         "second_category_number",
         this.result.body.product.second_category
       );
     },
-    details_reference: function () {
+    details_reference: function() {
       this.open_details_reference = false;
       this.result.body.detail.origin_company = null;
       this.result.body.detail.origin_date = null;
       this.result.body.detail.country_of_origin_id = null;
       this.$emit("reference_off");
     },
-    origin_self_inputer: function () {
+    origin_self_inputer: function() {
       this.open_details_reference = true;
       this.result.body.detail.country_of_origin_id = 1;
       this.$emit(
@@ -451,60 +536,60 @@ export default {
         this.result.body.detail.country_of_origin_id
       );
     },
-    origin_company_inputer: function (e) {
+    origin_company_inputer: function(e) {
       this.result.body.detail.origin_company = e.target.value;
       this.$emit(
         "input_origin_company",
         this.result.body.detail.origin_company
       );
     },
-    origin_date_inputer: function (e) {
+    origin_date_inputer: function(e) {
       this.$emit("input_origin_date", this.result.body.detail.origin_date);
     },
-    origin_contry_code_inputer: function (e) {
+    origin_contry_code_inputer: function(e) {
       this.result.body.detail.country_of_origin_id = e.target.value;
       this.$emit(
         "input_origin_contry_code",
         this.result.body.detail.country_of_origin_id
       );
     },
-    product_name_inputer: function (e) {
+    product_name_inputer: function(e) {
       this.result.body.detail.name = e.target.value;
       this.$emit("input_product_name", this.result.body.detail.name);
     },
-    simple_description_inputer: function (e) {
+    simple_description_inputer: function(e) {
       this.result.body.detail.simple_description = e.target.value;
       this.$emit(
         "input_simple_description",
         this.result.body.detail.simple_description
       );
     },
-    file_select_image_1: function () {
+    file_select_image_1: function() {
       this.result.image_1 = this.$refs.image_1.files[0];
       this.image1_Url = URL.createObjectURL(this.result.image_1);
       this.$emit("image_1_file", this.result.image_1);
     },
-    file_select_image_2: function () {
+    file_select_image_2: function() {
       this.result.image_2 = this.$refs.image_2.files[0];
       this.image2_Url = URL.createObjectURL(this.result.image_2);
       this.$emit("image_2_file", this.result.image_2);
     },
-    file_select_image_3: function () {
+    file_select_image_3: function() {
       this.result.image_3 = this.$refs.image_3.files[0];
       this.image3_Url = URL.createObjectURL(this.result.image_3);
       this.$emit("image_3_file", this.result.image_3);
     },
-    file_select_image_4: function () {
+    file_select_image_4: function() {
       this.result.image_4 = this.$refs.image_4.files[0];
       this.image4_Url = URL.createObjectURL(this.result.image_4);
       this.$emit("image_4_file", this.result.image_4);
     },
-    file_select_image_5: function () {
+    file_select_image_5: function() {
       this.result.image_5 = this.$refs.image_5.files[0];
       this.image5_Url = URL.createObjectURL(this.result.image_5);
       this.$emit("image_5_file", this.result.image_5);
     },
-    upload_description: function (str) {
+    upload_description: function(str) {
       this.result.body.detail.description = str;
       this.$emit("html", str);
     },
@@ -527,7 +612,7 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 .product-basic-info-component {
   margin: 10px;
   border: 1.3px solid #dddddd;
