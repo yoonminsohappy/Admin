@@ -35,6 +35,9 @@ class GetOrderDataView(MethodView):
         Returns :
             KEY_ERROR, 400
             VALUE_ERROR, 400
+            INVALID_DATE, 400
+            DB_DISCONNECTED, 500
+            UNSUCCESS, 400
             order_data = [{
                 "final_price"         : 결제금액
                 "id"                  : 주문상세 아이디,
