@@ -2,7 +2,7 @@ from datetime import datetime
 class OrderService:
     def __init__(self, order_dao, config):
         self.order_dao = order_dao
-        self.config = config
+        self.config    = config
 
     def get_order_data(self, db, arguments):
         """
@@ -47,10 +47,12 @@ class OrderService:
             2020-09-29 : 결제 일자 기준이 아닌 현재 상태 기준으로 조회하도록 변경
         """
 
-        order_data  = self.order_dao.get_order_data(db, arguments)
-        count = self.order_dao.get_order_data_count(db, arguments)['count']
+        order_data = self.order_dao.get_order_data(db, arguments)
+        count      = self.order_dao.get_order_data_count(db, arguments)['count']
 
+        # 날짜 형식 맞춰주기 위한 반복문
         for order_datum in order_data:
+            # 배송시작일이 필요한 경우
             if arguments['status_id'] == 7:
                 order_datum['shipping_started_at'] = self.order_dao.get_status_date(db, {
                         'order_detail_id': order_datum['id'],
@@ -91,6 +93,7 @@ class OrderService:
             2020-10-04 : 환불 요청 취소 반영
         """
 
+        # 환불 요청 취소일 경우는 이전 상태를 조회해서 변경하기 위한 조건문
         if arguments['to_status'] == 0:
             for order_detail_id in arguments['order_detail_id']:
                 argument = {
@@ -167,6 +170,7 @@ class OrderService:
         History:
             2020-09-29 : 초기 생성
         """
+
         order_detail_data = self.order_dao.get_order_detail_data(db, arguments)
 
         order_detail_data['payment_complete'] = order_detail_data['payment_complete'].strftime('%Y-%m-%d %H:%M:%S')
@@ -199,6 +203,7 @@ class OrderService:
         History:
             2020-10-04 : 초기 생성
         """
+
         self.order_dao.put_address(db, arguments)
 
         return ''

@@ -5,7 +5,7 @@ from flask_cors     import CORS
 
 from model          import ProductDao, SellerDao, OrderDao, UserDao, CouponDao, EventDao
 from service        import ProductService, SellerService, OrderService, UserService, CouponService, EventService
-from view           import create_endpoints, EventView
+from view           import create_endpoints
 
 class Services:
     pass

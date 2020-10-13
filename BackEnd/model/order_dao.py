@@ -5,6 +5,36 @@ from connection import get_connection
 
 class OrderDao:
     def get_order_data_count(self, db, arguments):
+        """
+        주문 정보 조회 건수 - Persistence Layer(model) function
+        Args:
+            arguments = {
+                'start_date'        : 조회 시작일,
+                'end_date'          : 조회 종료일,
+                'status_id'         : 주문 상태 아이디,
+                'order_number'      : 주문 번호(검색),
+                'detail_number'     : 주문 상세 번호(검색),
+                'user_name'         : 주문자명(검색),
+                'phone_number'      : 핸드폰번호(검색),
+                'seller_name'       : 셀러명(검색),
+                'product_name'      : 상품명(검색),
+                'seller_properties' : 셀러속성(검색),
+                'offset'            : 페이지네이션 시작지점,
+                'limit'             : 전달할 주문 리스트 개수
+            }
+            db = DATABASE Connection Instance
+        Returns :
+            order_data = {
+                "count" : 전체 조회 건수
+            }
+
+            err.OperationalError : DB 에러 발생 시 반환
+        Author :
+            김태수
+        History:
+            2020-10-13 : 초기 생성
+        """
+
         sql_1 = """
         SELECT
             COUNT(DISTINCT d.id) AS count
@@ -42,21 +72,35 @@ class OrderDao:
         ORDER BY osmh.updated_at DESC;
         """
 
+        # 주문 번호로 검색
         if arguments['order_number'] != "%\%":
             sql_1 += " AND o.order_number LIKE %(order_number)s"
+
+        # 주문 상세 번호로 검색
         elif arguments['detail_number'] != "%\%":
             sql_1 += " AND d.order_detail_number LIKE %(detail_number)s"
+
+        # 주문자명으로 검색
         elif arguments['user_name'] != "%\%":
             sql_1 += " AND d.orderer_name LIKE %(user_name)s"
+
+        # 핸드폰 번호로 검색
         elif arguments['phone_number'] != "%\%":
             sql_1 += " AND d.phone_number LIKE %(phone_number)s"
+
+        # 셀러명으로 검색
         elif arguments['seller_name'] != "%\%":
             sql_1 += " AND sl.korean_name LIKE %(seller_name)s"
+
+        # 상품명으로 검색
         elif arguments['product_name'] != "%\%":
             sql_1 += " AND pd.name LIKE %(product_name)s"
 
+        # 주문 취소 사유로 검색
         if arguments['order_cancel_reason']:
             sql_1 += " AND ocr.name = %(order_cancel_reason)s"
+
+        # 환불 요청 사유로 검색
         elif arguments['order_refund_reason']:
             sql_1 += " AND orr.name = %(order_refund_reason)s"
 
@@ -69,6 +113,7 @@ class OrderDao:
             return order_data_count
 
         raise err.OperationalError
+
     def get_order_data(self, db, arguments):
         """
         주문정보 - Persistence Layer(model) function
@@ -104,6 +149,8 @@ class OrderDao:
                 "order_cancel_reason" : 주문 취소 사유,
                 "order_refund_reason" : 환불 요청 사유
             }]
+
+            err.OperationalError : DB 에러
         Author :
             김태수
         History:
@@ -164,21 +211,35 @@ class OrderDao:
         LIMIT %(limit)s OFFSET %(offset)s;
         """
 
+        # 주문 번호로 검색
         if arguments['order_number'] != "%\%":
             sql_1 += " AND o.order_number LIKE %(order_number)s"
+
+        # 주문 상세 번호로 검색
         elif arguments['detail_number'] != "%\%":
             sql_1 += " AND d.order_detail_number LIKE %(detail_number)s"
+
+        # 주문자명으로 검색
         elif arguments['user_name'] != "%\%":
             sql_1 += " AND d.orderer_name LIKE %(user_name)s"
+
+        # 핸드폰 번호로 검색
         elif arguments['phone_number'] != "%\%":
             sql_1 += " AND d.phone_number LIKE %(phone_number)s"
+
+        # 셀러명으로 검색
         elif arguments['seller_name'] != "%\%":
             sql_1 += " AND sl.korean_name LIKE %(seller_name)s"
+
+        # 상품명으로 검색
         elif arguments['product_name'] != "%\%":
             sql_1 += " AND pd.name LIKE %(product_name)s"
 
+        # 주문 취소 사유로 검색
         if arguments['order_cancel_reason']:
             sql_1 += " AND ocr.name = %(order_cancel_reason)s"
+
+        # 환불 사유로 검색
         elif arguments['order_refund_reason']:
             sql_1 += " AND orr.name = %(order_refund_reason)s"
 
@@ -205,7 +266,9 @@ class OrderDao:
             status_date = {
                 "updated_at" : 변경 일자
             }
-            ValueError: 인자로 잘못된 값이 들어왔을 경우 발생
+
+            ValueError           : 인자로 잘못된 값이 들어왔을 경우 발생
+            err.OperationalError : DB 에러 발생 시 반환
         Author :
             김태수
         History:
@@ -222,6 +285,7 @@ class OrderDao:
             order_detail_id = %(order_detail_id)s
             AND order_status_id = %(status_id)s;
         """
+
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
             cursor.execute(sql, argument)
             status_date = cursor.fetchone()
@@ -245,7 +309,9 @@ class OrderDao:
             status_id = {
                 "status_id" : 상태 아이디
             }
-            ValueError: 인자로 잘못된 값이 전달 되었을 때 발생
+
+            ValueError           : 잘못된 인자 전달시 발생
+            err.OperationalError : DB 에러 발생 시 반환
         Author :
             김태수
         History:
@@ -260,6 +326,7 @@ class OrderDao:
         WHERE
             name = %(status_name)s;
         """
+
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
             cursor.execute(sql, argument)
             status_id = cursor.fetchone()
@@ -284,6 +351,7 @@ class OrderDao:
             db = DATABASE Connection Instance
         Returns :
             ''
+            err.OperationalError : DB 에러 발생 시 반환
         Author :
             김태수
         History:
@@ -332,6 +400,7 @@ class OrderDao:
             db = DATABASE Connection Instance
         Returns :
             ''
+            err.OperationalError : DB 에러 발생 시 반환
         Author :
             김태수
         History:
@@ -364,7 +433,6 @@ class OrderDao:
             }
             db = DATABASE Connection Instance
         Returns :
-            ValueError: 존재하지 않는 주문 상세에 대한 내용을 요청한 경우 발생
             order_detail_data = {
                 "address"               : 주소,
                 "detail_address"        : 상세 주소,
@@ -390,12 +458,16 @@ class OrderDao:
                 "order_refund_reason""  : 환불 요청 사유,
                 "cancel_refund_detail_description" : 취소/환불 상세 사유
             }
+
+            ValueError           : 잘못된 인자 전달시 발생
+            err.OperationalError : DB 에러 발생 시 반환
         Author :
             김태수
         History:
             2020-09-28 : 초기 생성
             2020-10-04 : 스키마 수정에 따른 참조 테이블명 수정
         """
+
         sql = """
         SELECT
             d.order_detail_number AS order_detail_number,
@@ -450,6 +522,7 @@ class OrderDao:
             AND osmh.order_status_id = 1
             AND osmh.order_detail_id = %(order_detail_id)s;
         """
+
         with db.cursor(pymysql.cursors.DictCursor) as cursor:
             cursor.execute(sql, arguments)
             order_detail_data = cursor.fetchone()
@@ -470,12 +543,13 @@ class OrderDao:
             }
             db = DATABASE Connection Instance
         Returns :
-            order_status_history = [
-                {
-                    "date"         : 날짜,
-                    "order_status" : 주문상태
-                }
-            ]
+            order_status_history = [{
+                "date"         : 날짜,
+                "order_status" : 주문상태
+            }]
+
+            ValueError           : 잘못된 인자 전달시 발생
+            err.OperationalError : DB 에러 발생 시 반환
         Author :
             김태수
         History:
@@ -514,10 +588,12 @@ class OrderDao:
             }
             db = DATABASE Connection Instance
         Returns :
-            ValueError: 잘못된 취소 사유를 인자로 전달시 발생
             order_cancel_reason_id = {
-                    "id" : 주문 취소 사유 아이디
+                'id' : 주문 취소 사유 아이디
             }
+
+            ValueError           : 잘못된 인자 전달시 발생
+            err.OperationalError : DB 에러 발생 시 반환
         Author :
             김태수
         History:
@@ -553,10 +629,12 @@ class OrderDao:
             }
             db = DATABASE Connection Instance
         Returns :
-            ValueError: 잘못된 환불 요청 사유를 인자로 전달시 발생
             order_refund_reason_id = {
-                    "id" : 환불 요청 사유 아이디
+                'id' : 환불 요청 사유 아이디
             }
+
+            ValueError           : 잘못된 인자 전달시 발생
+            err.OperationalError : DB 에러 발생 시 반환
         Author :
             김태수
         History:
@@ -592,10 +670,12 @@ class OrderDao:
             }
             db = DATABASE Connection Instance
         Returns :
-            ValueError: 잘못된 주문 상세 아이디가 인자로 전달시 발생
             current_state = {
-                    "order_status_id" : 환불 요청 이전의 상태 아이디
+                'order_status_id' : 환불 요청 이전의 상태 아이디
             }
+
+            ValueError           : 잘못된 인자 전달시 발생
+            err.OperationalError : DB 에러 발생 시 반환
         Author :
             김태수
         History:
@@ -632,15 +712,16 @@ class OrderDao:
         배송지 정보 수정 - Persistence Layer(model) function
         Args:
             arguments = {
-                'address' : 변경할 배송지,
-                'detail_address' : 변경할 배송지 상세 주소,
-                'zip_code': 변경할 배송지 우편번호,
+                'address'         : 변경할 배송지,
+                'detail_address'  : 변경할 배송지 상세 주소,
+                'zip_code'        : 변경할 배송지 우편번호,
                 'order_detail_id' : 변경할 주문 상세 아이디
             }
             db = DATABASE Connection Instance
         Returns :
-            ValueError
             ''
+            ValueError           : 잘못된 인자 전달시 발생
+            err.OperationalError : DB 에러 발생 시 반환
         Author :
             김태수
         History:
