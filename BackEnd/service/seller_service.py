@@ -45,10 +45,10 @@ class SellerService:
 
     # 회원가입 endpoint
     def sign_up(self, seller_info, conn):
-
         """
         새로운 셀러를 생성합니다.
             Args:
+                conn        : 데이터베이스 커넥션 객체
                 seller_info : view에서 7개의 파라미터들 딕셔너리 형태로 넣어준 변수
             Retruns:
                 200, {'message': 'SUCCESS'} : 회원가입 성공
@@ -69,8 +69,9 @@ class SellerService:
                 2020.09.23(이지연)) : 수정
                                 -> view에서 db commit하도록 변경, 에러 처리 추가
                 2020.09.25(이지연)) : 유효성 검사 추가
-                2020.10.02(이지연) : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
-                2020.10.07(이지연) : 회원가입할 시 셀러 계정아이디, 셀러 cs_phone, manager_phone unique처리 추가
+                2020.09.28(이지연)  : validation(유효성) 검사 삭제 -> ui쪽에서 처리하기로
+                2020.10.02(이지연)  : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+                2020.10.07(이지연)  : 회원가입할 시 셀러 계정아이디, 셀러 cs_phone, manager_phone unique처리 추가
         """
 
         #유니크 검사 (seller_account, email, cs_phone, phone_number)
@@ -127,10 +128,9 @@ class SellerService:
         manager = {
             'manager_phone'     : seller_info['phone_number'],
             'seller_id'         : pk_seller_id,
-            'manager_name'      : 'NoData', #이유:회원가입시 담당자 관련 정보는 전화번호만 받지만 
-            'manager_email'     : 'NoData'  #컬럼을 null값으로 두고 검색기능쪽에서 like를 통해서 "%%"로 전체검색을 하더라도 null값이여서 인식이 안되기 때문 
-        }                                   # select * from seller_informations where seller_account like "%%"; 
-                                            # SQL문 LIKE 에서 _ 와 % :
+            'manager_name'      : 'NoData',
+            'manager_email'     : 'NoData'  
+        }                                  
 
         if manager is None:
             raise Exception("INVALID_PARAMETER")
@@ -139,6 +139,43 @@ class SellerService:
 
     # 로그인 endpoint
     def sign_in(self, seller_info, conn):
+        """
+        기본 로그인 API
+
+        Args:
+            seller_info{
+                seller_account : 셀러 아이디
+                password       : 패스워드
+            }
+
+        Retruns:
+            200, {'access_token':access_token}
+
+            400, {'message': 'UNSUCCESS'}
+
+            400, {"errno": e.args[0], "errval": e.args[1]} : DB와 관련된 오류
+
+            (   
+                #IntegrityError : 데이터베이스의 관계형 무결성에서 발생하는 예외 (외래키 검사 실패, 중복키, 기타)
+                #DataError : 0으로 나누기, 범위를 벗어난 숫자 값,기타
+                #NotSupportedError : 메서드 또는 데이터베이스 API를 사용한 경우 예외 발생 데이터베이스에서 지원하지 않는 경우( 트랜잭션을 지원하지 않는 연결의 .rollback () 또는 거래가 해제)
+                #OperationalError : 데이터베이스와 관련된 오류에 대해 예외, 예기치 않은 연결 해제가 발생하면 데이터 소스 이름이 발견, 트랜잭션을 처리 할 수 ​​없음, 메모리 할당 처리 중 오류
+                #InternalError : 데이터베이스가 내부 오류, 예를 들어 커서가 더 이상 유효하지 않습니다. 트랜잭션이 동기화되지 않음 등
+            )
+
+        Authors:
+            wldus9503@gmail.com(이지연)
+        
+        History:(
+            2020.09.23(이지연) : 초기 생성
+            2020.09.24(이지연) : 수정
+                                -> view에서 db commit하도록 변경, 에러 처리 추가
+            2020.09.25(이지연)  : 유효성 검사 추가
+            2020.09.28(이지연)  : 유효성 검사 customexception -> validationexception 변경
+            2020.10.02(이지연)  : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+            2020.10.08(이지연)  : 피드백 반영 팀원들과 형식 맞춰 수정
+    """
+
         seller_account = seller_info['seller_account']
         
         #DB에 실제 아이디값이 존재하는지 확인 위해
@@ -160,6 +197,30 @@ class SellerService:
 
     #셀러 검색, 전체리스트
     def search_seller_list(self, conn, search_info):
+        """
+        셀러 계정 관리 검색 API
+
+        Args:
+            conn        :  데이터베이스 커넥션 객체
+            search_info :  검색 데이터를 담을 리스트
+
+        Retruns:
+            200, results : 해당 검색에 대한 결과
+            400, {'message': 'UNSUCCESS'} : 검색실패시
+
+        Authors:
+            wldus9503@gmail.com(이지연)
+        
+        History:(
+            2020.09.27(이지연) : 셀러 리스트 초기 생성   
+            2002.09.28(이지연) : 수정
+                             ->  유효성 검사 함수를 DAO로 이동
+            2020.09.29(이지연) : 셀러 검색 추가, 페이지 네이션 추가 
+            2020.10.02(이지연) : 모델링 변경으로 인한 수정
+                             -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+            2020.10.08(이지연)  : 피드백 반영 팀원들과 형식 맞춰 수정
+        """
+
         results = {}
 
         # 과거 데이터 pk값들 추출하기
@@ -172,7 +233,6 @@ class SellerService:
         total_count = self.dao.find_search_total_seller_list(conn, search_info)
         #총 페이지 개수 구함
         total_page  = int(total_count/search_info['per_page'])+1
-        
         #한 ID당 하나의 리스트 값들을 넣기 위해서 
         seller_list = []
         
@@ -194,8 +254,33 @@ class SellerService:
 
     #셀러계정관리- 수정/조회페이지
     def update_seller(self, conn, update_info, profile_image, background_image, modifier_user):
+        """
+        셀러 계정 관리 검색 API  - 수정/조회 페이지
+                                - s3에 이미지 파일 업로드
+                                - seller_informations에 셀러 과거 이력과 현재 이력을 담는다.
+
+        Args:
+            conn            : 데이터베이스 커넥션 객체
+            update_info     : 수정 정보를 담은 리스트
+            profile_image   : 셀러 프로필 이미지
+            background_image: 셀러 배경 이미지
+            modifier_user   : 수정자
+
+        Retruns:
+            200, results : 해당 검색에 대한 결과
+            400, {'message': 'UNSUCCESS'} : 검색실패시
+
+        Authors:
+            wldus9503@gmail.com(이지연)
+
+        History:(
+            2020.10.02(이지연) : 모델링 변경으로 인한 수정
+                             -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+            2020.10.07(이지연)  : 회원가입할 시 셀러 계정아이디, 셀러 cs_phone, manager_phone unique처리 추가
+            2020.10.08(이지연)  : 피드백 반영 팀원들과 형식 맞춰 수정
+        """
+
         #수정자가 자신이거나 mater인지 검사
-        
         if modifier_user['seller_id'] != update_info['seller_id'] and modifier_user['is_master'] == 0:
             raise Exception("UNAUTHORIZATION")
         
@@ -266,7 +351,7 @@ class SellerService:
         
         #셀러 상태 변경시 상태 변경 이력 추가
         if past_seller_info['seller_status_id'] != updated_info['seller_status_id']:
-            print("asd")
+            
             seller_info = {
                 'seller_id'         : updated_info['seller_id'],                
                 'created_at'        : datetime.datetime.now(),                
@@ -361,27 +446,27 @@ class SellerService:
             이지연(wldus9503@@gmail.com)
         History:
             2020-10-04(이지연): 초기 생성
+
         """
 
         #딕셔너리로 결과를 담을 변수 생성
         results = {}
-        print('1')
+        
         #seller테이블에 해당하는 컬럼값
         seller = self.dao.find_detail_seller(conn, seller_id) 
         if seller is None:
             raise Exception("INVALID_PARAMETER")
-        print('2')
+        
         #manager테이블에 해당하는 컬럼값
         manager = self.dao.find_detail_manager(conn, seller_id)
         if manager is None:
             raise Exception("INVALID_PARAMETER")
-        print('3')
+        
         #변경이력 테이블에 해당하는 컬럼값
         seller_modification = self.dao.find_detail_seller_modification(conn, seller_id)
         if seller_modification is None:
             raise Exception("INVALID_PARAMETER")
-        print('4')
-
+        
         #딕셔너리로 값을 넣어준다.
         results['seller'] = seller
         results['manager'] = manager
@@ -391,6 +476,22 @@ class SellerService:
 
     #엑셀 다운로드
     def make_excel_file(self, conn, search_info):
+        """
+        엑셀 다운로드 파일 엔드포인트
+
+        Args: 
+            search_info : 검색 결과 정보를 담을 리스트
+
+        Retruns:
+            400, {'message': 'UNSUCCESS'} 
+
+        Authors:
+            wldus9503@gmail.com(이지연)
+        
+        History:(
+            2020.10.09(이지연) : 초기 설정
+            2020.10.11(이지연) : user_id 중복 발생으로 인한 에러 수정
+        """
         
         results = {}
 
@@ -402,6 +503,7 @@ class SellerService:
         #검색결과 리스트
         result_list = self.dao.find_search_seller_list_excel(conn, search_info)
 
+        # 피드백 수정 -> 매니저가 여러개여서 처리 필요
         for result in result_list: #리스트 돌면서
             if result['id'] not in temp: #temp리스트에 id값이 존재하지 않는 경우만 append 즉, 중복없이 하나씩만 넣기
                 temp.append(result['id']) #temp에 id값 넣기
@@ -437,4 +539,3 @@ class SellerService:
         save_data(directory + filename, {"data": data})
 
         return directory, filename, "셀러리스트엑셀_브랜디.xls"
-

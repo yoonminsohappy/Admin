@@ -4,7 +4,6 @@ from flask.views    import MethodView
 from connection     import get_connection
 from pymysql        import err
 
-#유효성 검사용 모듈 import
 from flask_request_validator import (
     GET,
     PATH,
@@ -102,7 +101,6 @@ class SellerSignUpView(MethodView):
         self.service = service #(app->init->view)
     
     @catch_exception
-    #validator에서 오류가 날 경우 500이 아닌 400에러를 반환
     @validate_params(
         #들어온 파라미터들을 유효성 검사한다.
         Param('seller_account',JSON,str,required=True),
@@ -129,7 +127,7 @@ class SellerSignUpView(MethodView):
             Retruns:
                 200, {'message': 'SUCCESS'} : 회원가입 성공
 
-                400, {'message':str(e)} : 회원가입 실패, 유효성 검사 오류
+                400, {'message': 'UNSUCCESS'} : 회원가입 실패, 유효성 검사 오류
 
                 400, {"errno": e.args[0], "errval": e.args[1]} : DB와 관련된 오류
 
@@ -145,12 +143,15 @@ class SellerSignUpView(MethodView):
                 wldus9503@gmail.com(이지연)
             
             History:
-                2020 - 09 - 22(wldus9503@gmail.com) : 초기 생성
-                2020 - 09 - 23(wldus9503@gmail.com) : 수정
+                2020.09.22(이지연) : 초기 생성
+                2020.09.23(이지연) : 수정
                                 -> view에서 db commit하도록 변경, 에러 처리 추가
-                2020 - 09 - 25(wldus9503@gmail.com) : 유효성 검사 추가
-                2020.10.02(이지연) : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+                2020.09.25(이지연)  : validation(유효성) 검사 추가
+                2020.09.28(이지연)  : validation(유효성) 검사 삭제 -> ui쪽에서 처리하기로
+                2020.10.02(이지연)  : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
                 2020.10.07(이지연)  : 회원가입할 시 셀러 계정아이디, 셀러 cs_phone, manager_phone unique처리 추가
+                2020-10.08(이지연)  : 피드백 반영 팀원들과 형식 맞춰 수정
+
         """
         try:
             conn          = connection.get_connection()   
@@ -174,7 +175,7 @@ class SellerSignUpView(MethodView):
         except Exception as e:
             traceback.print_exc()
             conn.rollback()
-            return jsonify({'message': str(e)}), 400
+            return jsonify({'message': 'UNSUCCESS'}), 400
         else:
             conn.commit()    
             return jsonify({'message':'SUCCESS'}), 200 
@@ -184,42 +185,6 @@ class SellerSignUpView(MethodView):
 # 로그인 endpoint
 class SellerSignInView(MethodView):
 
-    """
-        기본 로그인 API
-
-        Args:
-
-            seller_account : 셀러 아이디
-            password       : 패스워드
-            
-        Retruns:
-            200, {'access_token':access_token}
-
-            400, {'message': 'UNSUCCESS'}
-
-            400, {"errno": e.args[0], "errval": e.args[1]} : DB와 관련된 오류
-
-            (   #IntegrityError : 데이터베이스의 관계형 무결성에서 발생하는 예외 (외래키 검사 실패, 중복키, 기타)
-                #DataError : 0으로 나누기, 범위를 벗어난 숫자 값,기타
-                #NotSupportedError : 메서드 또는 데이터베이스 API를 사용한 경우 예외 발생 데이터베이스에서 지원하지 않는 경우( 트랜잭션을 지원하지 않는 연결의 .rollback () 또는 거래가 해제)
-                #OperationalError : 데이터베이스와 관련된 오류에 대해 예외, 예기치 않은 연결 해제가 발생하면 데이터 소스 이름이 발견, 트랜잭션을 처리 할 수 ​​없음, 메모리 할당 처리 중 오류
-                #InternalError : 데이터베이스가 내부 오류, 예를 들어 커서가 더 이상 유효하지 않습니다. 트랜잭션이 동기화되지 않음 등
-            )
-
-            400, {'message':str(e)} : 유효성 검사 오류
-
-        Authors:
-            wldus9503@gmail.com(이지연)
-        
-        History:(
-            2020 - 09 - 23(wldus9503@gmail.com) : 초기 생성
-            2020 - 09 - 24(wldus9503@gmail.com) : 수정
-            -> view에서 db commit하도록 변경, 에러 처리 추가
-            2020 - 09 - 25(wldus9503@gmail.com) : 유효성 검사 추가
-            2020 - 09 - 28(wldus9503@gmail.com) : 유효성 검사 customexception -> validationexception 변경
-            2020.10.02(이지연) : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
-
-    """ 
     def __init__(self, service):
         self.service = service 
 
@@ -229,6 +194,42 @@ class SellerSignInView(MethodView):
         Param('password',JSON,str,required=True)
     )
     def post(self, *args):
+        """
+        기본 로그인 API
+
+        Args:
+            seller_info{
+                seller_account : 셀러 아이디
+                password       : 패스워드
+            }
+
+        Retruns:
+            200, {'access_token':access_token}
+
+            400, {'message': 'UNSUCCESS'}
+
+            400, {"errno": e.args[0], "errval": e.args[1]} : DB와 관련된 오류
+
+            (   
+                #IntegrityError : 데이터베이스의 관계형 무결성에서 발생하는 예외 (외래키 검사 실패, 중복키, 기타)
+                #DataError : 0으로 나누기, 범위를 벗어난 숫자 값,기타
+                #NotSupportedError : 메서드 또는 데이터베이스 API를 사용한 경우 예외 발생 데이터베이스에서 지원하지 않는 경우( 트랜잭션을 지원하지 않는 연결의 .rollback () 또는 거래가 해제)
+                #OperationalError : 데이터베이스와 관련된 오류에 대해 예외, 예기치 않은 연결 해제가 발생하면 데이터 소스 이름이 발견, 트랜잭션을 처리 할 수 ​​없음, 메모리 할당 처리 중 오류
+                #InternalError : 데이터베이스가 내부 오류, 예를 들어 커서가 더 이상 유효하지 않습니다. 트랜잭션이 동기화되지 않음 등
+            )
+
+        Authors:
+            wldus9503@gmail.com(이지연)
+        
+        History:(
+            2020.09.23(이지연) : 초기 생성
+            2020.09.24(이지연) : 수정
+                                -> view에서 db commit하도록 변경, 에러 처리 추가
+            2020.09.25(이지연)  : 유효성 검사 추가
+            2020.09.28(이지연)  : 유효성 검사 customexception -> validationexception 변경
+            2020.10.02(이지연)  : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+            2020.10.08(이지연)  : 피드백 반영 팀원들과 형식 맞춰 수정
+    """ 
        
         try:
             conn          = connection.get_connection()
@@ -249,7 +250,7 @@ class SellerSignInView(MethodView):
         #그 외 오류(컬럼명 오타 등)
         except Exception as e:
             traceback.print_exc()
-            return jsonify({'message': str(e)}),405
+            return jsonify({'message': 'UNSUCCESS'}),400
         else:
             return jsonify({'access_token':access_token}),200
         finally:
@@ -260,8 +261,8 @@ class  SellerSearchView(MethodView):
     def __init__(self, service):
         self.service = service
 
-    @catch_exception
     @login_decorator
+    @catch_exception
     @validate_params(
         Param('id', GET, str, required=False, default=None),
         Param('seller_account', GET, str, required=False, default=None),
@@ -284,26 +285,11 @@ class  SellerSearchView(MethodView):
         셀러 계정 관리 검색 API
 
         Args:
-            --sellers table
-                seller_id                : 셀러 PK
-                seller_account           : 셀러 아이디 ,
-                english_name             : 영문 셀러명,
-                korean_name              : 셀러명,
-                registered_product_count : 등록 상품 개수
-                register_date            : 등록 일시
-            --seller_managers
-                name               : 담당자 이름,
-                phone_number       : 담당자 전화번호,
-                email              : 이메일
-            --seller_properties
-                name               : 속성 이름(쇼핑몰 마켓  로드샵  디자이너브랜드  제너럴브랜드  내셔널브랜드  뷰티),
-            --seller_statuses
-                name               : 상태 이름(입점대기, 입점거절, 입점, 휴점, 퇴점 대기, 퇴점)
+            search_info :   검색 데이터를 담을 리스트
 
         Retruns:
             200, results : 해당 검색에 대한 결과
-
-            400, {'message':str(e)} : 잘못된 키워드 오류
+            400, {'message': 'UNSUCCESS'} : 검색실패시
 
         Authors:
             wldus9503@gmail.com(이지연)
@@ -311,9 +297,11 @@ class  SellerSearchView(MethodView):
         History:(
             2020.09.27(이지연) : 셀러 리스트 초기 생성   
             2002.09.28(이지연) : 수정
-                                    ->  유효성 검사 함수를 DAO로 이동
+                             ->  유효성 검사 함수를 DAO로 이동
             2020.09.29(이지연) : 셀러 검색 추가, 페이지 네이션 추가 
-            2020.10.02(이지연) : 모델링 변경 -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+            2020.10.02(이지연) : 모델링 변경으로 인한 수정
+                             -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+            2020.10.08(이지연)  : 피드백 반영 팀원들과 형식 맞춰 수정
 
         """
 
@@ -335,7 +323,6 @@ class  SellerSearchView(MethodView):
                 'per_page'                  :   args[12],
                 'order'                     :   args[13]
             }
-           # print(request.seller_id)
 
             results = self.service.search_seller_list(conn, search_info)
         except:
@@ -346,7 +333,7 @@ class  SellerSearchView(MethodView):
         finally:
             conn.close()
 
-#셀러 수정 기능
+# 셀러 수정 기능
 class SellerUpdateView(MethodView):
 
     def __init__(self, service):
@@ -378,13 +365,38 @@ class SellerUpdateView(MethodView):
         Param('model_feet_size', FORM, str, required=False, default=None),
         Param('shopping_feedtext', FORM, str, required=False, default=None),
         Param('password', FORM, str, required=False, default=None),
+        Param('korean_name', FORM, str, required=False, default=None),
+        Param('english_name', FORM, str, required=False, default=None),
         Param('manager_info[0]', FORM, dict, required=True, default=None),
         Param('manager_info[1]', FORM, dict, required=False, default=None),
         Param('manager_info[2]', FORM, dict, required=False, default=None)
     )
     #Form으로 한 이유: 이미지 파일과 json데이터를 한꺼번에 요청하기 위해서
-
+    
+    #셀러 정보 수정
     def put(self,*args):
+
+        """
+        셀러 정보 수정페이지 API
+
+        Args:
+            update_info   = :  수정 정보를 담을 리스트 
+
+        Retruns:
+            200, results : 해당 검색에 대한 결과
+            400, {'message': 'UNSUCCESS'} : 셀러 정보 수정 실패
+
+        Authors:
+            wldus9503@gmail.com(이지연)
+        
+        History:(
+            2020.10.02(이지연) : 모델링 변경으로 인한 수정
+                             -> 하나의 셀러 테이블을 sellers와 seller_informations으로 나누고 로직 변경
+            2020.10.04(이지연) : 데코레이터를 적용
+            2020.10.08(이지연) : 피드백 반영 팀원들과 형식 맞춰 수정
+            
+        """
+
         try:
             conn = connection.get_connection()
 
@@ -412,6 +424,8 @@ class SellerUpdateView(MethodView):
                 'model_feet_size'             : args[20],
                 'shopping_feedtext'           : args[21],
                 'password'                    : args[22],
+                'korean_name'                 : args[23],
+                'english_name'                : args[24],
                 'manager_infos'               : None
             }
 
@@ -419,7 +433,7 @@ class SellerUpdateView(MethodView):
             manager_infos = []
 
             #None이 아닌 매니저 정보는 리스트에 담는다(args-23,24,25까지)
-            for i in range(23,26):
+            for i in range(25,28):
                 if args[i] != None:
                     manager_infos.append(args[i])
             #update_info에 리스트를 담는다.
@@ -436,9 +450,8 @@ class SellerUpdateView(MethodView):
         except Exception as e:
             traceback.print_exc()
             conn.rollback()
-            return jsonify({'message': str(e)}),400
+            return jsonify({'message': 'UNSUCCESS'}),400
         else:
-            traceback.print_exc()
             conn.commit()
             return jsonify(results), 200
         finally:
@@ -448,20 +461,41 @@ class SellerUpdateView(MethodView):
     @validate_params(
         Param('seller_id', PATH, str, required=True, default=None)
     )
+    #셀러 상세정보 조회
     def get(self,*args):
+
+        """
+        셀러 상세 정보 조회 페이지 
+            - 이전에 입력된 데이터를 보여준다.
+
+        Args:
+            seller_id : 셀러 고유 아이디
+        Retruns:
+            200, results : 해당 검색에 대한 결과
+            400, {'message': 'UNSUCCESS'} : 셀러 정보 수정 실패
+
+        Authors:
+            wldus9503@gmail.com(이지연)
+        
+        History:(
+            2020.10.04(이지연) : 초기 생성
+            2020-10.08(이지연) : 피드백 반영 팀원들과 형식 맞춰 수정
+            2020.10.09(이지연) : 모델링 param을 적용해 sql로직 수정
+
+        """
 
         try: 
             #db연결
             conn            = get_connection()
-            #seller_id를 인자로 갖 고온다.
+            #seller_id를 인자로 갖고온다.
             seller_id       = args[0]
             #service에서 넘겨준 값을 results변수에 담는다.
             results          = self.service.detail_seller(conn, seller_id)
         
         #예외처리
         except Exception as e:
-
-            return jsonify({'message':str(e)}), 400
+            traceback.print_exc()
+            return jsonify({'message':'UNSUCCESS'}), 400
         else:
             return jsonify(results), 200
         finally:
@@ -489,6 +523,23 @@ class SellerExcelDownloadView(MethodView):
         Param('order',GET, str, required=False, default='DESC',rules=[Validation_order()])
     )
     def get(self, *args):
+        
+        """
+        엑셀 다운로드 파일 엔드포인트
+
+        Args: 
+            search_info : 검색 결과 정보를 담을 리스트
+
+        Retruns:
+            400, {'message': 'UNSUCCESS'} 
+
+        Authors:
+            wldus9503@gmail.com(이지연)
+        
+        History:(
+            2020.10.09(이지연) : 초기 설정
+            2020.10.11(이지연) : user_id 중복 발생으로 인한 에러 수정
+        """
         try:
             conn = connection.get_connection()
 
@@ -496,21 +547,19 @@ class SellerExcelDownloadView(MethodView):
             search_info = {
                 'id'                        :   args[0],
                 'seller_account'            :   args[1],
-                'english_name'              :   args[2],
-                'korean_name'               :   args[3],
-                'cs_phone'                  :   args[4],
-                'seller_status'             :   args[5],
-                'seller_property'           :   args[6],
-                'manager_name'              :   args[7],
-                'manager_phone'             :   args[8],
-                'manager_email'             :   args[9],
+                'korean_name'               :   args[2],
+                'english_name'              :   args[3],
+                'seller_status'             :   args[4],
+                'seller_property'           :   args[5],
+                'manager_name'              :   args[6],
+                'manager_phone'             :   args[7],
+                'manager_email'             :   args[8],
                 'start_date'                :   args[9],
                 'end_date'                  :   args[10],
                 'order'                     :   args[11]
             }
-            
+
             directory, filename, filename_for_user = self.service.make_excel_file(conn, search_info)
-            #print(directory,filename,filename_for_user)
         except:
             traceback.print_exc()
             return jsonify({'message': 'UNSUCCESS'}), 400

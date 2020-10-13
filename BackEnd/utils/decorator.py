@@ -140,5 +140,5 @@ def catch_exception(f, *args, **kwargs):
             traceback.print_exc()
             if len(e.args)==0:
                 return jsonify({"message" : "INVALID_PARAMETER"}), 400
-            return jsonify({"message" : f"INVALID_PARAMETER_{e.args[0]}"}), 405
+            return jsonify({"message" : f"INVALID_PARAMETER_{e.args[0]}"}), 400
     return wrapper
