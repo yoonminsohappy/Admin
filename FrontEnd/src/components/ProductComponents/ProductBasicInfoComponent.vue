@@ -193,7 +193,7 @@
         </div>
         <ul class="self-input" v-if="open_details_reference">
           <li>
-            <div class="self-input-title">제조사(수입사) :</div>
+            <div class="self-input-title">조사(수입사) :</div>
             <div class="self-input-main">
               <input type="text" v-on:change="origin_company_inputer" />
             </div>
@@ -859,14 +859,14 @@ export default {
 
       .self-input-main {
         width: 25%;
+        height: 34px;
+        border: 1px solid #dddddd;
+        background-color: white;
+        padding: 6px 12px;
 
         input,
         select {
           width: 100%;
-          height: 34px;
-          border: 1px solid #dddddd;
-          background-color: white;
-          padding: 6px 12px;
         }
       }
     }
