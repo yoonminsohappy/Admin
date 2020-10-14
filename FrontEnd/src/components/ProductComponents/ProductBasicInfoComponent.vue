@@ -143,8 +143,9 @@
                   v-for="list in datas.first_category"
                   v-bind:key="list.id"
                   v-bind:value="list.id"
-                  >{{ list.name }}</option
                 >
+                  {{ list.name }}
+                </option>
               </select>
             </div>
           </div>
@@ -163,8 +164,9 @@
                   v-for="list in datas.second_category"
                   v-bind:key="list.id"
                   v-bind:value="list.id"
-                  >{{ list.name }}</option
                 >
+                  {{ list.name }}
+                </option>
               </select>
             </div>
           </div>
@@ -217,8 +219,9 @@
                   v-for="list in datas.contry_list"
                   v-bind:value="list.id"
                   v-bind:key="list.id"
-                  >{{ list.name }}</option
                 >
+                  {{ list.name }}
+                </option>
               </select>
             </div>
           </li>
@@ -431,31 +434,30 @@ export default {
   }),
   computed: {},
   methods: {
-    seller_search_opener: function() {
+    seller_search_opener: function () {
       this.open_seller_search = !this.open_seller_search;
       this.modal_drop = !this.modal_drop;
     },
-    input_select_id: function(num) {
+    input_select_id: function (num) {
       this.seller_id_selecter = num;
       this.$emit("seller_id", num);
     },
-    input_select_name: function(str) {
+    input_select_name: function (str) {
       this.seller_name_selecter = str;
     },
-    close_modal: function() {
+    close_modal: function () {
       this.modal_drop = !this.modal_drop;
       setTimeout(() => {
         this.open_seller_search = !this.open_seller_search;
       }, 300);
     },
-    final_seller_select: function() {
+    final_seller_select: function () {
       axios
         .get(
           `${config}products/first-categories?seller-property-id=${this.seller_id_selecter}`,
           {
             headers: {
-              Authorization:
-                "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",
+              Authorization: localStorage.getItem("access_token"),
             },
           }
         )
@@ -469,23 +471,23 @@ export default {
 
       this.open_seller_search = !this.open_seller_search;
     },
-    select_sold: function() {
+    select_sold: function () {
       this.result.body.detail.is_sold = 1;
       this.$emit("is_sold", this.result.body.detail.is_sold);
     },
-    select_no_sold: function() {
+    select_no_sold: function () {
       this.result.body.detail.is_sold = 0;
       this.$emit("is_sold", this.result.body.detail.is_sold);
     },
-    select_displayed: function() {
+    select_displayed: function () {
       this.result.body.detail.is_displayed = 1;
       this.$emit("is_display", this.result.body.detail.is_displayed);
     },
-    select_no_displayed: function() {
+    select_no_displayed: function () {
       this.result.body.detail.is_displayed = 0;
       this.$emit("is_display", this.result.body.detail.is_displayed);
     },
-    select_first_category: function(e) {
+    select_first_category: function (e) {
       this.result.body.product.first_category = Number(e.target.value);
 
       axios
@@ -493,8 +495,7 @@ export default {
           `${config}products/second-categories?first-category-id=${e.target.value}`,
           {
             headers: {
-              Authorization:
-                "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",
+              Authorization: localStorage.getItem("access_token"),
             },
           }
         )
@@ -515,21 +516,21 @@ export default {
         this.result.body.product.first_category
       );
     },
-    select_second_category: function(e) {
+    select_second_category: function (e) {
       this.result.body.product.second_category = e.target.value;
       this.$emit(
         "second_category_number",
         this.result.body.product.second_category
       );
     },
-    details_reference: function() {
+    details_reference: function () {
       this.open_details_reference = false;
       this.result.body.detail.origin_company = null;
       this.result.body.detail.origin_date = null;
       this.result.body.detail.country_of_origin_id = null;
       this.$emit("reference_off");
     },
-    origin_self_inputer: function() {
+    origin_self_inputer: function () {
       this.open_details_reference = true;
       this.result.body.detail.country_of_origin_id = 1;
       this.$emit(
@@ -537,78 +538,73 @@ export default {
         this.result.body.detail.country_of_origin_id
       );
     },
-    origin_company_inputer: function(e) {
+    origin_company_inputer: function (e) {
       this.result.body.detail.origin_company = e.target.value;
       this.$emit(
         "input_origin_company",
         this.result.body.detail.origin_company
       );
     },
-    origin_date_inputer: function(e) {
+    origin_date_inputer: function (e) {
       this.$emit("input_origin_date", this.result.body.detail.origin_date);
     },
-    origin_contry_code_inputer: function(e) {
+    origin_contry_code_inputer: function (e) {
       this.result.body.detail.country_of_origin_id = e.target.value;
       this.$emit(
         "input_origin_contry_code",
         this.result.body.detail.country_of_origin_id
       );
     },
-    product_name_inputer: function(e) {
+    product_name_inputer: function (e) {
       this.result.body.detail.name = e.target.value;
       this.$emit("input_product_name", this.result.body.detail.name);
     },
-    simple_description_inputer: function(e) {
+    simple_description_inputer: function (e) {
       this.result.body.detail.simple_description = e.target.value;
       this.$emit(
         "input_simple_description",
         this.result.body.detail.simple_description
       );
     },
-    file_select_image_1: function() {
+    file_select_image_1: function () {
       this.result.image_1 = this.$refs.image_1.files[0];
       this.image1_Url = URL.createObjectURL(this.result.image_1);
       this.$emit("image_1_file", this.result.image_1);
     },
-    file_select_image_2: function() {
+    file_select_image_2: function () {
       this.result.image_2 = this.$refs.image_2.files[0];
       this.image2_Url = URL.createObjectURL(this.result.image_2);
       this.$emit("image_2_file", this.result.image_2);
     },
-    file_select_image_3: function() {
+    file_select_image_3: function () {
       this.result.image_3 = this.$refs.image_3.files[0];
       this.image3_Url = URL.createObjectURL(this.result.image_3);
       this.$emit("image_3_file", this.result.image_3);
     },
-    file_select_image_4: function() {
+    file_select_image_4: function () {
       this.result.image_4 = this.$refs.image_4.files[0];
       this.image4_Url = URL.createObjectURL(this.result.image_4);
       this.$emit("image_4_file", this.result.image_4);
     },
-    file_select_image_5: function() {
+    file_select_image_5: function () {
       this.result.image_5 = this.$refs.image_5.files[0];
       this.image5_Url = URL.createObjectURL(this.result.image_5);
       this.$emit("image_5_file", this.result.image_5);
     },
-    upload_description: function(str) {
+    upload_description: function (str) {
       this.result.body.detail.description = str;
       this.$emit("html", str);
     },
   },
   watch: { "result.body.detail.origin_date": "origin_date_inputer" },
-  created: function() {
+  created: function () {
     axios
       .get(`${config}products/countries`, {
         headers: {
-          Authorization:
-            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",
+          Authorization: localStorage.getItem("access_token"),
         },
       })
       .then((res) => (this.datas.contry_list = res.data));
-
-    // axios
-    //   .get(`public/mockdata/contry.json`)
-    //   .then((res) => (this.datas.contry_list = res.data));
   },
 };
 </script>

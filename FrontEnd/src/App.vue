@@ -47,6 +47,7 @@ export default {
 .background-maker {
   background-color: #35363a;
   width: 100%;
+  height: 100%;
 }
 .product-resgist,
 .admein-fram {
@@ -54,13 +55,9 @@ export default {
   background-color: white;
 }
 .admin-frame {
+  min-height: 699px;
   background-color: white;
   padding: 25px 20px 20px 20px;
   margin-top: 45px;
-}
-@media (min-width: 1000px) and (max-width: 1500px) {
-  .admin-frame {
-    min-height: 699px;
-  }
 }
 </style>

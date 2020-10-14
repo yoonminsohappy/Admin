@@ -11,9 +11,7 @@
         <em>*</em>
       </div>
       <div class="sub-main">
-        <label>
-          <input type="radio" checked />기본옵션
-        </label>
+        <label> <input type="radio" checked />기본옵션 </label>
       </div>
     </article>
     <article>
@@ -38,7 +36,11 @@
               </div>
             </td>
             <td>
-              <button class="add" v-if="select_color.length > 1" v-on:click="delete_color(idx)">
+              <button
+                class="add"
+                v-if="select_color.length > 1"
+                v-on:click="delete_color(idx)"
+              >
                 <font-awesome-icon icon="minus" />
               </button>
               <button class="add" v-on:click="add_color_list">
@@ -61,7 +63,11 @@
               </div>
             </td>
             <td>
-              <button class="add" v-if="select_size.length > 1" v-on:click="delete_size(idx)">
+              <button
+                class="add"
+                v-if="select_size.length > 1"
+                v-on:click="delete_size(idx)"
+              >
                 <font-awesome-icon icon="minus" />
               </button>
               <button class="add" v-on:click="add_size_list">
@@ -99,7 +105,10 @@
             <th class="option-th">색상</th>
             <th class="option-th">사이즈</th>
           </tr>
-          <tr v-for="(list, idx) in result.body.option" v-bind:key="idx + `result`">
+          <tr
+            v-for="(list, idx) in result.body.option"
+            v-bind:key="idx + `result`"
+          >
             <td>
               <div class="option-select-container">
                 <div class="option-select-floater">
@@ -161,7 +170,10 @@
         </table>
 
         <p class="explain">
-          <font-awesome-icon class="exclamation-icon" icon="exclamation-triangle" />도매처옵션명 조합은 최대 100자까지 표시됩니다.
+          <font-awesome-icon
+            class="exclamation-icon"
+            icon="exclamation-triangle"
+          />도매처옵션명 조합은 최대 100자까지 표시됩니다.
         </p>
       </div>
     </article>
@@ -170,7 +182,7 @@
 
 <script>
 import axios from "axios";
-import {config} from "../../api/index"
+import { config } from "../../api/index";
 import OptionList from "./OptionList";
 
 export default {
@@ -298,16 +310,14 @@ export default {
     axios
       .get(`${config}products/colors`, {
         headers: {
-          Authorization:
-            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",
+          Authorization: localStorage.getItem("access_token"),
         },
       })
       .then((res) => (this.datas.product_color_list = res.data));
     axios
       .get(`${config}products/sizes`, {
         headers: {
-          Authorization:
-            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",
+          Authorization: localStorage.getItem("access_token"),
         },
       })
       .then((res) => (this.datas.product_size_list = res.data));

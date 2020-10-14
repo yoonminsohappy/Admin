@@ -1,4 +1,4 @@
-import { fetchFilterList } from "../../api/api"
+import {fetchFilterList} from "../../api/index"
 
 const fromDate = new Date()
 fromDate.setDate(new Date().getDate() - 3)
@@ -38,7 +38,6 @@ export default {
         isFetch(state) {
           return state.isFetched
         }
-
     },
     mutations: {
         setFilter(state, data) {
@@ -143,12 +142,12 @@ export default {
           return data
         }
         const data = {
-            optName: this.state.order.selectOptName,
-            inputData: this.state.order.searchText,
-            startDate: getDate(this.state.order.from),
-            endDate: getDate(this.state.order.to),
-            mdData: getMd(this.state.order.mdValues),
-            limit: this.state.order.Limit
+            optName: context.state.selectOptName,
+            inputData: context.state.searchText,
+            startDate: getDate(context.state.from),
+            endDate: getDate(context.state.to),
+            mdData: getMd(context.state.mdValues),
+            limit: context.state.Limit
           }
         fetchFilterList(data)
             .then(responese => {

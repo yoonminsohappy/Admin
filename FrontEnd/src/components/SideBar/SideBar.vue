@@ -85,7 +85,8 @@ export default {
 <style lang="scss" scoped>
 .page-side-bar {
   margin-top: 45px;
-  width: 215px;
+  min-width: 215px;
+  min-height: 651px;
   background-color: #35363a;
 
   .page-side-menu {
@@ -118,9 +119,9 @@ export default {
     }
   }
 }
-@media (min-width: 1000px) and (max-width: 1500px) {
-  .page-side-bar {
-    min-height: 699px;
-  }
-}
+// @media (min-width: 1000px) and (max-width: 1500px) {
+//   .page-side-bar {
+//     min-height: 699px;
+//   }
+// }
 </style>

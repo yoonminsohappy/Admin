@@ -172,4 +172,9 @@ export default {
     }
   }
 }
+@media (max-width: 1080px) {
+  .filter-date {
+    display: block;
+  }
+}
 </style>
