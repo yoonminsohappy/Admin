@@ -64,10 +64,10 @@ export default {
   }),
   computed: {},
   methods: {
-    search_list_opener: function() {
+    search_list_opener: function () {
       this.search_list_open = !this.search_list_open;
     },
-    select_contents: function(obj) {
+    select_contents: function (obj) {
       this.selected_photo = obj.profile_image;
       this.selected_id = obj.seller_property_id;
       this.selected_name = obj.korean_name;
@@ -75,14 +75,13 @@ export default {
       this.$emit("selected_name", obj.korean_name);
       this.search_list_open = false;
     },
-    search_text_inputer: function(e) {
+    search_text_inputer: function (e) {
       let query = e.target.value;
 
       axios
         .get(`${config}products/sellers?q=${query}`, {
           headers: {
-            Authorization:
-              "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",
+            Authorization: localStorage.getItem("access_token"),
           },
         })
         .then((res) => (this.datas = res.data));
@@ -91,7 +90,7 @@ export default {
       //   .get(`public/mockdata/${query}.json`)
       //   .then((res) => (this.datas = res.data));
     },
-    search_reseter: function() {
+    search_reseter: function () {
       this.selected_photo = "";
       this.selected_id = "";
       this.selected_name = "Select...";

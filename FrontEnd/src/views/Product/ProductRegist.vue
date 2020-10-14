@@ -109,97 +109,97 @@ export default {
   computed: {},
 
   methods: {
-    input_sale_price: function(num) {
+    input_sale_price: function (num) {
       this.result.body.detail.sale_price = num;
     },
-    seller_id_changer: function(num) {
+    seller_id_changer: function (num) {
       this.result.body.product.seller_id = num;
     },
-    input_discount_rate: function(num) {
+    input_discount_rate: function (num) {
       this.result.body.detail.discount_rate = num;
     },
-    input_minimum_sale_amount: function(num) {
+    input_minimum_sale_amount: function (num) {
       this.result.body.detail.minimum_sale_amount = Number(num);
     },
-    input_maximum_sale_amount: function(num) {
+    input_maximum_sale_amount: function (num) {
       this.result.body.detail.maximum_sale_amount = Number(num);
     },
-    input_discount_started_at: function(str) {
+    input_discount_started_at: function (str) {
       this.result.body.detail.discount_started_at =
         str.slice(0, 10) + ` ` + str.slice(11, 19);
     },
-    input_discount_ended_at: function(str) {
+    input_discount_ended_at: function (str) {
       this.result.body.detail.discount_ended_at =
         str.slice(0, 10) + ` ` + str.slice(11, 19);
     },
-    input_option: function(arr) {
+    input_option: function (arr) {
       this.result.body.options = arr;
     },
-    modify_color_result_list: function(obj) {
+    modify_color_result_list: function (obj) {
       this.$set(this.result.body.options[obj.idx], "color_id", obj.id);
     },
-    modify_size_result_list: function(obj) {
+    modify_size_result_list: function (obj) {
       this.$set(this.result.body.options[obj.idx], "size_id", obj.id);
     },
-    sold_selecter: function(num) {
+    sold_selecter: function (num) {
       this.result.body.detail.is_sold = num;
     },
-    display_selecter: function(num) {
+    display_selecter: function (num) {
       this.result.body.detail.is_displayed = num;
     },
-    first_category_number_changer: function(num) {
+    first_category_number_changer: function (num) {
       this.result.body.product.first_category_id = num;
     },
-    second_category_number_changer: function(num) {
+    second_category_number_changer: function (num) {
       this.result.body.product.second_category_id = Number(num);
     },
-    reference_close: function() {
+    reference_close: function () {
       this.result.body.detail.origin_company = null;
       this.result.body.detail.origin_date = null;
       this.result.body.detail.country_of_origin_id = null;
     },
-    origin_company_changer: function(str) {
+    origin_company_changer: function (str) {
       this.result.body.detail.origin_company = str;
     },
-    origin_date_changer: function(str) {
+    origin_date_changer: function (str) {
       if (str === null) {
         this.result.body.detail.origin_date = str;
       } else {
         this.result.body.detail.origin_date = str.slice(0, 10);
       }
     },
-    origin_contry_code_changer: function(str) {
+    origin_contry_code_changer: function (str) {
       this.result.body.detail.country_of_origin_id = str;
     },
-    product_name_changer: function(str) {
+    product_name_changer: function (str) {
       this.result.body.detail.name = str;
     },
-    simple_description_changer: function(str) {
+    simple_description_changer: function (str) {
       this.result.body.detail.simple_description = str;
     },
-    input_image_1: function(obj) {
+    input_image_1: function (obj) {
       this.result.image_1 = obj;
     },
-    input_image_2: function(obj) {
+    input_image_2: function (obj) {
       this.result.image_2 = obj;
     },
-    input_image_3: function(obj) {
+    input_image_3: function (obj) {
       this.result.image_3 = obj;
     },
-    input_image_4: function(obj) {
+    input_image_4: function (obj) {
       this.result.image_4 = obj;
     },
-    input_image_5: function(obj) {
+    input_image_5: function (obj) {
       this.result.image_5 = obj;
     },
-    input_html: function(str) {
+    input_html: function (str) {
       this.result.body.detail.description = str;
     },
-    modify_stock: function(arr) {
+    modify_stock: function (arr) {
       this.result.body.options = arr;
     },
 
-    submit: function() {
+    submit: function () {
       const form_data = new FormData();
       form_data.append("image_1", this.result.image_1);
       form_data.append("image_2", this.result.image_2);
@@ -212,8 +212,7 @@ export default {
         .post(`${config}products`, form_data, {
           header: {
             "content-Type": "mutipart/from-data",
-            Authorization:
-              "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzZWxsZXJfaWQiOjZ9.SqTObcp7y-egRLgBfaoqNbWw0wl9p2LucRbSe29P7_I",
+            Authorization: localStorage.getItem("access_token"),
           },
         })
         .then((res) => console.log(res))
