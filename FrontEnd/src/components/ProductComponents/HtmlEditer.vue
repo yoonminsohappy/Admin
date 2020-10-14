@@ -59,6 +59,10 @@ export default {
     height: 100%;
   }
 
+  .red-explain {
+    color: #ff0000;
+  }
+
   input,
   button {
     &:focus {

@@ -215,8 +215,14 @@ export default {
             Authorization: localStorage.getItem("access_token"),
           },
         })
-        .then((res) => console.log(res))
-        .catch((err) => console.log(err));
+        .then((res) => {
+          if (res.status === 200) {
+            alert("성공적으로 등록되었습니다.");
+          }
+        })
+        .catch((error) => {
+          alert("등록에 실패하였습니다.");
+        });
     },
   },
 };
@@ -224,9 +230,9 @@ export default {
 
 <style lang="scss" scoped>
 .product-regist {
-  background-color: #fafafa;
+  white-space: nowrap;
   padding-top: 45px;
-
+  background-color: #fafafa;
   .home-icon {
     position: relative;
     top: -1px;
