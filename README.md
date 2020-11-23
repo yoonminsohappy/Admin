@@ -9,7 +9,7 @@ DB 커넥션 생성 및 종료, SQL 작성, 예외에 따른 트랜잭션 처리
 [프론트엔드]
 Vue 로 전체적인 작업을 진행하였습니다. 
 
-## 백엔드
+## [백엔드]
 
 ### 모델링 (공통)
 URL : https://aquerytool.com:443/aquerymain/index/?rurl=928d796a-adf1-4ced-b51a-7400d5e8aec3&
@@ -33,7 +33,7 @@ Password : vm0irt
 - PyMySQL을 이용하여 데이터베이스 커넥션 관리부터 SQL 사용까지 모두 직접했습니다!
 - AWS EC2 서버를 통해 배포하였습니다.
 
-## 프론트엔드
+## [프론트엔드]
 
 ### 초기세팅 
 - Webpack 으로 초기세팅을 진행하였습니다.
