@@ -47,6 +47,7 @@ Password : vm0irt
 - API 서버 통신
 
 ### 상품 관리
+-상품 등록 및 수정 페이지 구현
 
 ### 주문 취소 / 환불 관리
 - side nav bar 구현
